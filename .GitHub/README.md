@@ -37,7 +37,7 @@ CrytoTool is compliant with the protocol and respects all the principles include
 *   **Timed One-Time Keys**: Generate temporary, time-limited keys to grant secure, short-term decryption access to a specific file.
 
 **Advanced Access Recovery**
-*   **Offline-First Recovery**: Regain access to your account without needing an internet connection.
+*   **Offline-First Recovery**: Regain access without needing an internet connection.
 *   **Recovery Codes**: Generate a set of 10 single-use codes to reset your Master Password in an emergency.
 *   **Reset Token**: Create a unique, persistent token for password recovery, which can be regenerated at any time.
 
