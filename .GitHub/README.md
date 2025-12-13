@@ -26,24 +26,38 @@ CrytoTool is compliant with the protocol and respects all the principles include
 
 ### Key Features
 
-**Advanced Security & Privacy**
--   **Strong Master Password:** Secure your entire vault with a master password (minimum 30 characters).
--   **Encrypted Backups:** Create fully encrypted backups protected by a unique, separate encryption key.
--   **Critical Settings Password:** Add an optional, second password to protect access to sensitive settings.
--   **Progressive Lockout:** The app automatically locks for increasing durations after multiple failed password attempts.
--   **Self-Destruct Mechanism:** Optionally configure the app to automatically and securely wipe all data after a set number of failed attempts.
--   **Access Recovery:** Regain access to your vault if you lose your master password using either 10 single-use recovery codes or a unique, one-time reset token.
--   **Auto-Lock & Visual Obfuscation:** The app can automatically lock and blur the screen after a period of inactivity.
+## Core Features
+*   **Robust Master Password**: Enforces a strong, 30-character minimum master password to secure the entire application.
+*   **Two-Factor Authentication (2FA)**: Add an extra layer of security to your login using any standard TOTP authenticator app.
+*   **Brute-Force Protection**: The login screen features progressive lockout, while the optional Self-Destruct mechanism can be configured to wipe all app data after a set number of incorrect password attempts.
+*   **Critical Settings Password**: An optional, secondary password to protect the Settings page from unauthorized changes.
+*   **Secure Data Shredder**: When enabled, permanently overwrites data on deletion to make it unrecoverable.
+*   **Encryption Key Vault**: Securely save and manage your file encryption keys in a separate, PIN-protected vault, featuring progressive lockout and a blacklist of common, weak PINs.
+*   **Elite Encryption Suite**: Encrypt individual files with your choice of modern algorithms: **AES-GCM**, **AES-CTR**, **XChaCha20-Poly1305**, **ChaCha20-Poly1305**, and **Salsa20-Poly1305**.
+*   **Timed One-Time Keys**: Generate temporary, time-limited keys to grant secure, short-term decryption access to a specific file.
 
-**Effortless Code Management**
--   **Add Codes Easily:** Add new 2FA accounts by entering details manually or by scanning a QR code from an image in your gallery.
--   **Powerful Search:** Instantly find any code by searching for its issuer or account name.
--   **Safe Deletion:** Move codes to a Trash area, from where you can restore them or delete them permanently.
+### Advanced Access Recovery
+*   **Offline-First Recovery**: Regain access to your account without needing an internet connection.
+*   **Recovery Codes**: Generate a set of 10 single-use codes to reset your Master Password in an emergency.
+*   **Reset Token**: Create a unique, persistent token for password recovery, which can be regenerated at any time.
 
-**Deep Customization**
--   **Theme Gallery & Accent Colors:** Personalize the app's appearance with a rich theme gallery and a custom accent color picker.
--   **Multi-Language Support:** The interface is available in over 20 languages to provide a native experience for people worldwide.
----
+### File Management & Organization
+*   **Complete File Operations**: Securely browse, select, copy, move, rename, download, and delete your files and folders.
+*   **Dedicated Views**: Instantly access your media with dedicated sections for your **Gallery**, **Music** library, and **Documents**.
+*   **Smart Special Folders**: Quick access to the **Vault**, **Backup & Restore**, and your **Journal** directly from the root directory.
+*   **Advanced Search**: Instantly find files and folders by name or by custom-colored tags.
+*   **Storage Management**: Visualize your on-device storage usage with a clear breakdown by file category.
+*   **Smart Trash**: Deleted files are moved to a trash bin for 30 days before permanent deletion, giving you a safety net to recover them.
+*   **AI Assistant**: Ask questions and get help about the app's features and security principles.
+
+### Deep Customization
+*   **Global Accent Color**: Personalize the entire application's look and feel with a custom accent color, selectable from a full-spectrum color picker.
+*   **Multilingual Support**: Choose from over 20 interface languages.
+*   **Advanced Folder & File Customization**:
+    *   Set a unique background color for any folder.
+    *   Choose from over 1,300 built-in icons or upload your own custom image to represent a file or folder.
+    *   Organize with custom-colored tags.
+*   **View Options**: Choose to hide file and folder names globally for a cleaner, icon-only interface.
 
 ### Documentation
 
