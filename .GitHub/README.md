@@ -11,7 +11,7 @@
 
 ---
 
-TwoAuth respects the people behind the screen. It's a 2FA app built on a simple, radical idea: no tracking, no ads, no data collection. Using a 100% client-side architecture and strong end-to-end encryption (AES-GCM), your sensitive data is protected and never leaves your device.
+CrytoTool respects the people behind the screen. It's a four-in-one file manager, gallery, music player, and document viewer built on a simple, radical idea: no tracking, no ads, no data collection. Using a 100% client-side architecture and strong, modern end-to-end encryption (**AES-GCM**, **AES-CTR**, **XChaCha20-Poly1305**, **ChaCha20-Poly1305**, and **Salsa20-Poly1305**), your files are protected and never leave your device.
 
 CrytoTool is compliant with the protocol and respects all the principles included in it: [protocol-3305](https://github.com/ObscuritySecurity/protocol-3305)
 
