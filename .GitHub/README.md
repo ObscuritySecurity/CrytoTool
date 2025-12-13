@@ -24,7 +24,7 @@ Your files are protected and never leave your device.
 
 CrytoTool is compliant with the protocol and respects all the principles included in it: [protocol-3305](https://github.com/ObscuritySecurity/protocol-3305)
 
-# Key Features
+### Key Features
 
 ## Advanced Security & Privacy
 *   **Robust Master Password**: Enforces a strong, 30-character minimum master password to secure the entire application.
