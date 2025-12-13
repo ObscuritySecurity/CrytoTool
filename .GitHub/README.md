@@ -24,9 +24,9 @@ Your files are protected and never leave your device.
 
 CrytoTool is compliant with the protocol and respects all the principles included in it: [protocol-3305](https://github.com/ObscuritySecurity/protocol-3305)
 
-### Key Features
+# Key Features
 
-# Advanced Security & Privacy
+## Advanced Security & Privacy
 *   **Robust Master Password**: Enforces a strong, 30-character minimum master password to secure the entire application.
 *   **Two-Factor Authentication (2FA)**: Add an extra layer of security to your login using any standard TOTP authenticator app.
 *   **Brute-Force Protection**: The login screen features progressive lockout, while the optional Self-Destruct mechanism can be configured to wipe all app data after a set number of incorrect password attempts.
