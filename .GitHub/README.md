@@ -1,6 +1,6 @@
 <div align="center">
   <h1>CrytoTool</h1>
-  <strong>Your Keys, Your Fortress. The Privacy-First 2FA Authenticator.</strong>
+  <strong>All-In-One Privacy.</strong>
 </div>
 
 <p align="center">
