@@ -44,7 +44,7 @@ CrytoTool is compliant with the protocol and respects all the principles include
 **File Management & Organization**
 *   **Complete File Operations**: Securely browse, select, copy, move, rename, download, and delete your files and folders.
 *   **Dedicated Views**: Instantly access your media with dedicated sections for your **Gallery**, **Music** library, and **Documents**.
-*   **Smart Special Folders**: Quick access to the **Vault**, **Backup & Restore**, and your **Journal** directly from the root directory.
+*   **Smart Special Folders**: Quick access to the **Vault**, **Backup & Restore**, 
 *   **Advanced Search**: Instantly find files and folders by name or by custom-colored tags.
 *   **Storage Management**: Visualize your on-device storage usage with a clear breakdown by file category.
 *   **Smart Trash**: Deleted files are moved to a trash bin for 30 days before permanent deletion, giving you a safety net to recover them.
