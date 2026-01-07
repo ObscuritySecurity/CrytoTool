@@ -1,14 +1,28 @@
+<!-- ====================  LOGO + TITLE + SLOGAN  ==================== -->
 <div align="center">
-  <h1>CrytoTool</h1>
-  <strong>All-In-One Privacy.</strong>
+  <!-- Responsive logo -->
+  <img
+    src="https://raw.githubusercontent.com/ObscuritySecurity/TwoAuth/main/Assets/logo/TwoAuth_logo.png"
+    alt="TwoAuth logo"
+    style="
+      max-width: 250px;   /* limit size on large screens */
+      width: 80%;          /* shrink on narrow viewports */
+      height: auto;        /* keep aspect ratio */
+      border-radius: 8px;  /* optional rounded corners */
+    "
+  />
+
+  <!-- Application name -->
+  <h2 style="margin-top: 0.5rem; margin-bottom: 0.2rem;">TwoAuth</h2>
+
+  <!-- Slogan -->
+  <p style="font-size: 0.95rem; color:#555;">
+    <strong>Your Keys, Your control.</strong> 
+    
+  </p>
 </div>
-
-<p align="center">
-  <a href="https://opensource.org/licenses/Apache-2.0">
-    <img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=for-the-badge" alt="License: Apache 2.0">
-  </a>
-</p>
-
+<!-- ================================================================= -->
+  
 ---
 
 CrytoTool respects the people behind the screen. It's a four-in-one file manager, gallery, music player, and document viewer built on a simple, radical idea: no tracking, no ads, no data collection. Using a 100% client-side architecture and strong, modern end-to-end encryption, your data is always protected.
