@@ -22,6 +22,26 @@
   </p>
 </div>
 <!-- ================================================================= -->
+
+
+<p align="center">
+  <!-- License -->
+  <a href="https://github.com/ObscuritySecurity/CrytoTool/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/ObscuritySecurity/CrytoTool.svg?style=for-the-badge" alt="License">
+  </a>
+
+  <!-- Last commit -->
+  <a href="https://github.com/ObscuritySecurity/CrytoTool/commits/main">
+    <img src="https://img.shields.io/github/last-commit/ObscuritySecurity/CrytoTool.svg?style=for-the-badge" alt="Last commit">
+  </a>
+
+
+  <!-- Beta status -->
+  <img src="https://img.shields.io/badge/Status-Beta-yellow?style=for-the-badge&logo=beta" alt="Project status">
+
+  <!-- Data sensitivity – CRITICAL -->
+  <img src="https://img.shields.io/badge/Data%20Sensitivity-Critical-red?style=for-the-badge&logo=shield" alt="Data Sensitivity">
+  
   
 ---
 
