@@ -46,6 +46,52 @@
   <!-- Data sensitivity – CRITICAL -->
   <img src="https://img.shields.io/badge/Data%20Sensitivity-Critical-red?style=for-the-badge&logo=shield" alt="Data Sensitivity">
   
+
+
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://raw.githubusercontent.com/ObscuritySecurity/CrytoTool/main/Assets/screenshots/login.jpg">
+        <img src="https://raw.githubusercontent.com/ObscuritySecurity/CrytoTool/main/Assets/screenshots/login.jpg" alt="Login — Master Password" width="320"/>
+      </a>
+      <br/><sub><i>Login — Master Password</i></sub>
+    </td>
+    <td align="center">
+      <a href="https://raw.githubusercontent.com/ObscuritySecurity/CrytoTool/main/Assets/screenshots/Files.jpg">
+        <img src="https://raw.githubusercontent.com/ObscuritySecurity/CrytoTool/main/Assets/screenshots/Files.jpg" alt="page files — backup and Vault / OTPs" width="320"/>
+      </a>
+      <br/><sub><i>page files — backup and Vault  </i></sub>
+    </td>
+    <td align="center">
+      <a href="https://raw.githubusercontent.com/ObscuritySecurity/CrytoTool/main/Assets/screenshots/Gallery.jpg">
+        <img src="https://raw.githubusercontent.com/ObscuritySecurity/CrytoTool/main/Assets/screenshots/Gallery.jpg" alt="Add New Code — Manual entry" width="320"/>
+      </a>
+      <br/><sub><i>page Gallery -and tools </i></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="https://raw.githubusercontent.com/ObscuritySecurity/TwoAuth/main/Assets/screenshots/Backup.jpg">
+        <img src="https://raw.githubusercontent.com/ObscuritySecurity/TwoAuth/main/Assets/screenshots/Backup.jpg" alt="Backup — Export encryption key" width="320"/>
+      </a>
+      <br/><sub><i>Backup — Export encryption key</i></sub>
+    </td>
+    <td align="center">
+      <a href="https://raw.githubusercontent.com/ObscuritySecurity/TwoAuth/main/Assets/screenshots/Gallery.jpg">
+        <img src="https://raw.githubusercontent.com/ObscuritySecurity/TwoAuth/main/Assets/screenshots/Gallery.jpg" alt="Gallery / Themes — Appearance options" width="320"/>
+      </a>
+      <br/><sub><i>Gallery / Themes — Appearance options</i></sub>
+    </td>
+    <td align="center">
+      <a href="https://raw.githubusercontent.com/ObscuritySecurity/TwoAuth/main/Assets/screenshots/Trash.jpg">
+        <img src="https://raw.githubusercontent.com/ObscuritySecurity/TwoAuth/main/Assets/screenshots/Trash.jpg" alt="Restore / Delete — Manage backups and accounts" width="320"/>
+      </a>
+      <br/><sub><i>Restore / Delete accounts</i></sub>
+    </td>
+  </tr>
+</table>
+
   
 ---
 
