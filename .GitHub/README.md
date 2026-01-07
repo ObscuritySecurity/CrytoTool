@@ -2,8 +2,8 @@
 <div align="center">
   <!-- Responsive logo -->
   <img
-    src="https://raw.githubusercontent.com/ObscuritySecurity/TwoAuth/main/Assets/logo/TwoAuth_logo.png"
-    alt="TwoAuth logo"
+    src="https://raw.githubusercontent.com/ObscuritySecurity/CrytoTool/main/Assets/logo/logo_CrytoTool.png"
+    alt="CrytoTool logo"
     style="
       max-width: 250px;   /* limit size on large screens */
       width: 80%;          /* shrink on narrow viewports */
@@ -13,11 +13,11 @@
   />
 
   <!-- Application name -->
-  <h2 style="margin-top: 0.5rem; margin-bottom: 0.2rem;">TwoAuth</h2>
+  <h2 style="margin-top: 0.5rem; margin-bottom: 0.2rem;">CrytoTool</h2>
 
   <!-- Slogan -->
   <p style="font-size: 0.95rem; color:#555;">
-    <strong>Your Keys, Your control.</strong> 
+    <strong>All-in-One Privacy.</strong> 
     
   </p>
 </div>
