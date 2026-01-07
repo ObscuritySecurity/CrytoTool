@@ -24,6 +24,10 @@
 <!-- ================================================================= -->
 
 
+
+
+---
+
 <p align="center">
   <!-- License -->
   <a href="https://github.com/ObscuritySecurity/CrytoTool/blob/main/LICENSE">
