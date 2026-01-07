@@ -59,35 +59,35 @@
     </td>
     <td align="center">
       <a href="https://raw.githubusercontent.com/ObscuritySecurity/CrytoTool/main/Assets/screenshots/Files.jpg">
-        <img src="https://raw.githubusercontent.com/ObscuritySecurity/CrytoTool/main/Assets/screenshots/Files.jpg" alt="page files — backup and Vault / OTPs" width="320"/>
+        <img src="https://raw.githubusercontent.com/ObscuritySecurity/CrytoTool/main/Assets/screenshots/Files.jpg" alt=" files — backup and Vault / OTPs" width="320"/>
       </a>
-      <br/><sub><i>page files — backup and Vault  </i></sub>
+      <br/><sub><i> files — backup and Vault  </i></sub>
     </td>
     <td align="center">
       <a href="https://raw.githubusercontent.com/ObscuritySecurity/CrytoTool/main/Assets/screenshots/Gallery.jpg">
-        <img src="https://raw.githubusercontent.com/ObscuritySecurity/CrytoTool/main/Assets/screenshots/Gallery.jpg" alt="Add New Code — Manual entry" width="320"/>
+        <img src="https://raw.githubusercontent.com/ObscuritySecurity/CrytoTool/main/Assets/screenshots/Gallery.jpg" alt=" Gallery -and tools" width="320"/>
       </a>
-      <br/><sub><i>page Gallery -and tools </i></sub>
+      <br/><sub><i> Gallery -and tools </i></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="https://raw.githubusercontent.com/ObscuritySecurity/TwoAuth/main/Assets/screenshots/Backup.jpg">
-        <img src="https://raw.githubusercontent.com/ObscuritySecurity/TwoAuth/main/Assets/screenshots/Backup.jpg" alt="Backup — Export encryption key" width="320"/>
+      <a href="https://raw.githubusercontent.com/ObscuritySecurity/CrytoTool/main/Assets/screenshots/Miusic.jpg">
+        <img src="https://raw.githubusercontent.com/ObscuritySecurity/CrytoTool/main/Assets/screenshots/Miusic.jpg" alt="Miusic - and player media  key" width="320"/>
       </a>
-      <br/><sub><i>Backup — Export encryption key</i></sub>
+      <br/><sub><i> Miusic - and player media  </i></sub>
     </td>
     <td align="center">
-      <a href="https://raw.githubusercontent.com/ObscuritySecurity/TwoAuth/main/Assets/screenshots/Gallery.jpg">
-        <img src="https://raw.githubusercontent.com/ObscuritySecurity/TwoAuth/main/Assets/screenshots/Gallery.jpg" alt="Gallery / Themes — Appearance options" width="320"/>
+      <a href="https://raw.githubusercontent.com/ObscuritySecurity/CrytoTool/main/Assets/screenshots/Select.jpg">
+        <img src="https://raw.githubusercontent.com/ObscuritySecurity/CrytoTool/main/Assets/screenshots/Select.jpg" alt="select - algorithms and encryption" width="320"/>
       </a>
-      <br/><sub><i>Gallery / Themes — Appearance options</i></sub>
+      <br/><sub><i> select - algorithms and encryption </i></sub>
     </td>
     <td align="center">
-      <a href="https://raw.githubusercontent.com/ObscuritySecurity/TwoAuth/main/Assets/screenshots/Trash.jpg">
-        <img src="https://raw.githubusercontent.com/ObscuritySecurity/TwoAuth/main/Assets/screenshots/Trash.jpg" alt="Restore / Delete — Manage backups and accounts" width="320"/>
+      <a href="https://raw.githubusercontent.com/ObscuritySecurity/CrytoTool/main/Assets/screenshots/Key.jpg">
+        <img src="https://raw.githubusercontent.com/ObscuritySecurity/CrytoTool/main/Assets/screenshots/Key.jpg" alt="key - Unique and saves in Vault" width="320"/>
       </a>
-      <br/><sub><i>Restore / Delete accounts</i></sub>
+      <br/><sub><i>key - Unique and saves in Vault </i></sub>
     </td>
   </tr>
 </table>
