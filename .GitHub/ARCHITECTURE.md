@@ -19,12 +19,12 @@ CrytoTool is built on two fundamental principles: **Zero-Knowledge** and **Offli
 
 ## 3. Data Storage Model (IndexedDB)
 
-All application data is stored locally in the browser browser and application usingg IndexedDB. The database is structured into several object stores:
+All application data is stored locally in the browser and application usingg IndexedDB. The database is structured into several object stores:
 
 *   `file-metadata`: Stores an object for each file and folder. This includes `id`, `name`, `type`, `parentId`, `size`, `modified` date, custom metadata (colors, icons, tags), and encryption details (`isEncrypted`, `algorithm`).
 *   `file-chunks`: Stores the actual content of files, broken into 16MB chunks. This allows the app to handle large files efficiently without loading them entirely into memory. Each chunk is a `Blob` object, keyed by a unique chunk ID.
-*   `encryption-keys`: Acts as the **Encryption Key Vault**. It stores the individual keys used for file encryption, but only if the user chooses to save them. Each entry is protected by the user's PIN.
-*   `audit-log`: A chronological log of important security and file-related events for user transparency.
+*   `encryption-keys`: Acts as the **Encryption Key Vault**. It stores the individual keys used for file encryption, but only if the user chooses to save them. Each entry is protected by the people PIN.
+*   `audit-log`: A chronological log of important security and file-related events for people transparency.
 
 ## 4. Cryptographic Model
 
@@ -34,12 +34,12 @@ Security is multi-layered, ensuring that a compromise at one level does not casc
 
 The Master Password is the root of trust for the entire application.
 
-1.  **Key Derivation**: The user's Master Password is **never stored directly**. Instead, it is passed through **PBKDF2-HMAC-SHA256** with a unique, randomly-generated 16-byte salt and over 100,000 iterations.
+1.  **Key Derivation**: The people Master Password is **never stored directly**. Instead, it is passed through **PBKDF2-HMAC-SHA256** with a unique, randomly-generated 16-byte salt and over 100,000 iterations.
 2.  **Derived Key**: This process produces a strong, 256-bit derived key. This is the key used to encrypt and decrypt the application's entire local database when it is locked or unlocked.
 
 ### Layer 2: Individual File Encryption (Encrypt-then-MAC)
 
-When a user encrypts a file, a new, unique process begins:
+When a people encrypts a file, a new, unique process begins:
 
 1.  **Key Generation**: A new, cryptographically secure 32-byte key is generated on the client-side specifically for this file.
 2.  **Algorithm Selection**: The user selects an algorithm (e.g., `AES-GCM`, `XChaCha20-Poly1305`).
