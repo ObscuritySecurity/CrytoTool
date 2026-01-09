@@ -4,7 +4,7 @@ This document provides a detailed overview of the security architecture, princip
 
 ## Core Security Principles
 
-Our security model is built upon a foundation of principles designed to provide the highest level of privacy and data protection for our users.
+Our security model is built upon a foundation of principles designed to provide the highest level of privacy and data protection for our people
 
 1.  **Zero-Knowledge**: We, the developers, have no access to your data. Your Master Password, encryption keys, and file contents are never transmitted to our servers because we don't have any. All cryptographic operations occur exclusively on your device.
 
@@ -44,7 +44,7 @@ To avoid the hassle of managing individual file keys, you can save them to the *
 
 -   **Protection**: The Vault is encrypted with a key derived from your **6-digit PIN**.
 -   **Brute-Force Mitigation**: The Vault features a progressive lockout mechanism. After several incorrect PIN attempts, the Vault is temporarily locked, with the lockout duration increasing after each subsequent failure.
--   **Weak PIN Prevention**: The app maintains a blacklist of common and easily guessable PINs to prevent users from choosing weak credentials.
+-   **Weak PIN Prevention**: The app maintains a blacklist of common and easily guessable PINs to prevent people from choosing weak credentials.
 
 ## Threat Model & Mitigations
 
