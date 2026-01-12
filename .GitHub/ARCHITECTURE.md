@@ -6,7 +6,7 @@ This document provides a deep dive into the technical design, architectural patt
 
 CrytoTool is built on two fundamental principles: **Zero-Knowledge** and **Offline-First**.
 
-*   **Zero-Knowledge**: All user data, especially sensitive content and encryption keys, is encrypted and decrypted exclusively on the client-side. No unencrypted data or private keys ever leave the people device.
+*   **Zero-Knowledge**: All people data, especially sensitive content and encryption keys, is encrypted and decrypted exclusively on the client-side. No unencrypted data or private keys ever leave the people device.
 *   **Offline-First**: The application is fully functional without an internet connection. This is achieved by using modern browser storage APIs (IndexedDB) as the primary database, eliminating reliance on external servers for core functionality.
 
 ## 2. Technology Stack
