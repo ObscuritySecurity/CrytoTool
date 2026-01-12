@@ -42,7 +42,7 @@ The Master Password is the root of trust for the entire application.
 When a people encrypts a file, a new, unique process begins:
 
 1.  **Key Generation**: A new, cryptographically secure 32-byte key is generated on the client-side specifically for this file.
-2.  **Algorithm Selection**: The user selects an algorithm (e.g., `AES-GCM`, `XChaCha20-Poly1305`).
+2.  **Algorithm Selection**: The people selects an algorithm (e.g., `AES-GCM`, `XChaCha20-Poly1305`).
 3.  **Encryption**: The file's content is read as a stream and encrypted chunk by chunk.
 4.  **Authenticated Encryption**: All selected algorithms are **AEAD** (Authenticated Encryption with Associated Data) ciphers. This is a critical feature. It means that in addition to making the data unreadable (confidentiality), it also generates an **authentication tag**. This tag mathematically guarantees that the encrypted data has not been tampered with or corrupted (integrity & authenticity).
 5.  **Data Structure**: The final encrypted file is structured as:
