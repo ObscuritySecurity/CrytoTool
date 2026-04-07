@@ -27,13 +27,25 @@ class BackupEncryptionService {
     generatePassphrase(): string {
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
         let result = '';
-        const randomValues = new Uint8Array(26);
-        window.crypto.getRandomValues(randomValues);
-        
-        for (let i = 0; i < 26; i++) {
-            result += chars[randomValues[i] % chars.length];
-            if ((i + 1) % 4 === 0 && i !== 25) result += '-';
+        const targetLength = 26;
+        const alphabetLength = chars.length;
+        const maxUnbiased = Math.floor(256 / alphabetLength) * alphabetLength;
+        let generated = 0;
+
+        while (generated < targetLength) {
+            const randomValues = new Uint8Array(32);
+            window.crypto.getRandomValues(randomValues);
+
+            for (let j = 0; j < randomValues.length && generated < targetLength; j++) {
+                const value = randomValues[j];
+                if (value >= maxUnbiased) continue;
+
+                result += chars[value % alphabetLength];
+                generated++;
+                if (generated % 4 === 0 && generated !== targetLength) result += '-';
+            }
         }
+
         return result;
     }
 
