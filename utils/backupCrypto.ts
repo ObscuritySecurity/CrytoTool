@@ -54,7 +54,7 @@ class BackupEncryptionService {
         return await window.crypto.subtle.deriveKey(
             {
                 name: 'PBKDF2',
-                salt: salt.buffer.slice(salt.byteOffset, salt.byteOffset + salt.byteLength) as ArrayBuffer,
+                salt: salt,
                 iterations: PBKDF2_ITERATIONS,
                 hash: 'SHA-256'
             },
