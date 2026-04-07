@@ -2,15 +2,15 @@
 /**
  * BACKUP CRYPTO SERVICE
  * 
- * Acest fișier conține exclusiv logica criptografică pentru sistemul de backup.
- * Este izolat pentru a facilita auditul de securitate.
+ * This file contains exclusively the cryptographic logic for the backup system.
+ * It is isolated to facilitate security auditing.
  * 
- * Algoritmi folosiți:
- * - Derivare cheie: PBKDF2-SHA256 (100,000 iterații, salt 16 bytes)
- * - Criptare: AES-256-GCM (Authenticated Encryption)
- * - Entropie Passphrase: 26 caractere Base32-like generate criptografic (130 biți)
+ * Algorithms used:
+ * - Key Derivation: PBKDF2-SHA256 (100,000 iterations, salt 16 bytes)
+ * - Encryption: AES-256-GCM (Authenticated Encryption)
+ * - Passphrase Entropy: 26 cryptographically generated Base32-like characters (130 bits)
  * 
- * Format fișier backup:
+ * Backup file format:
  * [salt (16 bytes)] + [IV (12 bytes)] + [AES-GCM ciphertext + 16-byte GCM tag]
  */
 
@@ -20,9 +20,9 @@ const SALT_LENGTH = 16;
 class BackupEncryptionService {
     
     /**
-     * Generează o cheie aleatorie citibilă pentru backup (ex: "X9F2-KLP0-...")
-     * Folosește window.crypto.getRandomValues pentru entropie sigură.
-     * 26 caractere × 5 biți = 130 biți entropie.
+     * Generates a readable random key for backup (e.g., "X9F2-KLP0-...")
+     * Uses window.crypto.getRandomValues for secure entropy.
+     * 26 characters × 5 bits = 130 bits entropy.
      */
     generatePassphrase(): string {
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -38,8 +38,8 @@ class BackupEncryptionService {
     }
 
     /**
-     * Derivă cheie AES-256 din passphrase folosind PBKDF2-SHA256.
-     * 100,000 iterații + salt aleatoriu de 16 bytes.
+     * Derives AES-256 key from passphrase using PBKDF2-SHA256.
+     * 100,000 iterations + 16 bytes random salt.
      */
     private async keyFromPassphrase(passphrase: string, salt: Uint8Array): Promise<CryptoKey> {
         const encoder = new TextEncoder();
@@ -66,13 +66,13 @@ class BackupEncryptionService {
     }
 
     /**
-     * Criptează întregul JSON de backup.
+     * Encrypts the entire backup JSON.
      * Protocol:
-     * 1. Generează salt aleatoriu (16 bytes)
-     * 2. Derivă cheie AES-256 cu PBKDF2 (100k iterații)
-     * 3. Generează IV unic (12 bytes)
-     * 4. Criptează cu AES-GCM
-     * 5. Concatenează: salt + IV + ciphertext
+     * 1. Generate random salt (16 bytes)
+     * 2. Derive AES-256 key with PBKDF2 (100k iterations)
+     * 3. Generate unique IV (12 bytes)
+     * 4. Encrypt with AES-GCM
+     * 5. Concatenate: salt + IV + ciphertext
      */
     async encryptBackup(jsonString: string, passphrase: string): Promise<Blob> {
         const salt = window.crypto.getRandomValues(new Uint8Array(SALT_LENGTH));
@@ -97,8 +97,8 @@ class BackupEncryptionService {
     }
 
     /**
-     * Decriptează fișierul de backup.
-     * Extrage salt-ul, derivă cheia cu PBKDF2, apoi decriptează.
+     * Decrypts the backup file.
+     * Extracts salt, derives key with PBKDF2, then decrypts.
      */
     async decryptBackup(backupBlob: Blob, passphrase: string): Promise<string> {
         const arrayBuffer = await backupBlob.arrayBuffer();
