@@ -1,9 +1,9 @@
 [package]
 name = "crytotool"
-version = "1.0.0"
+version = "2.5.0"
 description = "Secure Crypto Vault"
 authors = ["ObscuritySecurity"]
-edition = "2021"
+edition = "2026"
 
 [build-dependencies]
 tauri-build = { version = "1.5", features = [] }
