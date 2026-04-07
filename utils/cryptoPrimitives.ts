@@ -8,12 +8,12 @@ import sodium from 'libsodium-wrappers';
  * ==============================================================================
  * CRYPTO PRIMITIVES MODULE
  * ==============================================================================
- * Acest fișier conține implementările pure ale algoritmilor de criptare.
- * Scop: Izolare pentru audit de securitate.
+ * This file contains pure implementations of encryption algorithms.
+ * Purpose: Isolation for security audit.
  * 
- * Dependențe: 
- * - Web Crypto API (Nativ) pentru AES
- * - Libsodium (WASM) pentru ChaCha20/Poly1305 și Salsa20
+ * Dependencies: 
+ * - Web Crypto API (Native) for AES
+ * - Libsodium (WASM) for ChaCha20/Poly1305 and Salsa20
  */
 
 // Ensure sodium is loaded before direct calls.
@@ -27,8 +27,8 @@ function toBufferSource(arr: Uint8Array): BufferSource {
 /**
  * 1. AES-GCM (Galois/Counter Mode)
  * Standard: NIST SP 800-38D
- * Securitate: Autentificat (Confidențialitate + Integritate)
- * IV: 12 bytes (96 biți) recomandat
+ * Security: Authenticated (Confidentiality + Integrity)
+ * IV: 12 bytes (96 bits) recommended
  */
 export const aesGcm = {
     encrypt: async (data: Uint8Array, key: Uint8Array, iv: Uint8Array): Promise<Uint8Array> => {
@@ -54,13 +54,13 @@ export const aesGcm = {
 /**
  * 2. AES-CTR (Counter Mode) + HMAC-SHA256 (Encrypt-then-MAC)
  * Standard: NIST SP 800-38A + RFC 2104
- * Securitate: Confidențialitate + Integritate/Autentificare
+ * Security: Confidentiality + Integrity/Authentication
  * IV: 16 bytes (Counter block)
- * Format output: ciphertext || HMAC_TAG (32 bytes)
+ * Output format: ciphertext || HMAC_TAG (32 bytes)
  * 
- * Derivă 2 chei din cheia de 32 bytes prin HKDF-like:
- *   - encryptionKey (32 bytes) pentru AES-CTR
- *   - macKey (32 bytes) pentru HMAC-SHA256
+ * Derives 2 keys from 32-byte key via HKDF-like:
+ *   - encryptionKey (32 bytes) for AES-CTR
+ *   - macKey (32 bytes) for HMAC-SHA256
  */
 
 async function hkdfSha256(ikm: Uint8Array, info: string): Promise<Uint8Array> {
@@ -133,8 +133,8 @@ export const aesCtr = {
 /**
  * 3. ChaCha20-Poly1305 (IETF)
  * Standard: RFC 8439
- * Securitate: Autentificat, Rapid pe mobile (software)
- * IV: 12 bytes (96 biți)
+ * Security: Authenticated, Fast on mobile (software)
+ * IV: 12 bytes (96 bits)
  */
 export const chacha20Poly1305 = {
     encrypt: (data: Uint8Array, key: Uint8Array, iv: Uint8Array): Uint8Array => {
@@ -147,9 +147,9 @@ export const chacha20Poly1305 = {
 
 /**
  * 4. XChaCha20-Poly1305
- * Varianta "Extended Nonce" a lui ChaCha20.
- * Securitate: Elimină riscul de coliziune a IV-ului random.
- * IV: 24 bytes (192 biți)
+ * The "Extended Nonce" variant of ChaCha20.
+ * Security: Eliminates risk of random IV collision.
+ * IV: 24 bytes (192 bits)
  */
 export const xChacha20Poly1305 = {
     encrypt: (data: Uint8Array, key: Uint8Array, iv: Uint8Array): Uint8Array => {
@@ -162,9 +162,9 @@ export const xChacha20Poly1305 = {
 
 /**
  * 5. Salsa20-Poly1305 (XSalsa20)
- * Implementat via `crypto_secretbox` din Libsodium.
- * Este algoritmul original rapid de la DJB.
- * IV: 24 bytes (192 biți)
+ * Implemented via `crypto_secretbox` from Libsodium.
+ * It's DJB's original fast algorithm.
+ * IV: 24 bytes (192 bits)
  */
 export const salsa20Poly1305 = {
     encrypt: (data: Uint8Array, key: Uint8Array, iv: Uint8Array): Uint8Array => {

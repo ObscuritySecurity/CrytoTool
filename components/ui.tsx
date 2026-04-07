@@ -2,7 +2,7 @@
  * CrytoTool Shared UI Components
  * 
  * Standardized, reusable components following the DESIGN_SYSTEM.md guidelines.
- * Importă aceste componente în loc să duplici codul.
+ * Import these components instead of duplicating code.
  */
 
 import React from 'react';
@@ -12,7 +12,7 @@ import { motion } from 'framer-motion';
  * ============================================
  * ICONS
  * ============================================
- * Folosește întotdeauna lucide-react ca sursă principală de iconuri
+ * Always use lucide-react as the primary icon source
  */
 import { 
   X, Check, ArrowLeft, ArrowRight, Loader2, Eye, EyeOff,

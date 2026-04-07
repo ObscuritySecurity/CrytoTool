@@ -4,13 +4,13 @@ import sodium from 'libsodium-wrappers';
 /**
  * STREAMING CRYPTO SERVICE
  * 
- * Criptare în mod streaming — procesează fișierele în bucăți mici (chunk-uri)
- * pentru a nu încărca toată memoria. Ideal pentru dispozitive cu RAM limitat.
+ * Streaming encryption - processes files in small chunks (4MB)
+ * to avoid loading everything into memory. Ideal for devices with limited RAM.
  * 
- * Algoritm: AES-GCM per chunk (4MB)
+ * Algorithm: AES-GCM per chunk (4MB)
  * Format: [HEADER] + [chunk_0] + [chunk_1] + ... + [chunk_N]
  * 
- * Fiecare chunk are propriul IV derivat și propriul GCM tag de autentificare.
+ * Each chunk has its own derived IV and authentication GCM tag.
  */
 
 const CHUNK_SIZE = 4 * 1024 * 1024; // 4MB

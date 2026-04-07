@@ -9,8 +9,8 @@ export const COMMON_PINS = [
 ];
 
 export const validatePin = (pin: string): { valid: boolean; error?: string } => {
-  if (pin.length !== 6) return { valid: false, error: 'PIN-ul trebuie să aibă 6 cifre.' };
-  if (!/^\d+$/.test(pin)) return { valid: false, error: 'PIN-ul trebuie să conțină doar cifre.' };
+  if (pin.length !== 6) return { valid: false, error: 'PIN must have 6 digits.' };
+  if (!/^\d+$/.test(pin)) return { valid: false, error: 'PIN must contain only digits.' };
   if (COMMON_PINS.includes(pin)) return { valid: false, error: 'This PIN is too common. Choose another one.' };
   
   // Check simple sequences (e.g., 123456)
@@ -22,15 +22,15 @@ export const validatePin = (pin: string): { valid: boolean; error?: string } => 
 
 export const getBackoffTime = (failedAttempts: number): number => {
   if (failedAttempts < 3) return 0;
-  if (failedAttempts === 3) return 30; // 30 secunde
-  if (failedAttempts === 4) return 60; // 1 minut
-  if (failedAttempts >= 5) return 300; // 5 minute
+  if (failedAttempts === 3) return 30; // 30 seconds
+  if (failedAttempts === 4) return 60; // 1 minute
+  if (failedAttempts >= 5) return 300; // 5 minutes
   return 0;
 };
 
 /**
- * Hash PIN cu SHA-256 + salt pentru stocare sigură în localStorage.
- * Nu stocăm niciodată PIN-ul în clar.
+ * Hash PIN with SHA-256 + salt for secure storage in localStorage.
+ * We never store the PIN in plain text.
  */
 export async function hashPin(pin: string): Promise<string> {
   const salt = 'crytotool_vault_pin_salt_v1';
@@ -41,7 +41,7 @@ export async function hashPin(pin: string): Promise<string> {
 }
 
 /**
- * Verifică un PIN comparând hash-ul cu cel stocat.
+ * Verify a PIN by comparing the hash with the stored one.
  */
 export async function verifyPin(pin: string, storedHash: string): Promise<boolean> {
   const hash = await hashPin(pin);
