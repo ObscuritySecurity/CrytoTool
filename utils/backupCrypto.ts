@@ -27,13 +27,25 @@ class BackupEncryptionService {
     generatePassphrase(): string {
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
         let result = '';
-        const randomValues = new Uint8Array(26);
-        window.crypto.getRandomValues(randomValues);
-        
-        for (let i = 0; i < 26; i++) {
-            result += chars[randomValues[i] % chars.length];
-            if ((i + 1) % 4 === 0 && i !== 25) result += '-';
+        const targetLength = 26;
+        const alphabetLength = chars.length;
+        const maxUnbiased = Math.floor(256 / alphabetLength) * alphabetLength;
+        let generated = 0;
+
+        while (generated < targetLength) {
+            const randomValues = new Uint8Array(32);
+            window.crypto.getRandomValues(randomValues);
+
+            for (let j = 0; j < randomValues.length && generated < targetLength; j++) {
+                const value = randomValues[j];
+                if (value >= maxUnbiased) continue;
+
+                result += chars[value % alphabetLength];
+                generated++;
+                if (generated % 4 === 0 && generated !== targetLength) result += '-';
+            }
         }
+
         return result;
     }
 
@@ -54,7 +66,7 @@ class BackupEncryptionService {
         return await window.crypto.subtle.deriveKey(
             {
                 name: 'PBKDF2',
-                salt: salt.buffer.slice(salt.byteOffset, salt.byteOffset + salt.byteLength) as ArrayBuffer,
+                salt: salt,
                 iterations: PBKDF2_ITERATIONS,
                 hash: 'SHA-256'
             },
@@ -118,11 +130,16 @@ class BackupEncryptionService {
 
         const key = await this.keyFromPassphrase(passphrase, salt);
 
-        const decryptedBuffer = await window.crypto.subtle.decrypt(
-            { name: 'AES-GCM', iv },
-            key,
-            ciphertext
-        );
+        let decryptedBuffer: ArrayBuffer;
+        try {
+            decryptedBuffer = await window.crypto.subtle.decrypt(
+                { name: 'AES-GCM', iv },
+                key,
+                ciphertext
+            );
+        } catch {
+            throw new Error("Invalid passphrase or corrupted backup file.");
+        }
 
         const decoder = new TextDecoder();
         return decoder.decode(decryptedBuffer);
