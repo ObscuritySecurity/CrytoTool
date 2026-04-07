@@ -118,11 +118,16 @@ class BackupEncryptionService {
 
         const key = await this.keyFromPassphrase(passphrase, salt);
 
-        const decryptedBuffer = await window.crypto.subtle.decrypt(
-            { name: 'AES-GCM', iv },
-            key,
-            ciphertext
-        );
+        let decryptedBuffer: ArrayBuffer;
+        try {
+            decryptedBuffer = await window.crypto.subtle.decrypt(
+                { name: 'AES-GCM', iv },
+                key,
+                ciphertext
+            );
+        } catch {
+            throw new Error("Invalid passphrase or corrupted backup file.");
+        }
 
         const decoder = new TextDecoder();
         return decoder.decode(decryptedBuffer);
