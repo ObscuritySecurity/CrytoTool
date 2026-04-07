@@ -144,9 +144,9 @@ export const CopyMoveModal: React.FC<CopyMoveModalProps> = ({
               </div>
               <div>
                 <h3 className="text-lg font-bold text-white">
-                  {mode === 'copy' ? t('copyFile') || 'Copiază' : 'Mută'}
+                  {mode === 'copy' ? t('copyFile') || 'Copy File' : 'Move'}
                 </h3>
-                <p className="text-[10px] text-zinc-400 uppercase tracking-wider">Selectează folderul destinație</p>
+                <p className="text-[10px] text-zinc-400 uppercase tracking-wider">Select destination folder</p>
               </div>
             </div>
           </div>

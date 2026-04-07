@@ -18,12 +18,12 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
   })();
 
   useEffect(() => {
-    // Secvența de animație:
-    // 0ms: Apare ecranul (Lacăt deschis, gri)
-    // 800ms: Lacătul se închide și devine verde
-    // 1600ms: Se desenează bifa (Verified)
-    // 2200ms: Apare textul CrytoTool
-    // 3800ms: Ieșire
+    // Animation sequence:
+    // 0ms: Screen appears (Lock open, grey)
+    // 800ms: Lock closes and turns green
+    // 1600ms: Checkmark draws (Verified)
+    // 2200ms: CrytoTool text appears
+    // 3800ms: Exit
     
     const lockTimer = setTimeout(() => setLocked(true), 800);
     const verifyTimer = setTimeout(() => setVerified(true), 1600);
@@ -62,7 +62,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
                     </filter>
                 </defs>
 
-                {/* Shackle (Toarta lacătului) */}
+                {/* Shackle (Lock shackle) */}
                 <motion.path 
                     d="M30 40 V25 A20 20 0 0 1 70 25 V40" 
                     fill="none" 
@@ -91,7 +91,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
                     style={{ filter: locked ? "url(#neon-glow)" : "none" }}
                 />
 
-                {/* Checkmark (Bifa) - Se desenează doar când e verified */}
+                {/* Checkmark - Only draws when verified */}
                 {verified && (
                     <motion.path 
                         d="M42 61 L50 69 L62 53" 

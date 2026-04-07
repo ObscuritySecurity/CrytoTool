@@ -16,10 +16,10 @@ import sodium from 'libsodium-wrappers';
  * - Libsodium (WASM) pentru ChaCha20/Poly1305 și Salsa20
  */
 
-// Asigură-te că sodiul este încărcat înainte de apeluri directe.
+// Ensure sodium is loaded before direct calls.
 const sodiumReady = sodium.ready;
 
-// Helper pentru compatibilitate TypeScript cu WebCrypto
+// Helper for TypeScript compatibility with WebCrypto
 function toBufferSource(arr: Uint8Array): BufferSource {
     return arr.buffer.slice(arr.byteOffset, arr.byteOffset + arr.byteLength) as ArrayBuffer;
 }

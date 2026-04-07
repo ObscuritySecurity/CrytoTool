@@ -11,9 +11,15 @@ interface AuthScreenProps {
   isSetup: boolean;
   lockUntil: number | null;
   onFailedAttempt: () => void;
+  recoverySettings?: {
+    verify: (code: string) => boolean;
+    consume: (code: string) => boolean;
+    codes: string[];
+  };
+  onResetWithRecovery: (code: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
 }
 
-export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockUntil, onFailedAttempt }) => {
+export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockUntil, onFailedAttempt, recoverySettings, onResetWithRecovery }) => {
   const { t } = useI18n();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -21,6 +27,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
+  
+  // Recovery mode state
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  const [recoveryCode, setRecoveryCode] = useState('');
+  const [newRecoveryPassword, setNewRecoveryPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
   const accentColor = localStorage.getItem('theme_accent') || '#39ff14';
   const accentRgb = (() => {
@@ -241,6 +253,117 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
             )}
           </button>
         </form>
+
+        {/* Recovery Mode Button */}
+        {!isSetup && !isLocked && recoverySettings && recoverySettings.codes.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-white/10">
+            <button
+              type="button"
+              onClick={() => setIsRecoveryMode(true)}
+              className="w-full py-2 text-xs text-zinc-500 hover:text-white transition-colors"
+            >
+              Ai uitat parola? Folosește un cod de recuperare
+            </button>
+          </div>
+        )}
+
+        {/* Recovery Mode Form */}
+        {isRecoveryMode && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-4 p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800"
+          >
+            <h3 className="text-sm font-bold text-white mb-3">Resetează cu cod de recuperare</h3>
+            
+            <div className="space-y-3">
+              <div>
+                <label className="text-[10px] text-zinc-500 uppercase tracking-wider">Cod de recuperare</label>
+                <input
+                  type="text"
+                  value={recoveryCode}
+                  onChange={(e) => setRecoveryCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+                  placeholder="XXXX-XXXX-XXXX-XXXX"
+                  className="w-full bg-black border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm font-mono mt-1"
+                  maxLength={19}
+                />
+              </div>
+              
+              <div>
+                <label className="text-[10px] text-zinc-500 uppercase tracking-wider">Parolă nouă (min 30 caractere)</label>
+                <input
+                  type="password"
+                  value={newRecoveryPassword}
+                  onChange={(e) => setNewRecoveryPassword(e.target.value)}
+                  placeholder="Parola nouă..."
+                  className="w-full bg-black border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm mt-1"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] text-zinc-500 uppercase tracking-wider">Confirmă parola</label>
+                <input
+                  type="password"
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  placeholder="Confirmă parola..."
+                  className="w-full bg-black border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm mt-1"
+                />
+              </div>
+
+              {error && (
+                <p className="text-red-500 text-xs">{error}</p>
+              )}
+
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={() => {
+                    setIsRecoveryMode(false);
+                    setRecoveryCode('');
+                    setNewRecoveryPassword('');
+                    setConfirmNewPassword('');
+                    setError(null);
+                  }}
+                  className="flex-1 py-2 rounded-lg border border-zinc-700 text-zinc-400 text-sm hover:bg-zinc-800"
+                >
+                  Anulează
+                </button>
+                <button
+                  onClick={async () => {
+                    if (newRecoveryPassword.length < 30) {
+                      setError('Parola trebuie să aibă minim 30 caractere');
+                      return;
+                    }
+                    if (newRecoveryPassword !== confirmNewPassword) {
+                      setError('Parolele nu se potrivesc');
+                      return;
+                    }
+                    if (!recoverySettings?.verify(recoveryCode)) {
+                      setError('Invalid recovery code');
+                      return;
+                    }
+
+                    setIsProcessing(true);
+                    const result = await onResetWithRecovery(recoveryCode, newRecoveryPassword);
+                    setIsProcessing(false);
+
+                    if (result.success) {
+                      // Reset successful, reload page to re-authenticate with new credentials
+                      window.location.reload();
+                    } else {
+                      setError(result.error || 'Eroare la resetare');
+                    }
+                  }}
+                  disabled={isProcessing || !recoveryCode || !newRecoveryPassword || !confirmNewPassword}
+                  className="flex-1 py-2 rounded-lg text-black text-sm font-bold disabled:opacity-50"
+                  style={{ backgroundColor: accentColor }}
+                >
+                  Resetează
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
       </motion.div>
     </div>
   );

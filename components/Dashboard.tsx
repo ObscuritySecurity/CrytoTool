@@ -37,6 +37,12 @@ interface DashboardProps {
     password: string | null;
     setPassword: (pwd: string | null) => void;
   };
+  recoverySettings: {
+    codes: string[];
+    regenerate: () => void;
+    verify: (code: string) => boolean;
+    consume: (code: string) => boolean;
+  };
   vaultSettings: {
     enabled: boolean;
     pin: string | null;
@@ -113,10 +119,11 @@ const NavButton: React.FC<{
 
 export const Dashboard: React.FC<DashboardProps> = ({ 
   settingsLock, 
+  recoverySettings,
   vaultSettings,
   autoBlurSettings, 
   autoLockSettings, 
-  progressiveLockSettings, 
+  progressiveLockSettings,
   autoDestructSettings 
 }) => {
   const { t } = useI18n();
@@ -528,7 +535,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
     if (item.type === 'folder' || item.type === 'system') setCurrentFolderId(item.id);
     else {
-        // Dacă e fișier, încercăm să-l decriptăm on demand dacă e cazul
+        // If it's a file, try to decrypt it on demand if needed
         if (item.isEncrypted && item.salt && !decryptedUrls[item.id]) {
             decryptOnDemand(item).then((url) => {
                 if (url) {
@@ -999,6 +1006,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               progressiveLockSettings={progressiveLockSettings}
               autoDestructSettings={autoDestructSettings}
               settingsLock={settingsLock} 
+              recoverySettings={recoverySettings}
               vaultSettings={{
                 ...vaultSettings,
                 openVault: handleOpenVaultSettings,

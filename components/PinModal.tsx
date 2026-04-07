@@ -22,7 +22,7 @@ export const PinModal: React.FC<PinModalProps> = ({ mode, onSuccess, onClose, sa
   const [lockUntil, setLockUntil] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState(0);
 
-  // Timer pentru blocare progresivă
+  // Progressive lock timer
   useEffect(() => {
     if (!lockUntil) return;
     const interval = setInterval(() => {
@@ -119,7 +119,7 @@ export const PinModal: React.FC<PinModalProps> = ({ mode, onSuccess, onClose, sa
     }
   };
 
-  // Auto-submit la 6 cifre (opțional, dar bun pentru UX)
+  // Auto-submit at 6 digits (optional but good for UX)
   useEffect(() => {
     if (mode !== 'setup' && pin.length === 6 && !lockUntil) handleSubmit();
     if (mode === 'setup' && step === 'enter' && pin.length === 6) handleSubmit();

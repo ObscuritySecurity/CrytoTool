@@ -20,7 +20,7 @@ export interface DBItem {
   date: string;
   status?: string;
   category?: 'image' | 'video' | 'audio' | 'doc' | 'other';
-  // Stocăm datele criptate
+  // Store encrypted data
   fileData?: Blob; 
   iv?: string; // Base64
   salt?: string; // Base64 (for key derivation)
@@ -37,7 +37,7 @@ export interface DBItem {
   iconOnlyMode?: boolean;
 }
 
-// Interfață pentru Export (serializare Blob -> Base64)
+// Export interface (serialization Blob -> Base64)
 export interface ExportedItem extends Omit<DBItem, 'fileData'> {
     fileDataBase64?: string;
 }

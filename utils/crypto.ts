@@ -191,7 +191,7 @@ class EncryptionService {
       passphrase?: string // If manual decryption
   ): Promise<Uint8Array> {
     
-    // Dacă avem passphrase, înseamnă că e custom encryption -> Delegăm la noua logică
+    // If we have passphrase, it means custom encryption -> Delegate to new logic
     if (passphrase && salt) {
         return this.decryptWithPassphrase(encryptedData, passphrase, iv, salt, algorithm);
     }

@@ -42,6 +42,10 @@ interface SettingsViewProps {
     password: string | null;
     setPassword: (pwd: string | null) => void;
   };
+  recoverySettings: {
+    codes: string[];
+    regenerate: () => void;
+  };
   vaultSettings: {
     enabled: boolean;
     pin: string | null;
@@ -60,18 +64,18 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
     const [isLangOpen, setIsLangOpen] = useState(false);
     const [isRegionOpen, setIsRegionOpen] = useState(false);
 
-    // State pentru modificarea parolei setărilor
+    // State for settings password modification
     const [isSettingPassword, setIsSettingPassword] = useState(false);
     const [newSettingsPwd, setNewSettingsPwd] = useState('');
     const [confirmSettingsPwd, setConfirmSettingsPwd] = useState('');
-    const [currentSettingsPwd, setCurrentSettingsPwd] = useState(''); // Pentru dezactivare
+    const [currentSettingsPwd, setCurrentSettingsPwd] = useState(''); // For disabling
     const [settingsPwdError, setSettingsPwdError] = useState('');
 
-    // Stare locală pentru unitatea de timp a autodistrugerii
+    // Local state for autodestruct time unit
     const [inactivityUnit, setInactivityUnit] = useState<'sec' | 'min' | 'hour' | 'day'>('day');
     const [inactivityValue, setInactivityValue] = useState(0);
 
-    // Inițializare unitate/valoare din secunde
+    // Initialize unit/value from seconds
     useEffect(() => {
         const totalSecs = props.autoDestructSettings.inactivitySeconds;
         if (totalSecs === 0) {
@@ -144,7 +148,7 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
         </div>
         <div className="flex-1 overflow-y-auto px-5 py-8 space-y-10">
             
-            {/* SECȚIUNEA 1: ASPECT */}
+            {/* SECTION 1: APPEARANCE */}
             <section>
                 <h3 className={`text-[10px] font-black uppercase tracking-[0.2em] mb-4 flex items-center gap-2 text-muted`}><Monitor size={14} />{t('themes')}</h3>
                 <div className="grid grid-cols-2 gap-4 mb-4">
@@ -187,7 +191,7 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                 </div>
             </section>
 
-                {/* SECȚIUNEA 2: LIMBĂ ȘI REGIUNE */}
+                {/* SECTION 2: LANGUAGE & REGION */}
             <section>
                 <h3 className={`text-[10px] font-black uppercase tracking-[0.2em] mb-4 flex items-center gap-2 text-muted`}><Globe size={14} /> {t('languageAndRegion')}</h3>
                 <div className={`p-5 rounded-[32px] glass-card space-y-4 relative overflow-hidden ${isLangOpen || isRegionOpen ? 'z-50' : ''}`}>
@@ -338,7 +342,7 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                 </div>
             </section>
 
-            {/* SECȚIUNEA 3: SECURITATE */}
+            {/* SECTION 3: SECURITY */}
             <section>
                 <h3 className={`text-[10px] font-black uppercase tracking-[0.2em] mb-4 flex items-center gap-2 text-muted`}><Shield size={14} /> {t('securityAndInfo')}</h3>
                 <div className="p-6 rounded-[32px] glass-card space-y-8">
@@ -468,7 +472,7 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                                 <span className="font-bold">{t('warningAttention')}</span> {t('autoDestructWarning')}
                             </p>
 
-                            {/* Trigger 1: Încercări Eșuate */}
+                            {/* Trigger 1: Failed Attempts */}
                             <div className="space-y-4">
                                 <div className="flex justify-between items-center">
                                     <label className="text-sm font-bold uppercase tracking-wider text-primary">{t('attemptThreshold')}</label>
@@ -517,7 +521,7 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                     )}
                 </div>
 
-                {/* BLOCARE PROGRESIVĂ UI - DISABLED IF AUTO DESTRUCT ON */}
+                {/* PROGRESSIVE LOCK UI - DISABLED IF AUTO DESTRUCT ON */}
                 <div className={`space-y-6 pt-2 transition-opacity duration-300 ${props.autoDestructSettings.enabled ? 'opacity-30 pointer-events-none grayscale' : ''}`}>
                     <h4 className="text-[10px] font-black uppercase tracking-widest text-neon-green flex items-center gap-2">
                     <ShieldAlert size={14} /> {t('progressiveBlocking')}
@@ -550,6 +554,46 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                     />
                     <p className="text-[10px] text-muted">{t('lockDurationDesc')}</p>
                     </div>
+                </div>
+
+                {/* RECOVERY CODES SECTION */}
+                <div className="border-t border-border pt-6 mt-4">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-neon-green flex items-center gap-2 mb-4">
+                        <KeyRound size={14} /> Password Recovery
+                    </h4>
+                    
+                    <div className="p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800 mb-4">
+                        <div className="flex items-center justify-between mb-3">
+                            <div>
+                                <p className="text-xs font-bold text-white">Recovery Codes</p>
+                                <p className="text-[10px] text-zinc-500">{props.recoverySettings.codes.length}/10 codes available</p>
+                            </div>
+                            <button 
+                                onClick={props.recoverySettings.regenerate}
+                                className="px-3 py-1.5 rounded-lg bg-neon-green/10 border border-neon-green/30 text-neon-green text-[10px] font-bold hover:bg-neon-green/20 transition-colors"
+                            >
+                                Regenerate
+                            </button>
+                        </div>
+
+                        {props.recoverySettings.codes.length > 0 ? (
+                            <div className="grid grid-cols-2 gap-2">
+                                {props.recoverySettings.codes.map((code, idx) => (
+                                    <div key={idx} className="px-2 py-1.5 rounded bg-black/50 text-[10px] font-mono text-zinc-400 text-center border border-zinc-800">
+                                        {code}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-[10px] text-zinc-500 text-center py-2">
+                                Apasă "Regenerare" pentru a crea coduri noi
+                            </p>
+                        )}
+                    </div>
+
+                    <p className="text-[9px] text-zinc-600 leading-relaxed">
+                        Save these codes in a safe place. Each code can be used only once to reset your Master password without losing data.
+                    </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 border-t border-border pt-6">

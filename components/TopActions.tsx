@@ -63,7 +63,7 @@ export const TopActions: React.FC<TopActionsProps> = ({
       </div>
 
       <div className="space-y-2.5">
-        {/* Primul rând: Add File, Add Folder, Storage */}
+        {/* First row: Add File, Add Folder, Storage */}
         <div className="flex items-center gap-2">
           <button 
             onClick={onAddFile} 
@@ -104,7 +104,7 @@ export const TopActions: React.FC<TopActionsProps> = ({
           </button>
         </div>
 
-        {/* Al doilea rând: Search, Trash, Settings */}
+        {/* Second row: Search, Trash, Settings */}
         <div className="flex items-center gap-2">
           <button 
             onClick={() => onNavigateView('search')} 

@@ -87,7 +87,7 @@ class BackupEncryptionService {
             encodedData
         );
 
-        // Format fișier: [salt (16 bytes)] + [IV (12 bytes)] + [Date Criptate]
+        // File format: [salt (16 bytes)] + [IV (12 bytes)] + [Encrypted Data]
         const result = new Uint8Array(salt.length + iv.length + ciphertext.byteLength);
         result.set(salt, 0);
         result.set(iv, salt.length);
@@ -104,16 +104,16 @@ class BackupEncryptionService {
         const arrayBuffer = await backupBlob.arrayBuffer();
         const fullData = new Uint8Array(arrayBuffer);
 
-        // Validare minimă lungime: salt (16) + IV (12) + minim 16 bytes (GCM tag)
+        // Validate minimum length: salt (16) + IV (12) + min 16 bytes (GCM tag)
         if (fullData.length < SALT_LENGTH + 12 + 16) {
-            throw new Error("Fișier corupt sau invalid (prea scurt).");
+            throw new Error("File is corrupt or invalid (too short).");
         }
 
-        // Extragem salt-ul (primii 16 bytes)
+        // Extract salt (first 16 bytes)
         const salt = fullData.slice(0, SALT_LENGTH);
-        // Extragem IV (următorii 12 bytes)
+        // Extract IV (next 12 bytes)
         const iv = fullData.slice(SALT_LENGTH, SALT_LENGTH + 12);
-        // Restul e ciphertext
+        // Rest is ciphertext
         const ciphertext = fullData.slice(SALT_LENGTH + 12);
 
         const key = await this.keyFromPassphrase(passphrase, salt);

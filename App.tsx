@@ -87,6 +87,75 @@ const App: React.FC = () => {
     return saved ? parseInt(saved, 10) : 0; 
   });
 
+  // --- RECOVERY CODES ---
+  const [recoveryCodes, setRecoveryCodes] = useState<string[]>(() => {
+    const saved = localStorage.getItem('crytotool_recovery_codes');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const generateRecoveryCodes = (): string[] => {
+    const codes: string[] = [];
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    for (let i = 0; i < 10; i++) {
+      let code = '';
+      const randomValues = new Uint8Array(8);
+      window.crypto.getRandomValues(randomValues);
+      for (let j = 0; j < 8; j++) {
+        code += chars[randomValues[j] % chars.length];
+        if ((j + 1) % 4 === 0 && j !== 7) code += '-';
+      }
+      codes.push(code);
+    }
+    return codes;
+  };
+
+  const regenerateRecoveryCodes = () => {
+    const newCodes = generateRecoveryCodes();
+    setRecoveryCodes(newCodes);
+    localStorage.setItem('crytotool_recovery_codes', JSON.stringify(newCodes));
+  };
+
+  const verifyRecoveryCode = (code: string): boolean => {
+    return recoveryCodes.includes(code.replace(/-/g, '').toUpperCase());
+  };
+
+  const consumeRecoveryCode = (code: string) => {
+    const normalizedCode = code.replace(/-/g, '').toUpperCase();
+    if (recoveryCodes.includes(normalizedCode)) {
+      const updatedCodes = recoveryCodes.filter(c => c.replace(/-/g, '') !== normalizedCode);
+      setRecoveryCodes(updatedCodes);
+      localStorage.setItem('crytotool_recovery_codes', JSON.stringify(updatedCodes));
+      return true;
+    }
+    return false;
+  };
+
+  const resetMasterPasswordWithRecovery = async (code: string, newPassword: string) => {
+    if (!consumeRecoveryCode(code)) {
+      return { success: false, error: 'Cod invalid' };
+    }
+
+    try {
+      // Generate new salt and derive new master key
+      const salt = window.crypto.getRandomValues(new Uint8Array(16));
+      const masterKey = await cryptoService.deriveMasterKey(newPassword, salt);
+      const vaultKey = await cryptoService.generateVaultKey();
+      const rawVaultKey = await window.crypto.subtle.exportKey('raw', vaultKey);
+      const encryptedVault = await cryptoService.encrypt(new Uint8Array(rawVaultKey), masterKey);
+
+      // Save new credentials
+      localStorage.setItem('crytotool_salt', cryptoService.arrayBufferToBase64(salt));
+      localStorage.setItem('crytotool_iv', cryptoService.arrayBufferToBase64(encryptedVault.iv));
+      localStorage.setItem('crytotool_vault_blob', cryptoService.arrayBufferToBase64(encryptedVault.ciphertext));
+
+      cryptoService.setVaultKey(vaultKey);
+
+      return { success: true };
+    } catch (e) {
+      return { success: false, error: 'Eroare la resetare' };
+    }
+  };
+
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [lockUntil, setLockUntil] = useState<number | null>(null);
 
@@ -191,20 +260,32 @@ const App: React.FC = () => {
               isSetup={isSetupRequired} 
               lockUntil={lockUntil}
               onFailedAttempt={handleFailedAttempt}
+              recoverySettings={{
+                verify: verifyRecoveryCode,
+                consume: consumeRecoveryCode,
+                codes: recoveryCodes
+              }}
+              onResetWithRecovery={resetMasterPasswordWithRecovery}
             />
           </motion.div>
         ) : (
            <motion.div key="dashboard" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="relative h-full">
-             <Dashboard 
-               settingsLock={{
-                 password: settingsPassword,
-                 setPassword: updateSettingsPassword
-               }}
-               vaultSettings={{
-                 enabled: vaultEnabled,
-                 pin: vaultPin,
-                 update: updateVaultSettings
-               }}
+              <Dashboard 
+                settingsLock={{
+                  password: settingsPassword,
+                  setPassword: updateSettingsPassword
+                }}
+                recoverySettings={{
+                  codes: recoveryCodes,
+                  regenerate: regenerateRecoveryCodes,
+                  verify: verifyRecoveryCode,
+                  consume: consumeRecoveryCode
+                }}
+                vaultSettings={{
+                  enabled: vaultEnabled,
+                  pin: vaultPin,
+                  update: updateVaultSettings
+                }}
                autoBlurSettings={{ 
                  value: autoBlurSeconds, 
                  setValue: (v) => { 

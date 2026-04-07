@@ -11,11 +11,11 @@ export const COMMON_PINS = [
 export const validatePin = (pin: string): { valid: boolean; error?: string } => {
   if (pin.length !== 6) return { valid: false, error: 'PIN-ul trebuie să aibă 6 cifre.' };
   if (!/^\d+$/.test(pin)) return { valid: false, error: 'PIN-ul trebuie să conțină doar cifre.' };
-  if (COMMON_PINS.includes(pin)) return { valid: false, error: 'Acest PIN este prea comun. Alege altul.' };
+  if (COMMON_PINS.includes(pin)) return { valid: false, error: 'This PIN is too common. Choose another one.' };
   
-  // Verificare secvențe simple (ex: 123456)
+  // Check simple sequences (e.g., 123456)
   const isSequential = '0123456789012345'.includes(pin) || '9876543210987654'.includes(pin);
-  if (isSequential) return { valid: false, error: 'Secvențele simple nu sunt permise.' };
+  if (isSequential) return { valid: false, error: 'Simple sequences are not allowed.' };
 
   return { valid: true };
 };
