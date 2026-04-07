@@ -21,6 +21,40 @@ export interface VaultKeyEntry {
 
 const STORAGE_KEY = 'crytotool_vault_keys';
 
+/**
+ * Generate a random ID suffix using a cryptographically secure
+ * random number generator when available.
+ * Falls back to Math.random() only if no secure API exists.
+ */
+function generateRandomIdSuffix(length: number): string {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    const charsLength = chars.length;
+
+    // Prefer Web Crypto API if available
+    const cryptoObj: Crypto | null =
+        (typeof window !== 'undefined' && (window.crypto || (window as any).msCrypto)) ||
+        (typeof self !== 'undefined' && (self as any).crypto) ||
+        null;
+
+    if (cryptoObj && typeof cryptoObj.getRandomValues === 'function') {
+        const randomValues = new Uint8Array(length);
+        cryptoObj.getRandomValues(randomValues);
+        let result = '';
+        for (let i = 0; i < length; i++) {
+            result += chars[randomValues[i] % charsLength];
+        }
+        return result;
+    }
+
+    // Fallback: non-crypto, should be rare
+    let fallbackResult = '';
+    for (let i = 0; i < length; i++) {
+        const idx = Math.floor(Math.random() * charsLength);
+        fallbackResult += chars[idx];
+    }
+    return fallbackResult;
+}
+
 export const vaultStorage = {
     getAll(): VaultKeyEntry[] {
         try {
@@ -35,7 +69,7 @@ export const vaultStorage = {
         const keys = this.getAll();
         const newEntry: VaultKeyEntry = {
             ...entry,
-            id: `vk_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+            id: `vk_${Date.now()}_${generateRandomIdSuffix(6)}`,
             date: new Date().toLocaleDateString(),
         };
         keys.push(newEntry);
