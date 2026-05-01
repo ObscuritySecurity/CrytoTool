@@ -50,6 +50,7 @@ Explore these guides to understand our project's principles, technical design, a
 -   [License](https://github.com/ObscuritySecurity/TwoAuth/blob/main/LICENSE) The Apache 2.0 license under which this software is provided.
 -   [Security Analysis](https://github.com/ObscuritySecurity/TwoAuth/blob/main/.GitHub/SECURITY.md) A detailed overview of the security measures and threat model.
 -   [Technical Architecture](https://github.com/ObscuritySecurity/CrytoTool/blob/main/architecture.md) A deep dive into the technical design and encryption model.
+-   [UI/UX Design Standards](https://github.com/ObscuritySecurity/CrytoTool/blob/main/DESIGN.md) Design rules, terminology (people not users), visual language, accessibility, and i18n standards.
 
 ### Spread the mission
 
