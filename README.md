@@ -45,13 +45,14 @@ For full technical details, consult the [Technical Architecture](https://github.
 
 Explore these guides to understand our project's principles, technical design, and how you can get involved.
 
--   [Code of Conduct](https://github.com/ObscuritySecurity/TwoAuth/blob/main/.GitHub/CODE_OF_CONDUCT.md) Our pledge to maintain a harassment-free and inclusive community.
--   [Contributing Guide](https://github.com/ObscuritySecurity/TwoAuth/blob/main/.GitHub/CONTRIBUTING.md) Instructions on how to contribute to the project.
--   [License](https://github.com/ObscuritySecurity/TwoAuth/blob/main/LICENSE) The Apache 2.0 license under which this software is provided.
--   [Security Analysis](https://github.com/ObscuritySecurity/TwoAuth/blob/main/.GitHub/SECURITY.md) A detailed overview of the security measures and threat model.
+-   [Code of Conduct](https://github.com/ObscuritySecurity/CrytoTool/blob/main/CODE_OF_CONDUCT.md) Our pledge to maintain a harassment-free and inclusive community.
+-   [Contributing Guide](https://github.com/ObscuritySecurity/CrytoTool/blob/main/CONTRIBUTING.md) Instructions on how to contribute to the project.
+-   [License](https://github.com/ObscuritySecurity/CrytoTool/blob/main/LICENSE) The Apache 2.0 license under which this software is provided.
+-   [Security Analysis](https://github.com/ObscuritySecurity/CrytoTool/blob/main/SECURITY.md) A detailed overview of the security measures and threat model.
 -   [Technical Architecture](https://github.com/ObscuritySecurity/CrytoTool/blob/main/architecture.md) A deep dive into the technical design and encryption model.
 -   [UI/UX Design Standards](https://github.com/ObscuritySecurity/CrytoTool/blob/main/DESIGN.md) Design rules, terminology (people not users), visual language, accessibility, and i18n standards.
--   [Security Documentation](https://github.com/ObscuritySecurity/CrytoTool/blob/main/SECURITY.md) Threat model, attack surface, known vulnerabilities, and audit guidelines.
+-   [Security Documentation](https://github.com/ObscuritySecurity/CrytoTool/blob/main/SECURITY.md) Threat model, attack surface, and audit guidelines.
+-   [Changelog](https://github.com/ObscuritySecurity/CrytoTool/blob/main/CHANGELOG.md) History of versions and changes.
 
 ### Spread the mission
 
