@@ -5,13 +5,15 @@ Key Features
 
 Advanced Security & Privacy
 
-    Strong Master Password: Secure your entire vault with a master password (minimum 30 characters).
-    Encrypted Backups: Create fully encrypted backups protected by a unique, separate encryption key.
-    Critical Settings Password: Add an optional, second password to protect access to sensitive settings.
-    Progressive Lockout: The app automatically locks for increasing durations after multiple failed password attempts.
-    Self-Destruct Mechanism: Optionally configure the app to automatically and securely wipe all data after a set number of failed attempts.
-    Access Recovery: Regain access to your vault if you lose your master password using either 10 single-use recovery codes or a unique, one-time reset token.
-    Auto-Lock & Visual Obfuscation: The app can automatically lock and blur the screen after a period of inactivity.
+Strong Master Password: Secure your entire vault with a master password (minimum 30 characters)
+    
+ Encrypted Backups: Create fully encrypted backups protected by a unique, separate encryption key.
+    
+Critical Settings Password: Add an optional, second password to protect access to sensitive settings.
+Progressive Lockout: The app automatically locks for increasing durations after multiple failed password attempts.
+Self-Destruct Mechanism: Optionally configure the app to automatically and securely wipe all data after a set number of failed attempts.
+ Access Recovery: Regain access to your vault if you lose your master password using either 10 single-use recovery codes or a unique, one-time reset token.
+ Auto-Lock & Visual Obfuscation: The app can automatically lock and blur the screen after a period of inactivity.
 
 Effortless Code Management
 
