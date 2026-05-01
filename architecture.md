@@ -78,12 +78,20 @@ Triggered via the `EncryptionModal` component (`components/EncryptionModal.tsx`)
 
 5. **Store in IndexedDB**: Update the file entry with `ciphertext`, `iv` (base64), `salt` (base64, for key derivation), `algorithm`, `isEncrypted: true`
 
-6. **Optional Vault Storage**: Save the generated key to `vaultStorage` (localStorage) with a user-selected category for easy reuse
+6. **Optional Vault Storage**: Save the generated key to `vaultStorage` with a user-selected category for easy reuse. **Security note**: All keys in `vaultStorage` are now encrypted with the Vault Key (AES-256-GCM) before being stored in localStorage (`utils/vaultStorage.ts`). The encrypted format is: `{ iv: base64, data: base64 }` where `data` is the encrypted JSON of all vault key entries.
 
 #### Manual Encryption Key Derivation (`crypto.ts:88-91`):
 ```
 User-Generated Passphrase + Random Salt (16 bytes) → BLAKE2b (libsodium) → 32-byte raw key → Passed to selected primitive
 ```
+
+#### Vault Key Storage Encryption (`utils/crypto.ts:232-266`, `utils/vaultStorage.ts`):
+```
+JSON.stringify(vaultKeyEntries) → TextEncoder → AES-GCM (Vault Key, random IV) → Base64 encode → localStorage
+```
+- On read: localStorage → Base64 decode (iv + data) → AES-GCM decrypt (Vault Key) → JSON.parse
+- The Vault Key is never stored; it is derived from Master Password via Argon2id and kept only in memory
+- Legacy plaintext keys (older versions) are handled: returned as-is and migrated to encrypted format on next save
 
 ---
 
@@ -282,46 +290,3 @@ IndexedDB: "CrytoToolVault" (Version 2)
 | `isTrashed` | boolean (optional) | Whether the item is in the trash |
 | `tags` | Tag[] (optional) | User-assigned tags |
 | `customIcon` | string (optional) | Custom icon for the item |
-
----
-
-## 6. Vault Key Storage (Encrypted localStorage)
-### Security Problem & Solution
-**Problem**: Vault keys (for manual encryption) were previously stored as plaintext JSON in `localStorage` (`crytotool_vault_keys`). Anyone with access to the browser (or via XSS) could read all encryption keys.
-
-**Solution**: All vault keys are now **encrypted with the Vault Key** (AES-256-GCM) before being saved to localStorage.
-
-### Storage Format
-```json
-{
-  "iv": "<base64-encoded-12-byte-IV>",
-  "data": "<base64-encoded-AES-GCM-ciphertext>"
-}
-```
-- `iv`: Random 12-byte IV, Base64-encoded
-- `data`: The JSON string of all `VaultKeyEntry[]` objects, encrypted with AES-GCM using the in-memory Vault Key
-
-### Encryption Flow (`utils/crypto.ts:232-266`)
-```
-JSON.stringify(vaultKeyEntries) → TextEncoder → AES-GCM (Vault Key, random IV) → Base64 encode → localStorage
-```
-
-### Decryption Flow
-```
-localStorage → Parse JSON → Base64 decode (iv + data) → AES-GCM decrypt (Vault Key) → TextDecoder → JSON.parse → VaultKeyEntry[]
-```
-
-### Key Points
-- The Vault Key is **never stored**; it is derived from the Master Password via Argon2id and kept only in memory
-- If the user locks the vault (logout), the Vault Key is cleared from memory and stored keys become unreadable
-- Legacy plaintext keys (from older versions) are automatically handled: they are returned as-is and migrated to encrypted format on next save
-- This protects against: local browser access, XSS attacks (if attacker doesn't have the Vault Key), and accidental localStorage inspection
-
-### Implementation Files
-| File | Role |
-|------|------|
-| `utils/crypto.ts` | `encryptString()` / `decryptString()` methods for string encryption using Vault Key |
-| `utils/vaultStorage.ts` | `saveAll()` encrypts before `localStorage.setItem()`; `getAll()` decrypts after `localStorage.getItem()` |
-| `components/EncryptionModal.tsx` | Calls `vaultStorage.save()` (now async) with `await` |
-| `components/views/VaultView.tsx` | All `vaultStorage` calls updated to async/await |
-| `components/DecryptModal.tsx` | `vaultStorage.getByFileId()` called with `await` |
