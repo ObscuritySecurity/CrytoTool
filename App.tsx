@@ -4,7 +4,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { SplashScreen } from './components/SplashScreen';
 import { Dashboard } from './components/Dashboard';
 import { AuthScreen } from './components/AuthScreen';
-import { Lock } from 'lucide-react';
 import { cryptoService } from './utils/crypto';
 import { db } from './utils/db';
 import { I18nProvider } from './utils/i18nContext';
@@ -28,6 +27,9 @@ const App: React.FC = () => {
     const saved = localStorage.getItem('crytotool_lock_time');
     return saved ? parseInt(saved, 10) : 25;
   });
+
+  const [isBlurred, setIsBlurred] = useState(false);
+  const lastActivityRef = useRef(Date.now());
 
   // --- SETTINGS LOCK ---
   // Settings password is kept in memory only (not persisted) for security
@@ -87,10 +89,113 @@ const App: React.FC = () => {
     return saved ? parseInt(saved, 10) : 0; 
   });
 
-  // --- RECOVERY CODES ---
+  const [destructCountdownSeconds, setDestructCountdownSeconds] = useState(() => {
+    const saved = localStorage.getItem('crytotool_ad_countdown');
+    return saved ? parseInt(saved, 10) : 30;
+  });
+
+  const [destructCountdown, setDestructCountdown] = useState<number | null>(() => {
+    const saved = localStorage.getItem('crytotool_destruct_time');
+    if (saved) {
+      const remaining = Math.max(0, Math.ceil((parseInt(saved, 10) - Date.now()) / 1000));
+      return remaining > 0 ? remaining : null;
+    }
+    return null;
+  });
+  const [destructTriggerTime, setDestructTriggerTime] = useState<number | null>(() => {
+    const saved = localStorage.getItem('crytotool_destruct_time');
+    return saved ? parseInt(saved, 10) : null;
+  });
+
+  useEffect(() => {
+    if (!isAuthenticated || !autoDestructEnabled || autoDestructInactivity === 0) return;
+    const lastActivityKey = 'crytotool_last_activity';
+    const handleActivity = () => {
+      localStorage.setItem(lastActivityKey, Date.now().toString());
+      lastActivityRef.current = Date.now();
+      if (isBlurred) setIsBlurred(false);
+    };
+    if (!localStorage.getItem(lastActivityKey)) {
+      localStorage.setItem(lastActivityKey, Date.now().toString());
+      lastActivityRef.current = Date.now();
+    } else {
+      lastActivityRef.current = parseInt(localStorage.getItem(lastActivityKey)!, 10);
+    }
+    const events = ['mousedown', 'mousemove', 'keydown', 'touchstart', 'scroll'];
+    events.forEach(event => window.addEventListener(event, handleActivity));
+    const intervalId = setInterval(() => {
+      const now = Date.now();
+      const elapsed = (now - lastActivityRef.current) / 1000;
+      if (elapsed >= autoDestructInactivity) {
+        performWipe();
+        return;
+      }
+      if (elapsed >= autoLockSeconds) {
+        handleLock();
+        return;
+      }
+      if (elapsed >= autoBlurSeconds) {
+        if (!isBlurred) setIsBlurred(true);
+      }
+    }, 1000);
+    return () => {
+      events.forEach(event => window.removeEventListener(event, handleActivity));
+      clearInterval(intervalId);
+    };
+  }, [isAuthenticated, isBlurred, autoBlurSeconds, autoLockSeconds, autoDestructInactivity, autoDestructEnabled]);
+
+  useEffect(() => {
+    if (isAuthenticated || !autoDestructEnabled || autoDestructInactivity === 0) return;
+    const lastActivityKey = 'crytotool_last_activity';
+    const checkInactivityOnAuthScreen = setInterval(() => {
+      const lastActivity = localStorage.getItem(lastActivityKey);
+      if (lastActivity) {
+        const elapsed = (Date.now() - parseInt(lastActivity, 10)) / 1000;
+        if (elapsed >= autoDestructInactivity) {
+          performWipe();
+        }
+      }
+    }, 1000);
+    return () => clearInterval(checkInactivityOnAuthScreen);
+  }, [isAuthenticated, autoDestructEnabled, autoDestructInactivity]);
+
+  useEffect(() => {
+    if (isAuthenticated || !destructTriggerTime) return;
+    const storedDestructTime = localStorage.getItem('crytotool_destruct_time');
+    if (storedDestructTime) {
+      setDestructTriggerTime(parseInt(storedDestructTime, 10));
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    if (isAuthenticated || !destructTriggerTime) return;
+    const intervalId = setInterval(() => {
+      const remaining = Math.max(0, Math.ceil((destructTriggerTime - Date.now()) / 1000));
+      setDestructCountdown(remaining);
+      if (remaining <= 0) {
+        localStorage.removeItem('crytotool_destruct_time');
+        performWipe();
+      }
+    }, 1000);
+    return () => clearInterval(intervalId);
+  }, [isAuthenticated, destructTriggerTime]);
+
+  // --- RECOVERY CODES (Encrypted with Vault Key) ---
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>(() => {
     const saved = localStorage.getItem('crytotool_recovery_codes');
-    return saved ? JSON.parse(saved) : [];
+    if (!saved) return [];
+    try {
+      const parsed = JSON.parse(saved);
+      // Check if encrypted (new format)
+      if (parsed.iv && parsed.data) {
+        const { cryptoService } from './utils/crypto';
+        const decrypted = await cryptoService.decryptString(parsed.data, parsed.iv);
+        return JSON.parse(decrypted);
+      }
+      return parsed; // Legacy plaintext
+    } catch {
+      return [];
+    }
   });
 
   const generateRecoveryCodes = (): string[] => {
@@ -109,10 +214,23 @@ const App: React.FC = () => {
     return codes;
   };
 
+  const saveRecoveryCodes = async (codes: string[]) => {
+    try {
+      const { cryptoService } from './utils/crypto';
+      const jsonString = JSON.stringify(codes);
+      const encrypted = await cryptoService.encryptString(jsonString);
+      const stored = JSON.stringify({ iv: encrypted.iv, data: encrypted.ciphertext });
+      localStorage.setItem('crytotool_recovery_codes', stored);
+    } catch {
+      // Vault Key not available, save plaintext (fallback)
+      localStorage.setItem('crytotool_recovery_codes', JSON.stringify(codes));
+    }
+  };
+
   const regenerateRecoveryCodes = () => {
     const newCodes = generateRecoveryCodes();
     setRecoveryCodes(newCodes);
-    localStorage.setItem('crytotool_recovery_codes', JSON.stringify(newCodes));
+    saveRecoveryCodes(newCodes);
   };
 
   const verifyRecoveryCode = (code: string): boolean => {
@@ -124,7 +242,7 @@ const App: React.FC = () => {
     if (recoveryCodes.includes(normalizedCode)) {
       const updatedCodes = recoveryCodes.filter(c => c.replace(/-/g, '') !== normalizedCode);
       setRecoveryCodes(updatedCodes);
-      localStorage.setItem('crytotool_recovery_codes', JSON.stringify(updatedCodes));
+      saveRecoveryCodes(updatedCodes);
       return true;
     }
     return false;
@@ -159,9 +277,6 @@ const App: React.FC = () => {
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [lockUntil, setLockUntil] = useState<number | null>(null);
 
-  const [isBlurred, setIsBlurred] = useState(false);
-  const lastActivityRef = useRef(Date.now());
-
   // Auto-destruct on inactivity is implemented as part of the activity timer below.
   // We intentionally avoid persisting any activity logs; this check relies on in-memory
   // timestamps to determine inactivity.
@@ -195,15 +310,20 @@ const App: React.FC = () => {
     const newCount = failedAttempts + 1;
     setFailedAttempts(newCount);
     
-    if (autoDestructEnabled) {
-        if (newCount >= autoDestructAttempts) {
-            performWipe();
+    if (autoDestructEnabled && autoDestructAttempts > 0) {
+      if (newCount >= autoDestructAttempts) {
+        if (!destructTriggerTime) {
+          setDestructCountdown(destructCountdownSeconds);
+          const triggerTime = Date.now() + (destructCountdownSeconds * 1000);
+          setDestructTriggerTime(triggerTime);
+          localStorage.setItem('crytotool_destruct_time', triggerTime.toString());
         }
+      }
     } else {
-        if (newCount >= failedAttemptsThreshold) {
-            const lockDuration = progressiveLockSeconds * 1000;
-            setLockUntil(Date.now() + lockDuration);
-        }
+      if (newCount >= failedAttemptsThreshold) {
+        const lockDuration = progressiveLockSeconds * 1000;
+        setLockUntil(Date.now() + lockDuration);
+      }
     }
   };
 
@@ -231,12 +351,17 @@ const App: React.FC = () => {
       const now = Date.now();
       const elapsed = (now - lastActivityRef.current) / 1000;
 
-      // Auto-destruct by inactivity (optional feature)
       if (autoDestructEnabled && autoDestructInactivity > 0 && elapsed >= autoDestructInactivity) {
         performWipe();
-      } else if (elapsed >= autoLockSeconds) {
+        return;
+      }
+
+      if (elapsed >= autoLockSeconds) {
         handleLock();
-      } else if (elapsed >= autoBlurSeconds) {
+        return;
+      }
+
+      if (elapsed >= autoBlurSeconds) {
         if (!isBlurred) setIsBlurred(true);
       }
     }, 1000);
@@ -245,7 +370,7 @@ const App: React.FC = () => {
       events.forEach(event => window.removeEventListener(event, handleActivity));
       clearInterval(intervalId);
     };
-  }, [isAuthenticated, isBlurred, autoBlurSeconds, autoLockSeconds]);
+  }, [isAuthenticated, isBlurred, autoBlurSeconds, autoLockSeconds, autoDestructInactivity, autoDestructEnabled]);
 
   return (
     <I18nProvider>
@@ -266,6 +391,7 @@ const App: React.FC = () => {
                 codes: recoveryCodes
               }}
               onResetWithRecovery={resetMasterPasswordWithRecovery}
+              destructCountdown={destructCountdown}
             />
           </motion.div>
         ) : (
@@ -312,42 +438,40 @@ const App: React.FC = () => {
                    localStorage.setItem('crytotool_prog_attempts', v.toString());
                  }
                }}
-               autoDestructSettings={{
-                 enabled: autoDestructEnabled,
-                 setEnabled: (v) => {
-                    setAutoDestructEnabled(v);
-                    localStorage.setItem('crytotool_ad_enabled', v.toString());
-                 },
-                 attempts: autoDestructAttempts,
-                 setAttempts: (v) => {
-                    setAutoDestructAttempts(v);
-                    localStorage.setItem('crytotool_ad_attempts', v.toString());
-                 },
-                 inactivitySeconds: autoDestructInactivity,
-                 setInactivitySeconds: (v) => {
-                    setAutoDestructInactivity(v);
-                    localStorage.setItem('crytotool_ad_inactivity', v.toString());
-                 }
-               }}
-             />
+                autoDestructSettings={{
+                  enabled: autoDestructEnabled,
+                  setEnabled: (v) => {
+                     setAutoDestructEnabled(v);
+                     localStorage.setItem('crytotool_ad_enabled', v.toString());
+                  },
+                  attempts: autoDestructAttempts,
+                  setAttempts: (v) => {
+                     setAutoDestructAttempts(v);
+                     localStorage.setItem('crytotool_ad_attempts', v.toString());
+                  },
+                  inactivitySeconds: autoDestructInactivity,
+                  setInactivitySeconds: (v) => {
+                     setAutoDestructInactivity(v);
+                     localStorage.setItem('crytotool_ad_inactivity', v.toString());
+                  },
+                  countdownSeconds: destructCountdownSeconds,
+                  setCountdownSeconds: (v) => {
+                    setDestructCountdownSeconds(v);
+                    localStorage.setItem('crytotool_ad_countdown', v.toString());
+                  }
+                }}
+                destructCountdown={destructCountdown}
+              />
              
-             <AnimatePresence>
-               {isBlurred && (
-                 <motion.div 
-                   initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
-                   animate={{ opacity: 1, backdropFilter: "blur(40px)" }}
-                   exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
-                   className="fixed inset-0 z-[100] bg-black/60 flex flex-col items-center justify-center cursor-pointer"
-                   onClick={() => { lastActivityRef.current = Date.now(); setIsBlurred(false); }}
-                 >
-                    <div className="bg-zinc-950 p-10 rounded-[40px] border border-zinc-800 flex flex-col items-center shadow-2xl">
-                      <div className="p-6 bg-neon-green/10 rounded-full mb-6 animate-pulse border border-neon-green/20">
-                        <Lock className="text-neon-green" size={56} />
-                      </div>
-                      <h2 className="text-3xl font-bold text-white mb-2">Seif Protejat</h2>
-                      <p className="text-zinc-500 font-medium">Interacționează pentru a debloca vizualizarea</p>
-                    </div>
-                 </motion.div>
+              <AnimatePresence>
+                {isBlurred && (
+                  <motion.div 
+                    initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
+                    animate={{ opacity: 1, backdropFilter: "blur(40px)" }}
+                    exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
+                    className="fixed inset-0 z-[100] bg-black/60 cursor-pointer"
+                    onClick={() => { lastActivityRef.current = Date.now(); setIsBlurred(false); }}
+                  />
                 )}
               </AnimatePresence>
             </motion.div>

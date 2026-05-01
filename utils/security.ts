@@ -31,24 +31,62 @@ export const getBackoffTime = (failedAttempts: number): number => {
 /**
  * Hash PIN with SHA-256 + salt for secure storage in localStorage.
  * We never store the PIN in plain text.
+ * Now encrypted with Vault Key before storing.
  */
 export async function hashPin(pin: string): Promise<string> {
   const salt = 'crytotool_vault_pin_salt_v1';
   const encoder = new TextEncoder();
   const data = encoder.encode(salt + pin + salt);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+  const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+  
+  // Encrypt the hash with Vault Key before storing
+  try {
+    const { cryptoService } from './crypto';
+    const encrypted = await cryptoService.encryptString(hashHex);
+    return JSON.stringify({ iv: encrypted.iv, data: encrypted.ciphertext });
+  } catch {
+    // If Vault Key not available, return plaintext (fallback for setup)
+    return hashHex;
+  }
 }
 
 /**
  * Verify a PIN by comparing the hash with the stored one.
+ * Handles both encrypted and legacy plaintext formats.
  */
 export async function verifyPin(pin: string, storedHash: string): Promise<boolean> {
-  const hash = await hashPin(pin);
+  let hash: string;
+  
+  // Check if stored hash is encrypted (new format)
+  try {
+    const parsed = JSON.parse(storedHash);
+    if (parsed.iv && parsed.data) {
+      const { cryptoService } from './crypto';
+      hash = await cryptoService.decryptString(parsed.data, parsed.iv);
+    } else {
+      hash = storedHash; // Legacy plaintext
+    }
+  } catch {
+    hash = storedHash; // Legacy plaintext
+  }
+  
+  const newHash = await hashPin(pin);
+  // If newHash is encrypted, compare encrypted forms
+  if (newHash.startsWith('{')) {
+    let diff = 0;
+    if (newHash.length !== storedHash.length) return false;
+    for (let i = 0; i < newHash.length; i++) {
+      diff |= newHash.charCodeAt(i) ^ storedHash.charCodeAt(i);
+    }
+    return diff === 0;
+  }
+  
+  // Compare plaintext hashes
   let diff = 0;
-  if (hash.length !== storedHash.length) return false;
+  if (hash.length !== newHash.length) return false;
   for (let i = 0; i < hash.length; i++) {
-    diff |= hash.charCodeAt(i) ^ storedHash.charCodeAt(i);
+    diff |= hash.charCodeAt(i) ^ newHash.charCodeAt(i);
   }
   return diff === 0;
 }
