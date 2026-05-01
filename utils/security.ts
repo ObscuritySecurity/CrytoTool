@@ -1,4 +1,6 @@
 
+import { cryptoService } from './crypto';
+
 // Security baseline helpers
 // - The following common PINs should be deprecated and avoided in production.
 export const COMMON_PINS = [
@@ -42,7 +44,6 @@ export async function hashPin(pin: string): Promise<string> {
   
   // Encrypt the hash with Vault Key before storing
   try {
-    const { cryptoService } from './crypto';
     const encrypted = await cryptoService.encryptString(hashHex);
     return JSON.stringify({ iv: encrypted.iv, data: encrypted.ciphertext });
   } catch {
@@ -62,7 +63,6 @@ export async function verifyPin(pin: string, storedHash: string): Promise<boolea
   try {
     const parsed = JSON.parse(storedHash);
     if (parsed.iv && parsed.data) {
-      const { cryptoService } from './crypto';
       hash = await cryptoService.decryptString(parsed.data, parsed.iv);
     } else {
       hash = storedHash; // Legacy plaintext

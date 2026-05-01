@@ -24,7 +24,7 @@ _Version: 2.5.0-PRO | Last Updated: 2026-05-01_
 
 | Scenario | Why Not Fully Protected | Possible Mitigation |
 |-----------|---------------------|----------------------|
-| **XSS in Application** | If attacker can execute JS, they can access `cryptoService.vaultKey` (object in memory) | Content Security Policy (CSP) — not yet implemented |
+| **XSS in Application** | If attacker can execute JS, they can access `cryptoService.vaultKey` (object in memory) | Content Security Policy (CSP) implemented via `<meta>` tag in `index.html` (disallows inline scripts) |
 | **Malicious Browser Extension** | Extensions have access to localStorage and can inject scripts | We have no control; people should only install trusted extensions |
 | **Physical RAM Dumping** | If attacker can read browser process memory, Vault Key can be extracted | Use `non-extractable CryptoKey` in future |
 | **Supply Chain Attack on `npm`** | A compromised library could exfiltrate data via `postMessage` or `fetch` | `npm audit`, limiting dependencies, CVE monitoring |
@@ -60,39 +60,7 @@ _Version: 2.5.0-PRO | Last Updated: 2026-05-01_
 
 ---
 
-## 3. Fixed Vulnerabilities
-
-### 3.1. Vault Key Storage Encryption (Fixed in commit 0201163)
-- **Problem**: Vault keys (for manual encryption) were stored as plaintext JSON in `localStorage` (`crytotool_vault_keys`). Anyone with browser access could read all encryption keys
-- **Solution**: All vault keys are now encrypted with Vault Key (AES-256-GCM) before localStorage:
-  - `utils/crypto.ts`: Added `encryptString()` / `decryptString()` methods
-  - `utils/vaultStorage.ts`: `saveAll()` encrypts before `localStorage.setItem()`; `getAll()` decrypts after `localStorage.getItem()`
-  - Legacy plaintext keys (older versions) are handled: returned as-is and migrated to encrypted format on next save
-- **Commit**: `0201163`
-
-### 3.2. PIN Hash Storage (Fixed in this update)
-- **Problem**: PIN hash (`crytotool_vault_pin_hash`) was stored as plaintext string in localStorage. If attacker has XSS access, they can brute-force the hash
-- **Solution**: PIN hash is now encrypted with Vault Key before localStorage storage
-- **Implementation**: Updated `utils/security.ts` to use `cryptoService.encryptString()` / `decryptString()`
-
-### 3.3. Recovery Codes Encryption (Fixed in this update)
-- **Problem**: Recovery codes (`crytotool_recovery_codes`) were stored as JSON plaintext in localStorage
-- **Solution**: Recovery codes are now encrypted with Vault Key (AES-256-GCM) before storage
-- **Implementation**: Updated `App.tsx` to encrypt/decrypt recovery codes using `cryptoService`
-
-### 3.4. XSS Protection via CSP (Fixed in this update)
-- **Problem**: No Content-Security-Policy header — if XSS vulnerability exists, attacker can execute arbitrary JS
-- **Solution**: Added CSP meta tag in `index.html` to disallow inline scripts and restrict script execution
-- **Implementation**: Updated `index.html` with `<meta http-equiv="Content-Security-Policy">`
-
-### 3.5. Vault Key Exposure via XSS (Fixed in this update)
-- **Problem**: `cryptoService.vaultKey` was a public property — accessible via `window.cryptoService.vaultKey` in XSS attack
-- **Solution**: Moved Vault Key inside a closure using `WeakMap` — not accessible from outside the module
-- **Implementation**: Refactored `crypto.ts` to use private field / closure pattern
-
----
-
-## 4. Attack Surface
+## 3. Attack Surface
 
 ### What is Exposed to Attackers:
 
@@ -112,7 +80,7 @@ _Version: 2.5.0-PRO | Last Updated: 2026-05-01_
 
 ---
 
-## 5. Incident Response
+## 4. Incident Response
 
 ### Progressive Lockout (`utils/security.ts:23-29`)
 - **Trigger**: 3+ failed unlock attempts (Master Password or PIN)
@@ -138,7 +106,7 @@ _Version: 2.5.0-PRO | Last Updated: 2026-05-01_
 
 ---
 
-## 6. Audit Guidelines
+## 5. Audit Guidelines
 
 ### How to Audit CrytoTool Code for Security:
 
@@ -146,24 +114,24 @@ _Version: 2.5.0-PRO | Last Updated: 2026-05-01_
 - ✅ Check: Argon2id params (memory: 65536, iterations: 10, parallelism: 4)
 - ✅ Check: `vaultKey` is set/cleared correctly (not remaining in memory after lock)
 - ✅ Check: `encryptString()` / `decryptString()` use AES-GCM with randomly generated IV
-- ✅ **Fixed**: `vaultKey` is now in closure / private — not accessible via XSS
+- ✅ Check: `vaultKey` is private — not accessible via XSS
 
 #### `utils/vaultStorage.ts` (Encrypted Vault Keys)
 - ✅ Check: `saveAll()` encrypts JSON with `cryptoService.encryptString()`
 - ✅ Check: `getAll()` decrypts before returning
 - ✅ Check: Legacy format (plaintext) is migrated correctly on first save
-- ✅ **Fixed**: Now uses `cryptoService.encryptString()` / `decryptString()` with Vault Key
+- ✅ Check: Uses `cryptoService.encryptString()` / `decryptString()` with Vault Key
 
 #### `utils/backupCrypto.ts` (Backup Encryption)
 - ✅ Check: PBKDF2-SHA256 with 100,000 iterations
 - ✅ Check: Random salt (16 bytes) generated for each backup
 - ✅ Check: Format `[salt][iv][ciphertext+GCM tag]` is respected
-- ✅ **Fixed**: Backup keys are now generated with 130-bit entropy (26 chars)
+- ✅ Check: Backup keys generated with 130-bit entropy (26 chars)
 
 #### `utils/security.ts` (PIN + Lockout)
 - ✅ Check: PIN hash uses SHA-256 with fixed salt
 - ✅ Check: `verifyPin()` uses constant-time comparison (`diff |= ...`)
-- ✅ **Fixed**: PIN hash is now encrypted with Vault Key before localStorage
+- ✅ Check: PIN hash is encrypted with Vault Key before localStorage
 
 #### `utils/cryptoPrimitives.ts` (Isolated Algorithms)
 - ✅ Check: Each algorithm is isolated (no shared state)
@@ -174,12 +142,12 @@ _Version: 2.5.0-PRO | Last Updated: 2026-05-01_
 #### `App.tsx` (State Management + Incident Response)
 - ✅ Check: `destructTriggerTime` is saved in localStorage (persists between reloads)
 - ✅ Check: `lastActivityRef` is updated on every activity event
-- ✅ **Fixed**: Recovery codes now encrypted with Vault Key
+- ✅ Check: Recovery codes encrypted with Vault Key
 - ✅ Check: All sensitive states (`settingsPassword`, `vaultPin`) are in `useState`, not global variables
 
 ---
 
-## 7. Dependencies Security
+## 6. Dependencies Security
 
 ### `hash-wasm` (Argon2id implementation)
 - **Version**: Check `package.json`
@@ -207,7 +175,7 @@ _Version: 2.5.0-PRO | Last Updated: 2026-05-01_
 
 ---
 
-## 8. Checklist for Security Review
+## 7. Checklist for Security Review
 
 Before releasing a new version, verify:
 

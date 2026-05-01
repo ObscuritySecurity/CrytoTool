@@ -181,22 +181,29 @@ const App: React.FC = () => {
   }, [isAuthenticated, destructTriggerTime]);
 
   // --- RECOVERY CODES (Encrypted with Vault Key) ---
-  const [recoveryCodes, setRecoveryCodes] = useState<string[]>(() => {
-    const saved = localStorage.getItem('crytotool_recovery_codes');
-    if (!saved) return [];
-    try {
-      const parsed = JSON.parse(saved);
-      // Check if encrypted (new format)
-      if (parsed.iv && parsed.data) {
-        const { cryptoService } from './utils/crypto';
-        const decrypted = await cryptoService.decryptString(parsed.data, parsed.iv);
-        return JSON.parse(decrypted);
+  const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
+  
+  useEffect(() => {
+    const loadRecoveryCodes = async () => {
+      const saved = localStorage.getItem('crytotool_recovery_codes');
+      if (!saved) return;
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.iv && parsed.data) {
+          const decrypted = await cryptoService.decryptString(parsed.data, parsed.iv);
+          setRecoveryCodes(JSON.parse(decrypted));
+        } else {
+          setRecoveryCodes(parsed); // Legacy plaintext
+        }
+      } catch {
+        setRecoveryCodes([]);
       }
-      return parsed; // Legacy plaintext
-    } catch {
-      return [];
+    };
+    
+    if (isAuthenticated) {
+      loadRecoveryCodes();
     }
-  });
+  }, [isAuthenticated]);
 
   const generateRecoveryCodes = (): string[] => {
     const codes: string[] = [];
@@ -216,7 +223,6 @@ const App: React.FC = () => {
 
   const saveRecoveryCodes = async (codes: string[]) => {
     try {
-      const { cryptoService } from './utils/crypto';
       const jsonString = JSON.stringify(codes);
       const encrypted = await cryptoService.encryptString(jsonString);
       const stored = JSON.stringify({ iv: encrypted.iv, data: encrypted.ciphertext });

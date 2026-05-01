@@ -252,8 +252,14 @@ class EncryptionService {
   // Decrypts a string using the Vault Key
   async decryptString(ciphertextB64: string, ivB64: string, key: CryptoKey = this.vaultKey!): Promise<string> {
     if (!key) throw new Error("Vault key not initialized");
-    const ciphertext = this.base64ToArrayBuffer(ciphertextB64);
-    const iv = this.base64ToArrayBuffer(ivB64);
+    const ciphertext = this.base64ToArrayBuffer(ciphertextB64).buffer.slice(
+      this.base64ToArrayBuffer(ciphertextB64).byteOffset,
+      this.base64ToArrayBuffer(ciphertextB64).byteOffset + this.base64ToArrayBuffer(ciphertextB64).byteLength
+    ) as ArrayBuffer;
+    const iv = this.base64ToArrayBuffer(ivB64).buffer.slice(
+      this.base64ToArrayBuffer(ivB64).byteOffset,
+      this.base64ToArrayBuffer(ivB64).byteOffset + this.base64ToArrayBuffer(ivB64).byteLength
+    ) as ArrayBuffer;
 
     const decrypted = await window.crypto.subtle.decrypt(
       { name: 'AES-GCM', iv },
