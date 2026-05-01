@@ -282,3 +282,46 @@ IndexedDB: "CrytoToolVault" (Version 2)
 | `isTrashed` | boolean (optional) | Whether the item is in the trash |
 | `tags` | Tag[] (optional) | User-assigned tags |
 | `customIcon` | string (optional) | Custom icon for the item |
+
+---
+
+## 6. Vault Key Storage (Encrypted localStorage)
+### Security Problem & Solution
+**Problem**: Vault keys (for manual encryption) were previously stored as plaintext JSON in `localStorage` (`crytotool_vault_keys`). Anyone with access to the browser (or via XSS) could read all encryption keys.
+
+**Solution**: All vault keys are now **encrypted with the Vault Key** (AES-256-GCM) before being saved to localStorage.
+
+### Storage Format
+```json
+{
+  "iv": "<base64-encoded-12-byte-IV>",
+  "data": "<base64-encoded-AES-GCM-ciphertext>"
+}
+```
+- `iv`: Random 12-byte IV, Base64-encoded
+- `data`: The JSON string of all `VaultKeyEntry[]` objects, encrypted with AES-GCM using the in-memory Vault Key
+
+### Encryption Flow (`utils/crypto.ts:232-266`)
+```
+JSON.stringify(vaultKeyEntries) → TextEncoder → AES-GCM (Vault Key, random IV) → Base64 encode → localStorage
+```
+
+### Decryption Flow
+```
+localStorage → Parse JSON → Base64 decode (iv + data) → AES-GCM decrypt (Vault Key) → TextDecoder → JSON.parse → VaultKeyEntry[]
+```
+
+### Key Points
+- The Vault Key is **never stored**; it is derived from the Master Password via Argon2id and kept only in memory
+- If the user locks the vault (logout), the Vault Key is cleared from memory and stored keys become unreadable
+- Legacy plaintext keys (from older versions) are automatically handled: they are returned as-is and migrated to encrypted format on next save
+- This protects against: local browser access, XSS attacks (if attacker doesn't have the Vault Key), and accidental localStorage inspection
+
+### Implementation Files
+| File | Role |
+|------|------|
+| `utils/crypto.ts` | `encryptString()` / `decryptString()` methods for string encryption using Vault Key |
+| `utils/vaultStorage.ts` | `saveAll()` encrypts before `localStorage.setItem()`; `getAll()` decrypts after `localStorage.getItem()` |
+| `components/EncryptionModal.tsx` | Calls `vaultStorage.save()` (now async) with `await` |
+| `components/views/VaultView.tsx` | All `vaultStorage` calls updated to async/await |
+| `components/DecryptModal.tsx` | `vaultStorage.getByFileId()` called with `await` |

@@ -51,7 +51,7 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
       return;
     }
 
-    const foundKey = vaultStorage.getByFileId(item.id.toString());
+    const foundKey = await vaultStorage.getByFileId(item.id.toString());
     if (foundKey) {
       setPassphrase(foundKey.key);
       setVaultKeyFound(foundKey.id);
@@ -129,7 +129,7 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
                        ext === 'mkv' ? 'video/x-matroska' :
                        item.category === 'video' ? 'video/mp4' : 'application/octet-stream';
 
-      const blob = new Blob([decryptedData], { type: mimeType });
+      const blob = new Blob([new Uint8Array(decryptedData)], { type: mimeType });
       onSuccess(blob, mimeType);
     } catch (e: any) {
       console.error(e);
@@ -163,73 +163,69 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
           initial={{ scale: 0.9, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
-          className="relative w-full max-w-md glass-card rounded-[32px] overflow-hidden flex flex-col"
+          className="relative w-full max-w-[95vw] md:max-w-lg glass-card rounded-lg md:rounded-2xl overflow-hidden flex flex-col max-h-[95vh] md:max-h-[85vh]"
           onClick={(e) => e.stopPropagation()}
           onKeyDown={handleKeyDown}
         >
-          <div className="px-6 py-5 border-b border-zinc-800 bg-zinc-900/50 flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-neon-green/10 flex items-center justify-center border border-neon-green/20 text-neon-green">
-                <Lock size={20} />
+          <div className="px-3 py-2 md:px-6 md:py-4 border-b border-zinc-800 bg-zinc-900/50 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-6 h-6 md:w-10 md:h-10 rounded md:rounded-xl bg-neon-green/10 flex items-center justify-center border border-neon-green/20 text-neon-green">
+                <Lock size={10} className="md:size-5" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white leading-tight">{t('decrypt') || 'Decripteaza'}</h3>
-                <p className="text-[10px] text-zinc-400 uppercase tracking-wider truncate max-w-[200px]">{item.name}</p>
+                <h3 className="text-xs md:text-lg font-bold text-white leading-tight">{t('decrypt') || 'Decripteaza'}</h3>
+                <p className="text-[8px] md:text-[10px] text-zinc-400 uppercase tracking-wider truncate max-w-[120px] md:max-w-[200px]">{item.name}</p>
               </div>
             </div>
-            {!isProcessing && (
-              <div /> 
-            )}
           </div>
 
-          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-2.5 md:p-6 custom-scrollbar">
             {isProcessing ? (
-              <div className="flex flex-col items-center justify-center py-10 space-y-6">
+              <div className="flex flex-col items-center justify-center py-4 md:py-10 space-y-3 md:space-y-6">
                 <div className="relative">
                   <div className="absolute inset-0 bg-neon-green/20 blur-xl rounded-full" />
-                  <Loader2 size={64} className="text-neon-green animate-spin relative z-10" />
+                  <Loader2 size={32} className="text-neon-green animate-spin relative z-10 md:size-16" />
                 </div>
                 <div className="text-center">
-                  <h4 className="text-xl font-bold text-white">{t('processing') || 'Decriptare...'}</h4>
-                  <p className="text-zinc-400 text-xs mt-2 font-mono">{item.algorithm || 'AES-GCM'}</p>
+                  <h4 className="text-sm md:text-xl font-bold text-white">{t('processing') || 'Decriptare...'}</h4>
+                  <p className="text-zinc-400 text-[8px] md:text-xs mt-0.5 md:mt-2 font-mono">{item.algorithm || 'AES-GCM'}</p>
                 </div>
               </div>
             ) : (
-              <div className="space-y-5">
-                <div className="p-4 rounded-2xl bg-zinc-900/50 border border-zinc-800">
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertTriangle size={14} className="text-yellow-500" />
-                    <span className="text-xs font-bold text-zinc-300">{t('encryptedFile') || 'Fisier Criptat Manual'}</span>
+              <div className="space-y-2 md:space-y-5">
+                <div className="p-2 md:p-4 rounded-lg md:rounded-2xl bg-zinc-900/50 border border-zinc-800">
+                  <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-2">
+                    <span className="text-[9px] md:text-xs font-bold text-zinc-300">{t('encryptedFile') || 'Fisier Criptat Manual'}</span>
                   </div>
-                  <p className="text-[11px] text-zinc-500">
+                  <p className="text-[8px] md:text-[11px] text-zinc-500">
                     {t('enterDecryptionKey') || 'Introdu cheia generata la criptare pentru a debloca fisierul.'}
                   </p>
-                  <div className="mt-2 px-2 py-1 rounded bg-black/50 font-mono text-[10px] text-zinc-400 inline-block flex items-center gap-2">
+                  <div className="mt-1 md:mt-2 px-1.5 md:px-2 py-0.5 md:py-1 rounded bg-black/50 font-mono text-[8px] md:text-[10px] text-zinc-400 inline-block flex items-center gap-1 md:gap-2">
                     <span>{item.algorithm || 'AES-GCM'}</span>
                     {(item.algorithm === 'AES-CTR') && (
-                      <span className="px-1.5 py-0.5 rounded bg-neon-green/10 text-neon-green text-[9px] font-bold uppercase tracking-wider">+ HMAC</span>
+                      <span className="px-1 md:px-1.5 py-0.5 rounded bg-neon-green/10 text-neon-green text-[7px] md:text-[9px] font-bold uppercase">+ HMAC</span>
                     )}
                   </div>
                 </div>
 
                 {/* AUTOFILL FROM VAULT */}
-                <div className="p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800">
+                <div className="p-2 md:p-4 rounded-lg md:rounded-2xl bg-zinc-900/80 border border-zinc-800">
                   {vaultPin ? (
                     <>
                       <button
                         onClick={() => setShowPinModal(true)}
-                        className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${autoFillFromVault && vaultKeyFound ? 'bg-neon-green/5 border-neon-green/30' : 'bg-black/50 border-zinc-800 hover:border-zinc-700'}`}
+                        className={`w-full flex items-center justify-between p-2 md:p-3 rounded-lg md:rounded-xl border transition-all ${autoFillFromVault && vaultKeyFound ? 'bg-neon-green/5 border-neon-green/30' : 'bg-black/50 border-zinc-800 hover:border-zinc-700'}`}
                       >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${autoFillFromVault && vaultKeyFound ? 'bg-neon-green/20 text-neon-green' : 'bg-zinc-800 text-zinc-500'}`}>
-                            {autoFillFromVault && vaultKeyFound ? <Check size={16} /> : <Shield size={16} />}
+                        <div className="flex items-center gap-2 md:gap-3">
+                          <div className={`w-5 h-5 md:w-8 md:h-8 rounded-lg md:rounded-xl flex items-center justify-center ${autoFillFromVault && vaultKeyFound ? 'bg-neon-green/20 text-neon-green' : 'bg-zinc-800 text-zinc-500'}`}>
+                            {autoFillFromVault && vaultKeyFound ? <Check size={10} className="md:size-4" /> : <Shield size={10} className="md:size-4" />}
                           </div>
                           <div className="text-left">
-                            <p className={`text-xs font-bold ${autoFillFromVault && vaultKeyFound ? 'text-white' : 'text-zinc-400'}`}>
+                            <p className={`text-[9px] md:text-xs font-bold ${autoFillFromVault && vaultKeyFound ? 'text-white' : 'text-zinc-400'}`}>
                               {autoFillFromVault && vaultKeyFound ? 'Cheie completată din Vault' : 'Autocompletează din Vault'}
                             </p>
-                            <p className="text-[9px] text-zinc-600">
-                              {autoFillFromVault && vaultKeyFound ? 'Cheia a fost găsită și completată automat' : 'Introdu PIN-ul pentru a completa cheia automat'}
+                            <p className="text-[7px] md:text-[9px] text-zinc-600">
+                              {autoFillFromVault && vaultKeyFound ? 'Cheia a fost găsită' : 'Introdu PIN-ul pentru a completa'}
                             </p>
                           </div>
                         </div>
@@ -296,13 +292,13 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
           </div>
 
           {!isProcessing && (
-            <div className="p-6 border-t border-zinc-800 bg-zinc-900/30 flex justify-end shrink-0">
+            <div className="p-4 sm:p-6 border-t border-zinc-800 bg-zinc-900/30 flex justify-end shrink-0">
               <button
                 onClick={handleDecrypt}
                 disabled={!passphrase.trim()}
-                className="px-8 py-3 rounded-xl bg-neon-green text-black text-xs font-black uppercase tracking-widest shadow-[0_0_20px_rgba(57,255,20,0.3)] hover:scale-105 transition-transform disabled:opacity-30 disabled:hover:scale-100 flex items-center gap-2"
+                className="ml-auto px-4 md:px-8 py-2 md:py-3 rounded-lg md:rounded-xl bg-white text-black text-[9px] md:text-xs font-bold uppercase tracking-wider flex items-center gap-1 disabled:opacity-30"
               >
-                <Lock size={14} /> {t('decrypt') || 'Decripteaza'}
+                Decripteaza
               </button>
             </div>
           )}

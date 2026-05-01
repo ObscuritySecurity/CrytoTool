@@ -1,13 +1,15 @@
 
 /**
  * VAULT STORAGE SERVICE
- * 
+ *
  * Stochează și gestionează cheile de criptare manuale în Vault.
- * Fiecare cheie are un ID unic pentru auto-completare la decriptare.
- * 
+ * Toate cheile sunt criptate cu Vault Key (AES-256-GCM) înainte de a fi salvate în localStorage.
+ *
  * Format stocat în localStorage: crytotool_vault_keys
- * Structură: { id, key, algorithm, fileName, categoryId, date, fileId }
+ * Structură criptată: { iv: base64, data: base64 } unde 'data' este JSON-ul criptat al cheilor
  */
+
+import { cryptoService } from './crypto';
 
 export interface VaultKeyEntry {
     id: string;
@@ -56,53 +58,81 @@ function generateRandomIdSuffix(length: number): string {
 }
 
 export const vaultStorage = {
-    getAll(): VaultKeyEntry[] {
+    async getAll(): Promise<VaultKeyEntry[]> {
         try {
-            const data = localStorage.getItem(STORAGE_KEY);
-            return data ? JSON.parse(data) : [];
+            const encryptedData = localStorage.getItem(STORAGE_KEY);
+            if (!encryptedData) return [];
+
+            const parsed = JSON.parse(encryptedData);
+            // Check if data is encrypted (new format)
+            if (parsed.iv && parsed.data) {
+                const decrypted = await cryptoService.decryptString(parsed.data, parsed.iv);
+                return JSON.parse(decrypted);
+            }
+            // Legacy format (plaintext) - migrate on next save
+            return parsed;
         } catch {
             return [];
         }
     },
 
-    save(entry: Omit<VaultKeyEntry, 'id' | 'date'>): VaultKeyEntry {
-        const keys = this.getAll();
+    async save(entry: Omit<VaultKeyEntry, 'id' | 'date'>): Promise<VaultKeyEntry> {
+        const keys = await this.getAll();
         const newEntry: VaultKeyEntry = {
             ...entry,
             id: `vk_${Date.now()}_${generateRandomIdSuffix(6)}`,
             date: new Date().toLocaleDateString(),
         };
         keys.push(newEntry);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(keys));
+        await this.saveAll(keys);
         return newEntry;
     },
 
-    getById(id: string): VaultKeyEntry | undefined {
-        return this.getAll().find(k => k.id === id);
+    // Internal method to encrypt and save all keys
+    async saveAll(keys: VaultKeyEntry[]): Promise<void> {
+        try {
+            const jsonString = JSON.stringify(keys);
+            const encrypted = await cryptoService.encryptString(jsonString);
+            const stored = JSON.stringify({ iv: encrypted.iv, data: encrypted.ciphertext });
+            localStorage.setItem(STORAGE_KEY, stored);
+        } catch (e) {
+            console.error('Failed to save vault keys:', e);
+            throw new Error('Vault Key not available. Please unlock the vault first.');
+        }
     },
 
-    getByCategory(categoryId: string): VaultKeyEntry[] {
-        return this.getAll().filter(k => k.categoryId === categoryId);
+    async getById(id: string): Promise<VaultKeyEntry | undefined> {
+        const keys = await this.getAll();
+        return keys.find(k => k.id === id);
     },
 
-    getByFileId(fileId: string): VaultKeyEntry | undefined {
-        return this.getAll().find(k => k.fileId === fileId);
+    async getByCategory(categoryId: string): Promise<VaultKeyEntry[]> {
+        const keys = await this.getAll();
+        return keys.filter(k => k.categoryId === categoryId);
     },
 
-    delete(id: string): void {
-        const keys = this.getAll().filter(k => k.id !== id);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(keys));
+    async getByFileId(fileId: string): Promise<VaultKeyEntry | undefined> {
+        const keys = await this.getAll();
+        return keys.find(k => k.fileId === fileId);
+    },
+
+    async delete(id: string): Promise<void> {
+        const keys = await this.getAll();
+        const filtered = keys.filter(k => k.id !== id);
+        await this.saveAll(filtered);
     },
 
     clear(): void {
         localStorage.removeItem(STORAGE_KEY);
     },
 
-    countByCategory(categoryId: string): number {
-        return this.getByCategory(categoryId).length;
+    async countByCategory(categoryId: string): Promise<number> {
+        const keys = await this.getByCategory(categoryId);
+        return keys.length;
     },
 
-    totalCount(): number {
-        return this.getAll().length;
+    async totalCount(): Promise<number> {
+        const keys = await this.getAll();
+        return keys.length;
     }
 };

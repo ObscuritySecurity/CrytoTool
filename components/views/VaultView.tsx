@@ -45,8 +45,25 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
     if (saved) {
       try { return JSON.parse(saved); } catch {}
     }
-    return DEFAULT_CATEGORIES.map(c => ({ ...c, count: vaultStorage.countByCategory(c.id) }));
+    return DEFAULT_CATEGORIES.map(c => ({ ...c, count: 0 }));
   });
+  const [totalCount, setTotalCount] = useState(0);
+
+  // Load counts async
+  useEffect(() => {
+    const loadCounts = async () => {
+      const updated = await Promise.all(
+        categories.map(async (c) => ({
+          ...c,
+          count: await vaultStorage.countByCategory(c.id)
+        }))
+      );
+      setCategories(updated);
+      const total = await vaultStorage.totalCount();
+      setTotalCount(total);
+    };
+    loadCounts();
+  }, []);
 
   const [activeCategory, setActiveCategory] = useState<VaultCategory | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -63,7 +80,11 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
 
   useEffect(() => {
     if (activeCategory) {
-      setItems(vaultStorage.getByCategory(activeCategory.id));
+      const loadItems = async () => {
+        const items = await vaultStorage.getByCategory(activeCategory.id);
+        setItems(items);
+      };
+      loadItems();
     }
   }, [activeCategory]);
 
@@ -91,12 +112,15 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
   };
 
   const handleDelete = (id: string) => {
-    vaultStorage.delete(id);
-    setItems(prev => prev.filter(i => i.id !== id));
-    setCategories(prev => prev.map(c => 
-      c.id === activeCategory?.id ? { ...c, count: Math.max(0, c.count - 1) } : c
-    ));
-    setDeleteConfirm(null);
+    const doDelete = async () => {
+      await vaultStorage.delete(id);
+      setItems(prev => prev.filter(i => i.id !== id));
+      setCategories(prev => prev.map(c => 
+        c.id === activeCategory?.id ? { ...c, count: Math.max(0, c.count - 1) } : c
+      ));
+      setDeleteConfirm(null);
+    };
+    doDelete();
   };
 
   const toggleVisibility = (id: string) => {
@@ -194,7 +218,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: idx * 0.05 }}
-                                className="relative group p-5 rounded-[24px] glass-card hover:border-neon-green/50 transition-all text-left flex flex-col justify-between h-36 overflow-hidden"
+                                className="relative group p-4 sm:p-5 rounded-xl sm:rounded-[24px] glass-card hover:border-neon-green/50 transition-all text-left flex flex-col justify-between h-32 sm:h-36 overflow-hidden"
                             >
                                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform scale-150 origin-top-right">
                                     {React.cloneElement(CATEGORY_ICONS[cat.icon] as React.ReactElement, { size: 60 })}
@@ -206,7 +230,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
 
                                 <div>
                                     <h4 className="font-bold text-white text-sm truncate">{cat.name}</h4>
-                                    <p className="text-[10px] text-zinc-500 font-mono mt-1">{vaultStorage.countByCategory(cat.id)} Elemente</p>
+                                    <p className="text-[10px] text-zinc-500 font-mono mt-1">{cat.count} Elemente</p>
                                 </div>
                                 
                                 <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-2 group-hover:translate-x-0">
@@ -218,13 +242,14 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
                         ))}
                     </div>
 
-                    {vaultStorage.totalCount() > 0 && (
+                    {totalCount > 0 && (
                       <div className="pt-4 border-t border-zinc-800">
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             if (confirm('Sigur vrei să ștergi toate cheile din seif?')) {
-                              vaultStorage.clear();
+                              await vaultStorage.clear();
                               setCategories(prev => prev.map(c => ({ ...c, count: 0 })));
+                              setTotalCount(0);
                             }
                           }}
                           className="w-full p-3 rounded-xl bg-red-500/5 border border-red-500/20 text-red-400 text-xs font-bold hover:bg-red-500/10 transition-colors flex items-center justify-center gap-2"

@@ -228,6 +228,42 @@ class EncryptionService {
     }
     return bytes;
   }
+
+  // --- VAULT STORAGE ENCRYPTION ---
+  // Encrypts a string (e.g., JSON of vault keys) using the Vault Key
+  async encryptString(data: string, key: CryptoKey = this.vaultKey!): Promise<{ ciphertext: string; iv: string }> {
+    if (!key) throw new Error("Vault key not initialized");
+    const encoder = new TextEncoder();
+    const rawData = encoder.encode(data);
+    const iv = window.crypto.getRandomValues(new Uint8Array(12));
+
+    const ciphertext = await window.crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv },
+      key,
+      rawData
+    );
+
+    return {
+      ciphertext: this.arrayBufferToBase64(new Uint8Array(ciphertext)),
+      iv: this.arrayBufferToBase64(iv)
+    };
+  }
+
+  // Decrypts a string using the Vault Key
+  async decryptString(ciphertextB64: string, ivB64: string, key: CryptoKey = this.vaultKey!): Promise<string> {
+    if (!key) throw new Error("Vault key not initialized");
+    const ciphertext = this.base64ToArrayBuffer(ciphertextB64);
+    const iv = this.base64ToArrayBuffer(ivB64);
+
+    const decrypted = await window.crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv },
+      key,
+      ciphertext
+    );
+
+    const decoder = new TextDecoder();
+    return decoder.decode(decrypted);
+  }
 }
 
 export const cryptoService = new EncryptionService();
