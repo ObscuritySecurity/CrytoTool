@@ -5,9 +5,14 @@ CrytoTool is compliant with the protocol and respects all the principles include
 ### Key Features
 
 **Advanced Security & Privacy**
+<<<<<<< HEAD
 -   **IndexedDB Encryption:** Files are automatically encrypted using AES-256-GCM with keys derived from your Master Password via Argon2id. For more details, see the [Technical Architecture](https://github.com/ObscuritySecurity/CrytoTool/blob/main/architecture.md) (Section 1).
 -   **Strong Master Password:** Secure your entire vault with a master password (minimum 30 characters).
 -   **Encrypted Backups:** Create fully encrypted backups protected by a unique, separate encryption key using PBKDF2-SHA256 and AES-256-GCM. For more details, see the [Technical Architecture](https://github.com/ObscuritySecurity/CrytoTool/blob/main/architecture.md) (Section 3).
+=======
+-   **Strong Master Password:** Secure your entire vault with a master password (minimum 30 characters).
+-   **Encrypted Backups:** Create fully encrypted backups protected by a unique, separate encryption key.
+>>>>>>> a9cc8cbd3a71a8764e9b1d4152de3d96a0344724
 -   **Critical Settings Password:** Add an optional, second password to protect access to sensitive settings.
 -   **Progressive Lockout:** The app automatically locks for increasing durations after multiple failed password attempts.
 -   **Self-Destruct Mechanism:** Optionally configure the app to automatically and securely wipe all data after a set number of failed attempts.
@@ -18,11 +23,18 @@ CrytoTool is compliant with the protocol and respects all the principles include
 -   **Add Codes Easily:** Add new 2FA accounts by entering details manually or by scanning a QR code from an image in your gallery.
 -   **Powerful Search:** Instantly find any code by searching for its issuer or account name.
 -   **Safe Deletion:** Move codes to a Trash area, from where you can restore them or delete them permanently.
+<<<<<<< HEAD
 -   **Manual & Streaming Encryption:** Encrypt files manually with 6 algorithms (AES-GCM, XChaCha20-Poly1305, ChaCha20-Poly1305, AES-CTR, Salsa20-Poly1305, AES-GCM-Stream). For more details, see the [Technical Architecture](https://github.com/ObscuritySecurity/CrytoTool/blob/main/architecture.md) (Sections 2 & 4).
 
 **Deep Customization**
 -   **Theme Gallery & Accent Colors:** Personalize the app's appearance with a rich theme gallery and a custom accent color picker.
 -   **Multi-Language Support:** The interface is available in over 50 languages to provide a native experience for people worldwide.
+=======
+
+**Deep Customization**
+-   **Theme Gallery & Accent Colors:** Personalize the app's appearance with a rich theme gallery and a custom accent color picker.
+-   **Multi-Language Support:** The interface is available in over 20 languages to provide a native experience for people worldwide.
+>>>>>>> a9cc8cbd3a71a8764e9b1d4152de3d96a0344724
 ---
 
 ### Documentation
