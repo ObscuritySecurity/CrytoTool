@@ -1,4 +1,4 @@
-CrytoTool respects the people behind the screen. It's a A four-in-one, client-side encryption  file manager, gallery, music player, and document viewer where your privacy comes first  on a simple, radical idea: no tracking, no ads, no data collection. Using a 100% client-side architecture and strong client-side encryption the database is protected with (AES-GCM & Argon2id) your sensitive data is protected and never leaves your device.
+CrytoTool respects the people behind the screen. It's a four-in-one, client-side encryption  file manager, gallery, music player, and document viewer where your privacy comes first  on a simple, radical idea: no tracking, no ads, no data collection. Using a 100% client-side architecture and strong client-side encryption the database is protected with (AES-GCM & Argon2id) your sensitive data is protected and never leaves your device.
 
 CrytoTool is compliant with the protocol and respects all the principles included in it: [protocol-3305](https://github.com/ObscuritySecurity/protocol-3305)
 
