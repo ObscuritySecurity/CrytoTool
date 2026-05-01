@@ -1,6 +1,6 @@
-TwoAuth respects the people behind the screen. It's a 2FA app built on a simple, radical idea: no tracking, no ads, no data collection. Using a 100% client-side architecture and strong end-to-end encryption (AES-GCM), your sensitive data is protected and never leaves your device.
+CrytoTool respects the people behind the screen. It's a 2FA app built on a simple, radical idea: no tracking, no ads, no data collection. Using a 100% client-side architecture and strong end-to-end encryption (AES-GCM), your sensitive data is protected and never leaves your device.
 
-TwoAuth is compliant with the protocol and respects all the principles included in it: [protocol-3305](https://github.com/ObscuritySecurity/protocol-3305)
+CrytoTool is compliant with the protocol and respects all the principles included in it: [protocol-3305](https://github.com/ObscuritySecurity/protocol-3305)
 
 ### Key Features
 
