@@ -51,7 +51,7 @@ Explore these guides to understand our project's principles, technical design, a
 -   [Security Documentation](https://github.com/ObscuritySecurity/CrytoTool/blob/main/SECURITY.md) Threat model, attack surface, and audit guidelines.
 -   [Technical Architecture](https://github.com/ObscuritySecurity/CrytoTool/blob/main/architecture.md) A deep dive into the technical design and encryption model.
 -   [UI/UX Design Standards](https://github.com/ObscuritySecurity/CrytoTool/blob/main/DESIGN.md) Design rules, terminology (people not users), visual language, accessibility, and i18n standards.
--   [API Documentation](https://github.com/ObscuritySecurity/CrytoTool/blob/main/API.md) Public APIs for crypto services, database, and utilities.
+-   [API Documentation](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/API.md) Public APIs for crypto services, database, and utilities.
 -   [Development Guide](https://github.com/ObscuritySecurity/CrytoTool/blob/main/DEVELOPMENT.md) Setup, workflows, and coding standards for developers.
 -   [Release Guide](https://github.com/ObscuritySecurity/CrytoTool/blob/main/RELEASE.md) How to create releases for web, desktop, and mobile.
 -   [Changelog](https://github.com/ObscuritySecurity/CrytoTool/blob/main/CHANGELOG.md) History of versions and changes.
