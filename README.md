@@ -47,7 +47,7 @@ Explore these guides to understand our project's principles, technical design, a
 
 -   [Code of Conduct](https://github.com/ObscuritySecurity/CrytoTool/blob/main/CODE_OF_CONDUCT.md) Our pledge to maintain a harassment-free and inclusive community.
 -   [Contributing Guide](https://github.com/ObscuritySecurity/CrytoTool/blob/main/CONTRIBUTING.md) Instructions on how to contribute to the project.
--   [License](https://github.com/ObscuritySecurity/CrytoTool/blob/main/LICENSE) The Apache 2.0 license under which this software is provided.
+-   [License](https://github.com/ObscuritySecurity/CrytoTool/blob/main/LICENSE)  AGPL-3.0 license under which this software is provided.
 -   [Security Documentation](https://github.com/ObscuritySecurity/CrytoTool/blob/main/SECURITY.md) Threat model, attack surface, and audit guidelines.
 -   [Technical Architecture](https://github.com/ObscuritySecurity/CrytoTool/blob/main/architecture.md) A deep dive into the technical design and encryption model.
 -   [UI/UX Design Standards](https://github.com/ObscuritySecurity/CrytoTool/blob/main/DESIGN.md) Design rules, terminology (people not users), visual language, accessibility, and i18n standards.
