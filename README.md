@@ -54,7 +54,7 @@ Explore these guides to understand our project's principles, technical design, a
 -   [API Documentation](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/API.md) Public APIs for crypto services, database, and utilities.
 -   [Development Guide](https://github.com/ObscuritySecurity/CrytoTool/blob/main/DEVELOPMENT.md) Setup, workflows, and coding standards for developers.
 -   [Release Guide](https://github.com/ObscuritySecurity/CrytoTool/blob/main/RELEASE.md) How to create releases for web, desktop, and mobile.
--   [Changelog](https://github.com/ObscuritySecurity/CrytoTool/blob/main/CHANGELOG.md) History of versions and changes.
+-   [Changelog](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/CHANGELOG.md) History of versions and changes.
 
 ### Spread the mission
 
