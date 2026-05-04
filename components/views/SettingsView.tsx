@@ -178,16 +178,16 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                         </div>
                     </div>
                 </div>
-                <div className="p-1.5 rounded-2xl glass-card grid grid-cols-3 gap-1.5">
+                <div className="p-1 rounded-xl glass-card grid grid-cols-3 gap-1">
                 <button onClick={() => {
                   const darkTheme = THEME_COLLECTIONS.Dark[0];
                   props.applyFullTheme(darkTheme);
-                }} className={`py-4 rounded-xl flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest transition-all ${props.appTheme === 'dark' ? 'glass-pressed text-primary' : 'text-muted hover:text-primary'}`}><Moon size={14} />{t('darkMode')}</button>
+                }} className={`py-2.5 rounded-lg flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-all ${props.appTheme === 'dark' ? 'glass-pressed text-primary' : 'text-muted hover:text-primary'}`}><Moon size={12} />{t('darkMode')}</button>
                 <button onClick={() => {
                   const lightTheme = THEME_COLLECTIONS.Light[0];
                   props.applyFullTheme(lightTheme);
-                }} className={`py-4 rounded-xl flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest transition-all ${props.appTheme === 'light' ? 'glass-pressed text-primary' : 'text-muted hover:text-primary'}`}><Sun size={14} />{t('lightMode')}</button>
-                <button onClick={() => props.setAppTheme('system')} className={`py-4 rounded-xl flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest transition-all ${props.appTheme === 'system' ? 'glass-pressed text-primary' : 'text-muted hover:text-primary'}`}><Monitor size={14} />System</button>
+                }} className={`py-2.5 rounded-lg flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-all ${props.appTheme === 'light' ? 'glass-pressed text-primary' : 'text-muted hover:text-primary'}`}><Sun size={12} />{t('lightMode')}</button>
+                <button onClick={() => props.setAppTheme('system')} className={`py-2.5 rounded-lg flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-all ${props.appTheme === 'system' ? 'glass-pressed text-primary' : 'text-muted hover:text-primary'}`}><Monitor size={12} />System</button>
                 </div>
                 <div className="mt-4 p-4 rounded-2xl glass-card">
                 <div className="flex items-center gap-2 mb-3">

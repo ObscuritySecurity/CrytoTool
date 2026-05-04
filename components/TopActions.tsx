@@ -67,17 +67,17 @@ export const TopActions: React.FC<TopActionsProps> = ({
         <div className="flex items-center gap-2">
           <button 
             onClick={onAddFile} 
-            className="flex-[2.5] font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 bg-gradient-to-r from-neon-green to-emerald-400 text-black transition-all active:scale-95 shadow-lg hover:shadow-neon-green/30"
+            className="flex-[2.5] font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-2 bg-gradient-to-r from-neon-green to-emerald-400 text-black transition-all active:scale-95 shadow-lg hover:shadow-neon-green/30 text-sm"
           >
-            <Plus size={20} strokeWidth={4} />
-            <span>{t('addFile')}</span>
+            <Plus size={18} strokeWidth={3} />
+            <span className="hidden xs:inline">{t('addFile')}</span>
           </button>
-          
+           
           <button 
             onClick={!isCreatingFolder ? onStartFolderCreation : undefined} 
-            className="flex-[2.5] font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 glass-button text-primary transition-all active:scale-95"
+            className="flex-[2.5] font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-2 glass-button text-primary transition-all active:scale-95 text-sm"
           >
-            <FolderPlus size={20} className="text-primary" />
+            <FolderPlus size={18} className="text-primary" />
             {isCreatingFolder ? (
               <input 
                 ref={folderInputRef} 
@@ -92,15 +92,15 @@ export const TopActions: React.FC<TopActionsProps> = ({
                 placeholder={t('folderName')}
               />
             ) : (
-              <span>{t('addFolder')}</span>
+              <span className="hidden xs:inline">{t('addFolder')}</span>
             )}
           </button>
 
           <button 
             onClick={() => onNavigateView('storage')} 
-            className="w-11 h-11 flex items-center justify-center rounded-xl glass-button text-primary transition-all active:scale-95 shrink-0"
+            className="w-10 h-10 flex items-center justify-center rounded-xl glass-button text-primary transition-all active:scale-95 shrink-0"
           >
-            <Database size={20} />
+            <Database size={18} />
           </button>
         </div>
 
