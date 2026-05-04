@@ -88,25 +88,44 @@ For full technical details, consult the [Technical Architecture](https://github.
 ### Screenshots
 
 <div align="center">
-  <h3>Desktop & Mobile Views</h3>
-  
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin: 1rem 0;">
-    <div>
-      <img src="assets/dashboard.png" alt="Dashboard" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />
-      <p style="text-align: center; margin-top: 0.5rem; font-size: 0.9rem; color: #666;">Dashboard</p>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin: 2rem 0;">
+    
+    <div style="text-align: center;">
+      <img src="assets/dashboard.png" alt="Dashboard" style="width: 100%; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.15);" />
+      <h3 style="margin: 1rem 0 0.5rem; font-size: 1.1rem;">CrytoTool</h3>
+      <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 0.5rem;">
+        <img src="https://img.shields.io/badge/2.5.0--PRO-neon_green?style=flat-square" alt="Version" />
+        <img src="https://img.shields.io/badge/Stable-brightgreen?style=flat-square" alt="Stable Status" />
+      </div>
     </div>
-    <div>
-      <img src="assets/encryption.png" alt="Encryption" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />
-      <p style="text-align: center; margin-top: 0.5rem; font-size: 0.9rem; color: #666;">Encryption</p>
+    
+    <div style="text-align: center;">
+      <img src="assets/encryption.png" alt="Encryption" style="width: 100%; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.15);" />
+      <h3 style="margin: 1rem 0 0.5rem; font-size: 1.1rem;">CrytoTool</h3>
+      <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 0.5rem;">
+        <img src="https://img.shields.io/badge/AES--256--GCM-FF6F00?style=flat-square&logo=letsencrypt&logoColor=white" alt="AES-256-GCM" />
+        <img src="https://img.shields.io/badge/Argon2id-9C27B0?style=flat-square&logo=password&logoColor=white" alt="Argon2id" />
+      </div>
     </div>
-    <div>
-      <img src="assets/settings.png" alt="Settings" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />
-      <p style="text-align: center; margin-top: 0.5rem; font-size: 0.9rem; color: #666;">Settings</p>
+    
+    <div style="text-align: center;">
+      <img src="assets/settings.png" alt="Settings" style="width: 100%; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.15);" />
+      <h3 style="margin: 1rem 0 0.5rem; font-size: 1.1rem;">CrytoTool</h3>
+      <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 0.5rem;">
+        <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+        <img src="https://img.shields.io/badge/Tauri-24C8D8?style=flat-square&logo=tauri&logoColor=white" alt="Tauri" />
+      </div>
     </div>
-    <div>
-      <img src="assets/animation.png" alt="Animation" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />
-      <p style="text-align: center; margin-top: 0.5rem; font-size: 0.9rem; color: #666;">App Animation</p>
+    
+    <div style="text-align: center;">
+      <img src="assets/animation.png" alt="Animation" style="width: 100%; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.15);" />
+      <h3 style="margin: 1rem 0 0.5rem; font-size: 1.1rem;">CrytoTool</h3>
+      <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 0.5rem;">
+        <img src="https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB" alt="React" />
+        <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+      </div>
     </div>
+    
   </div>
 </div>
 
