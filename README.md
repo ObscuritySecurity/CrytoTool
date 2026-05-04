@@ -42,7 +42,24 @@
       <img src="https://img.shields.io/badge/Argon2id-9C27B0?style=flat-square&logo=password&logoColor=white" alt="Argon2id" />
     </a>
   </p>
+</div>  
+
+<div align="center">
+
+
+|  Concept & Brand |  Interface Overview |
+| :---: | :---: |
+| <img src="assets/animation.png" width="400" /> | <img src="assets/dashboard.png" width="400" /> |
+| *Modern Encryption Identity* | *File Management* |
+
+|  Advanced Security |  Deep Customization |
+| :---: | :---: |
+| <img src="assets/encryption.png" width="400" /> | <img src="assets/settings.png" width="400" /> |
+| *brand & animation* | *Themes & Personalization* |
+
 </div>
+
+
 
 CrytoTool respects the people behind the screen. It's a four-in-one, client-side encryption file manager, gallery, music player, and document viewer where your privacy comes first: no tracking, no ads, no data collection.
 
