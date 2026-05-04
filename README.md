@@ -50,12 +50,12 @@
 |  Concept & Brand |  Interface Overview |
 | :---: | :---: |
 | <img src="assets/animation.png" width="400" /> | <img src="assets/dashboard.png" width="400" /> |
-| *Modern Encryption Identity* | *File Management* |
+| *brand & animation* | *File Management* |
 
 |  Advanced Security |  Deep Customization |
 | :---: | :---: |
 | <img src="assets/encryption.png" width="400" /> | <img src="assets/settings.png" width="400" /> |
-| *brand & animation* | *Themes & Personalization* |
+| *Multiple encryption algorithms* | *Themes & Personalization* |
 
 </div>
 
