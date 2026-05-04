@@ -80,6 +80,12 @@ For full technical details, consult the [Technical Architecture](https://github.
 
 ---
 
+
+
+
+
+
+---
 ### Key Features
 
 **Advanced Security & Privacy**
