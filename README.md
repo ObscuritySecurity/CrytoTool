@@ -56,6 +56,36 @@ Explore these guides to understand our project's principles, technical design, a
 -   [Release Guide](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/RELEASE.md) How to create releases for web, desktop, and mobile.
 -   [Changelog](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/CHANGELOG.md) History of versions and changes.
 
+### Contributors
+
+Thank you to everyone who has contributed to CrytoTool!  
+Special thanks to all the people who helped with code, documentation, testing, and translations.
+
+<!-- Contributors: add yourself here or use @all-contributors bot -->
+<!-- Format: - [@username](https://github.com/username) - contribution type -->
+
+---
+
+### Acknowledgements
+
+CrytoTool is built on the shoulders of giants. We are deeply grateful for these open-source projects:
+
+#### Core Crypto
+- **[hash-wasm](https://github.com/Daninet/hash-wasm)** — Argon2id implementation for master key derivation
+- **[libsodium-wrappers](https://github.com/jedisct1/libsodium.js)** — Audited ChaCha20, XChaCha20, Salsa20, BLAKE2b primitives
+
+#### Framework & UI
+- **[Tauri](https://tauri.app/)** — Secure, lightweight desktop backend
+- **[Capacitor](https://capacitorjs.com/)** — Cross-platform mobile framework
+- **[React](https://react.dev/)** — UI library
+- **[Tailwind CSS](https://tailwindcss.com/)** — Utility-first CSS framework
+- **[Framer Motion](https://www.framer.com/motion/)** — Animation library
+
+#### Inspiration
+- **[Protocol-3305](https://github.com/ObscuritySecurity/protocol-3305)** — The foundational protocol guiding our privacy-first principles
+
+---
+
 ### Spread the mission
 
 We do not need your money. We need your voice.
