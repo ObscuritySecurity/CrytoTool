@@ -61,7 +61,9 @@
 
 
 
-CrytoTool respects the people behind the screen. It's a four-in-one, client-side encryption file manager, gallery, music player, and document viewer where your privacy comes first: no tracking, no ads, no data collection. it's also a file manager and vault with multiple layers of security and deep customization works independently of the operating system CrytoTool works in sandbox mode 
+CrytoTool respects the people behind the screen. It's a four-in-one, client-side encryption file manager, gallery, music player, and document viewer where your privacy comes first: 
+
+no tracking, no ads, no data collection. it's also a file manager and vault with multiple layers of security and deep customization works independently of the operating system CrytoTool works in sandbox mode 
 
 CrytoTool is compliant with the protocol and respects all the principles included in it: [protocol-3305](https://github.com/ObscuritySecurity/protocol-3305)
 
