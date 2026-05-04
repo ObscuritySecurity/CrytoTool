@@ -82,40 +82,34 @@ const formatTime = (seconds: number) => {
   return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 };
 
-const NavButton: React.FC<{
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
-}> = ({ active, onClick, icon, label }) => {
-  return (
-    <button 
-      onClick={onClick}
-      className="flex flex-col items-center gap-1 p-2 w-1/4 transition-all duration-300 group relative"
-    >
-      {active && (
-        <div className="absolute inset-0 bg-gradient-to-t from-neon-green/10 via-neon-green/5 to-transparent rounded-2xl border-t border-neon-green/20" />
-      )}
-      <div className="relative z-10">
+  const NavButton: React.FC<{
+    active: boolean;
+    onClick: () => void;
+    icon: React.ReactNode;
+    label: string;
+  }> = ({ active, onClick, icon, label }) => {
+    return (
+      <button 
+        onClick={onClick}
+        className="flex flex-col items-center gap-1 p-2 w-1/4 transition-all duration-300 group relative"
+      >
         {active && (
-          <div className="absolute -inset-3 bg-gradient-to-t from-neon-green/40 to-transparent blur-xl rounded-full opacity-60" />
+          <div className="absolute inset-0 bg-gradient-to-t from-neon-green/10 via-neon-green/5 to-transparent rounded-2xl border-t border-neon-green/20" />
         )}
-        <div className={`relative transition-all duration-300 ${active ? '' : 'group-hover:-translate-y-1.5 group-hover:scale-110'}`}>
-          {React.cloneElement(icon as React.ReactElement, { 
-            size: 24, 
-            className: active 
-              ? 'text-neon-green drop-shadow-[0_0_12px_rgba(57,255,20,0.8)]'
-              : 'text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]',
-            strokeWidth: 1.5
-          })}
+        <div className="relative z-10">
+          {active && (
+            <div className="absolute -inset-3 bg-gradient-to-t from-neon-green/40 to-transparent blur-xl rounded-full opacity-60" />
+          )}
+          <div className={`relative transition-all duration-300 ${active ? '' : 'group-hover:-translate-y-1.5 group-hover:scale-110'}`}>
+            {icon}
+          </div>
         </div>
-      </div>
-      <span className={`text-[9px] font-bold tracking-widest uppercase z-10 transition-all duration-300 ${active ? 'text-neon-green drop-shadow-[0_0_10px_rgba(57,255,20,0.8)]' : 'text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-emerald-400'}`}>
-        {label}
-      </span>
-    </button>
-  );
-};
+        <span className={`text-[9px] font-bold tracking-widest uppercase z-10 transition-all duration-300 ${active ? 'text-neon-green drop-shadow-[0_0_10px_rgba(57,255,20,0.8)]' : 'text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-emerald-400'}`}>
+          {label}
+        </span>
+      </button>
+    );
+  };
 
 export const Dashboard: React.FC<DashboardProps> = ({ 
   settingsLock, 
