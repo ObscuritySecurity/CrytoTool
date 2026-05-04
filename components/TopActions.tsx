@@ -70,7 +70,7 @@ export const TopActions: React.FC<TopActionsProps> = ({
             className="flex-[2.5] font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-2 bg-gradient-to-r from-neon-green to-emerald-400 text-black transition-all active:scale-95 shadow-lg hover:shadow-neon-green/30 text-sm"
           >
             <Plus size={18} strokeWidth={3} />
-            <span className="hidden xs:inline">{t('addFile')}</span>
+            <span>{t('addFile')}</span>
           </button>
            
           <button 
@@ -92,7 +92,7 @@ export const TopActions: React.FC<TopActionsProps> = ({
                 placeholder={t('folderName')}
               />
             ) : (
-              <span className="hidden xs:inline">{t('addFolder')}</span>
+              <span>{t('addFolder')}</span>
             )}
           </button>
 
