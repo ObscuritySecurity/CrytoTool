@@ -58,11 +58,34 @@ Explore these guides to understand our project's principles, technical design, a
 
 ### Contributors
 
-Thank you to everyone who has contributed to CrytoTool!  
-Special thanks to all the people who helped with code, documentation, testing, and translations.
+Thank you to everyone who has contributed to CrytoTool!
 
-<!-- Contributors: add yourself here or use @all-contributors bot -->
-<!-- Format: - [@username](https://github.com/username) - contribution type -->
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%">
+        <a href="https://github.com/wtshex1">
+          <img src="https://avatars.githubusercontent.com/u/197844846?v=4?s=100" width="100px;" alt="wtshex1"/>
+          <br /><sub><b>wtshex1</b></sub>
+        </a>
+        <br />
+        <a href="#maintenance-wtshex1" title="Maintenance">🚧</a>
+        <a href="#code-wtshex1" title="Code">💻</a>
+        <a href="#design-wtshex1" title="Design">🎨</a>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+> Want to see your avatar here? Check out [CONTRIBUTING.md](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/CONTRIBUTING.md) to learn how to contribute!
 
 ---
 
