@@ -14,14 +14,11 @@
     <a href="https://github.com/ObscuritySecurity/CrytoTool/commits/main">
       <img src="https://img.shields.io/github/last-commit/ObscuritySecurity/CrytoTool?style=flat-square" alt="Last Commit" />
     </a>
-    <a href="https://github.com/ObscuritySecurity/CrytoTool/security">
-      <img src="https://img.shields.io/badge/security%20policy-brightgreen?style=flat-square&logo=shields.io&logoColor=white" alt="Security Policy" />
-    </a>
     <a href="https://github.com/ObscuritySecurity/CrytoTool/actions/workflows/build.yml">
       <img src="https://github.com/ObscuritySecurity/CrytoTool/actions/workflows/build.yml/badge.svg?style=flat-square" alt="Build Status" />
     </a>
-    <a href="https://www.typescriptlang.org/">
-      <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+    <a href="#">
+      <img src="https://img.shields.io/badge/Stable-brightgreen?style=flat-square" alt="Stable Status" />
     </a>
     <a href="https://tauri.app/">
       <img src="https://img.shields.io/badge/Tauri-24C8D8?style=flat-square&logo=tauri&logoColor=white" alt="Tauri" />
@@ -37,12 +34,6 @@
     </a>
     <a href="https://capacitorjs.com/">
       <img src="https://img.shields.io/badge/Capacitor-119EFF?style=flat-square&logo=capacitor&logoColor=white" alt="Capacitor" />
-    </a>
-    <a href="https://github.com/ObscuritySecurity/CrytoTool/blob/main/utils/i18n.ts">
-      <img src="https://img.shields.io/badge/50%2B%20Languages-2196F3?style=flat-square&logo=i18n&logoColor=white" alt="50+ Languages" />
-    </a>
-    <a href="https://github.com/ObscuritySecurity/CrytoTool">
-      <img src="https://img.shields.io/badge/100%25%20Client--Side-brightgreen?style=flat-square&logo=javascript&logoColor=white" alt="Client-Side" />
     </a>
     <a href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-38D.pdf">
       <img src="https://img.shields.io/badge/AES--256--GCM-FF6F00?style=flat-square&logo=letsencrypt&logoColor=white" alt="AES-256-GCM" />
