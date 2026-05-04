@@ -3,43 +3,43 @@
   <h1>CrytoTool</h1>
   <p>
     <a href="https://github.com/ObscuritySecurity/CrytoTool/releases">
-      <img src="https://img.shields.io/badge/2.5.0--PRO-neon_green?style=for-the-badge" alt="Version" />
+      <img src="https://img.shields.io/badge/2.5.0--PRO-neon_green?style=flat-square" alt="Version" />
     </a>
     <a href="https://github.com/ObscuritySecurity/CrytoTool/blob/main/LICENSE">
-      <img src="https://img.shields.io/github/license/ObscuritySecurity/CrytoTool?style=for-the-badge" alt="License" />
+      <img src="https://img.shields.io/github/license/ObscuritySecurity/CrytoTool?style=flat-square" alt="License" />
     </a>
     <a href="https://github.com/ObscuritySecurity/CrytoTool/commits/main">
-      <img src="https://img.shields.io/github/last-commit/ObscuritySecurity/CrytoTool?style=for-the-badge" alt="Last Commit" />
+      <img src="https://img.shields.io/github/last-commit/ObscuritySecurity/CrytoTool?style=flat-square" alt="Last Commit" />
     </a>
     <a href="https://github.com/ObscuritySecurity/CrytoTool/actions/workflows/build.yml">
-      <img src="https://github.com/ObscuritySecurity/CrytoTool/actions/workflows/build.yml/badge.svg?style=for-the-badge" alt="Build Status" />
+      <img src="https://github.com/ObscuritySecurity/CrytoTool/actions/workflows/build.yml/badge.svg?style=flat-square" alt="Build Status" />
     </a>
     <a href="#">
-      <img src="https://img.shields.io/badge/Stable-brightgreen?style=for-the-badge" alt="Stable Status" />
+      <img src="https://img.shields.io/badge/Stable-brightgreen?style=flat-square" alt="Stable Status" />
     </a>
     <a href="https://www.typescriptlang.org/">
-      <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+      <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
     </a>
     <a href="https://tauri.app/">
-      <img src="https://img.shields.io/badge/Tauri-24C8D8?style=for-the-badge&logo=tauri&logoColor=white" alt="Tauri" />
+      <img src="https://img.shields.io/badge/Tauri-24C8D8?style=flat-square&logo=tauri&logoColor=white" alt="Tauri" />
     </a>
     <a href="https://react.dev/">
-      <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+      <img src="https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB" alt="React" />
     </a>
     <a href="https://vitejs.dev/">
-      <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
+      <img src="https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite" />
     </a>
     <a href="https://tailwindcss.com/">
-      <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+      <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
     </a>
     <a href="https://capacitorjs.com/">
-      <img src="https://img.shields.io/badge/Capacitor-119EFF?style=for-the-badge&logo=capacitor&logoColor=white" alt="Capacitor" />
+      <img src="https://img.shields.io/badge/Capacitor-119EFF?style=flat-square&logo=capacitor&logoColor=white" alt="Capacitor" />
     </a>
     <a href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-38D.pdf">
-      <img src="https://img.shields.io/badge/AES--256--GCM-FF6F00?style=for-the-badge&logo=letsencrypt&logoColor=white" alt="AES-256-GCM" />
+      <img src="https://img.shields.io/badge/AES--256--GCM-FF6F00?style=flat-square&logo=letsencrypt&logoColor=white" alt="AES-256-GCM" />
     </a>
     <a href="https://github.com/P-H-C/phc-winner-argon2">
-      <img src="https://img.shields.io/badge/Argon2id-9C27B0?style=for-the-badge&logo=password&logoColor=white" alt="Argon2id" />
+      <img src="https://img.shields.io/badge/Argon2id-9C27B0?style=flat-square&logo=password&logoColor=white" alt="Argon2id" />
     </a>
   </p>
 </div>
