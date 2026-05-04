@@ -1,6 +1,20 @@
 <div align="center">
   <img src="assets/CrytoTool.png" alt="CrytoTool Logo" width="200px" />
   <h1>CrytoTool</h1>
+  <p>
+    <a href="https://github.com/ObscuritySecurity/CrytoTool/releases">
+      <img src="https://img.shields.io/badge/version-2.5.0--PRO-neon_green?style=flat-square" alt="Version" />
+    </a>
+    <a href="https://github.com/ObscuritySecurity/CrytoTool/blob/main/LICENSE">
+      <img src="https://img.shields.io/github/license/ObscuritySecurity/CrytoTool?style=flat-square" alt="License" />
+    </a>
+    <a href="https://github.com/ObscuritySecurity/CrytoTool">
+      <img src="https://img.shields.io/github/languages/top/ObscuritySecurity/CrytoTool?style=flat-square" alt="Top Language" />
+    </a>
+    <a href="https://github.com/ObscuritySecurity/CrytoTool/commits/main">
+      <img src="https://img.shields.io/github/last-commit/ObscuritySecurity/CrytoTool?style=flat-square" alt="Last Commit" />
+    </a>
+  </p>
 </div>
 
 CrytoTool respects the people behind the screen. It's a four-in-one, client-side encryption file manager, gallery, music player, and document viewer where your privacy comes first: no tracking, no ads, no data collection.
