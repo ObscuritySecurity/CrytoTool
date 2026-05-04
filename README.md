@@ -26,6 +26,30 @@
     <a href="https://tauri.app/">
       <img src="https://img.shields.io/badge/Tauri-24C8D8?style=flat-square&logo=tauri&logoColor=white" alt="Tauri" />
     </a>
+    <a href="https://react.dev/">
+      <img src="https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB" alt="React" />
+    </a>
+    <a href="https://vitejs.dev/">
+      <img src="https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite" />
+    </a>
+    <a href="https://tailwindcss.com/">
+      <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
+    </a>
+    <a href="https://capacitorjs.com/">
+      <img src="https://img.shields.io/badge/Capacitor-119EFF?style=flat-square&logo=capacitor&logoColor=white" alt="Capacitor" />
+    </a>
+    <a href="https://github.com/ObscuritySecurity/CrytoTool/blob/main/utils/i18n.ts">
+      <img src="https://img.shields.io/badge/50%2B%20Languages-2196F3?style=flat-square&logo=i18n&logoColor=white" alt="50+ Languages" />
+    </a>
+    <a href="https://github.com/ObscuritySecurity/CrytoTool">
+      <img src="https://img.shields.io/badge/100%25%20Client--Side-brightgreen?style=flat-square&logo=javascript&logoColor=white" alt="Client-Side" />
+    </a>
+    <a href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-38D.pdf">
+      <img src="https://img.shields.io/badge/AES--256--GCM-FF6F00?style=flat-square&logo=letsencrypt&logoColor=white" alt="AES-256-GCM" />
+    </a>
+    <a href="https://github.com/P-H-C/phc-winner-argon2">
+      <img src="https://img.shields.io/badge/Argon2id-9C27B0?style=flat-square&logo=password&logoColor=white" alt="Argon2id" />
+    </a>
   </p>
 </div>
 
