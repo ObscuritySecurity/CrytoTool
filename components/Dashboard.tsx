@@ -194,6 +194,26 @@ export const Dashboard: React.FC<DashboardProps> = ({
             if (est.quota && est.usage) setDeviceStorage({ quota: est.quota, usage: est.usage });
         });
     }
+    
+    // Apply saved theme on mount - only if custom theme config exists
+    const savedConfig = localStorage.getItem('app_theme_config');
+    if (savedConfig) {
+      try {
+        const config = JSON.parse(savedConfig);
+        const root = document.documentElement;
+        Object.entries(config).forEach(([key, value]) => {
+          if (typeof value === 'string') {
+            root.style.setProperty(key, value);
+          }
+        });
+        if (config['--accent-color']) {
+          setAccentColor(config['--accent-color']);
+        }
+      } catch (e) {
+        console.error("Failed to load theme config", e);
+      }
+    }
+    
     return () => {
         Object.values(decryptedUrls).forEach(url => URL.revokeObjectURL(url as string));
     };
@@ -307,47 +327,34 @@ export const Dashboard: React.FC<DashboardProps> = ({
   useEffect(() => {
     const root = document.documentElement;
     const mode = resolveTheme(appTheme);
-    if (mode === 'light') {
-      root.style.setProperty('--bg-main', '#ffffff');
-      root.style.setProperty('--bg-card', '#f4f4f5');
-      root.style.setProperty('--bg-surface', '#e4e4e7');
-      root.style.setProperty('--border-color', '#d4d4d8');
-      root.style.setProperty('--text-main', '#09090b');
-      root.style.setProperty('--text-muted', '#52525b');
-      document.documentElement.setAttribute('data-theme', 'light');
-      localStorage.setItem('app_theme_mode', appTheme);
-    } else {
-      root.style.setProperty('--bg-main', '#000000');
-      root.style.setProperty('--bg-card', '#09090b');
-      root.style.setProperty('--bg-surface', '#18181b');
-      root.style.setProperty('--border-color', '#27272a');
-      root.style.setProperty('--text-main', '#ffffff');
-      root.style.setProperty('--text-muted', '#a1a1aa');
-      document.documentElement.setAttribute('data-theme', 'dark');
-      localStorage.setItem('app_theme_mode', appTheme);
-    }
+    document.documentElement.setAttribute('data-theme', mode);
+    localStorage.setItem('app_theme_mode', appTheme);
   }, [appTheme]);
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     const handler = () => {
       if (appTheme === 'system') {
-        const root = document.documentElement;
-        const mode = resolveTheme('system');
-        if (mode === 'light') {
-          root.style.setProperty('--bg-main', '#ffffff');
-          root.style.setProperty('--bg-card', '#f4f4f5');
-          root.style.setProperty('--bg-surface', '#e4e4e7');
-          root.style.setProperty('--border-color', '#d4d4d8');
-          root.style.setProperty('--text-main', '#09090b');
-          root.style.setProperty('--text-muted', '#52525b');
-        } else {
-          root.style.setProperty('--bg-main', '#000000');
-          root.style.setProperty('--bg-card', '#09090b');
-          root.style.setProperty('--bg-surface', '#18181b');
-          root.style.setProperty('--border-color', '#27272a');
-          root.style.setProperty('--text-main', '#ffffff');
-          root.style.setProperty('--text-muted', '#a1a1aa');
+        // Only apply system theme if no custom theme is saved
+        const hasCustomTheme = localStorage.getItem('app_theme_config') !== null;
+        if (!hasCustomTheme) {
+          const root = document.documentElement;
+          const mode = resolveTheme('system');
+          if (mode === 'light') {
+            root.style.setProperty('--bg-main', '#ffffff');
+            root.style.setProperty('--bg-card', '#f4f4f5');
+            root.style.setProperty('--bg-surface', '#e4e4e7');
+            root.style.setProperty('--border-color', '#d4d4d8');
+            root.style.setProperty('--text-main', '#09090b');
+            root.style.setProperty('--text-muted', '#52525b');
+          } else {
+            root.style.setProperty('--bg-main', '#000000');
+            root.style.setProperty('--bg-card', '#09090b');
+            root.style.setProperty('--bg-surface', '#18181b');
+            root.style.setProperty('--border-color', '#27272a');
+            root.style.setProperty('--text-main', '#ffffff');
+            root.style.setProperty('--text-muted', '#a1a1aa');
+          }
         }
       }
     };
@@ -420,11 +427,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
     root.style.setProperty('--text-main', theme.textMain);
     root.style.setProperty('--text-muted', theme.textMuted);
     setAccentColor(theme.accent);
+    localStorage.setItem('theme_accent', theme.accent);
     localStorage.setItem('app_theme_config', JSON.stringify({
         '--bg-main': theme.bgMain, '--bg-card': theme.bgCard, '--bg-surface': theme.bgSurface,
         '--border-color': theme.border, '--text-main': theme.textMain, '--text-muted': theme.textMuted,
         '--accent-color': theme.accent
     }));
+    // Remove app_theme_mode so it doesn't interfere on reload
+    localStorage.removeItem('app_theme_mode');
   };
 
   const items = useMemo(() => allItems.filter(i => !i.isTrashed), [allItems]);

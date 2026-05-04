@@ -39,6 +39,15 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
     const c = accentColor.replace('#', '');
     return `${parseInt(c.slice(0, 2), 16)}, ${parseInt(c.slice(2, 4), 16)}, ${parseInt(c.slice(4, 6), 16)}`;
   })();
+  
+  // Read theme config for background
+  const themeConfig = (() => {
+    try {
+      const saved = localStorage.getItem('app_theme_config');
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  })();
+  const bgMain = themeConfig?.['--bg-main'] || '#000000';
 
   useEffect(() => {
     if (!lockUntil) {
