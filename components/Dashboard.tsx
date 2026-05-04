@@ -101,12 +101,12 @@ const formatTime = (seconds: number) => {
             <div className="absolute -inset-3 bg-gradient-to-t from-neon-green/40 to-transparent blur-xl rounded-full opacity-60" />
           )}
           <div className={`relative transition-all duration-300 ${active ? '' : 'group-hover:-translate-y-1.5 group-hover:scale-110'}`}>
-            <div className={`w-6 h-6 flex items-center justify-center ${active ? 'text-neon-green drop-shadow-[0_0_12px_rgba(57,255,20,0.8)]' : 'text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]'}`}>
+            <div className="w-6 h-6 flex items-center justify-center text-neon-green drop-shadow-[0_0_12px_rgba(57,255,20,0.8)]">
               {icon}
             </div>
           </div>
         </div>
-        <span className={`text-[9px] font-bold tracking-widest uppercase z-10 transition-all duration-300 ${active ? 'text-neon-green drop-shadow-[0_0_10px_rgba(57,255,20,0.8)]' : 'text-transparent bg-clip-text bg-gradient-to-r from-neon-green to-emerald-400'}`}>
+        <span className="text-[9px] font-bold tracking-widest uppercase z-10 text-neon-green drop-shadow-[0_0_10px_rgba(57,255,20,0.8)]">
           {label}
         </span>
       </button>
