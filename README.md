@@ -85,6 +85,31 @@ For full technical details, consult the [Technical Architecture](https://github.
 -   **Theme Gallery & Accent Colors:** Personalize the app's appearance with a rich theme gallery and a custom accent color picker.
 -   **Multi-Language Support:** The interface is available in over 50 languages to provide a native experience for people worldwide.
 
+### Screenshots
+
+<div align="center">
+  <h3>Desktop & Mobile Views</h3>
+  
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin: 1rem 0;">
+    <div>
+      <img src="assets/dashboard.png" alt="Dashboard" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />
+      <p style="text-align: center; margin-top: 0.5rem; font-size: 0.9rem; color: #666;">Dashboard</p>
+    </div>
+    <div>
+      <img src="assets/encryption.png" alt="Encryption" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />
+      <p style="text-align: center; margin-top: 0.5rem; font-size: 0.9rem; color: #666;">Encryption</p>
+    </div>
+    <div>
+      <img src="assets/settings.png" alt="Settings" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />
+      <p style="text-align: center; margin-top: 0.5rem; font-size: 0.9rem; color: #666;">Settings</p>
+    </div>
+    <div>
+      <img src="assets/animation.png" alt="Animation" style="width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />
+      <p style="text-align: center; margin-top: 0.5rem; font-size: 0.9rem; color: #666;">App Animation</p>
+    </div>
+  </div>
+</div>
+
 ---
 
 ### Documentation
