@@ -86,7 +86,6 @@ For full technical details, consult the [Technical Architecture](https://github.
 -   **Multi-Language Support:** The interface is available in over 50 languages to provide a native experience for people worldwide.
 
 ---
----
 
 ### Documentation
 
