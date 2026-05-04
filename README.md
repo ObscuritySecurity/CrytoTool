@@ -14,6 +14,18 @@
     <a href="https://github.com/ObscuritySecurity/CrytoTool/commits/main">
       <img src="https://img.shields.io/github/last-commit/ObscuritySecurity/CrytoTool?style=flat-square" alt="Last Commit" />
     </a>
+    <a href="https://github.com/ObscuritySecurity/CrytoTool/security">
+      <img src="https://img.shields.io/badge/security%20policy-brightgreen?style=flat-square&logo=shields.io&logoColor=white" alt="Security Policy" />
+    </a>
+    <a href="https://github.com/ObscuritySecurity/CrytoTool/actions/workflows/build.yml">
+      <img src="https://github.com/ObscuritySecurity/CrytoTool/actions/workflows/build.yml/badge.svg?style=flat-square" alt="Build Status" />
+    </a>
+    <a href="https://www.typescriptlang.org/">
+      <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+    </a>
+    <a href="https://tauri.app/">
+      <img src="https://img.shields.io/badge/Tauri-24C8D8?style=flat-square&logo=tauri&logoColor=white" alt="Tauri" />
+    </a>
   </p>
 </div>
 
