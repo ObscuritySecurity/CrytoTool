@@ -1,3 +1,8 @@
+<div align="center">
+  <img src="assets/CrytoTool.png" alt="CrytoTool Logo" width="200px" />
+  <h1>CrytoTool</h1>
+</div>
+
 CrytoTool respects the people behind the screen. It's a four-in-one, client-side encryption file manager, gallery, music player, and document viewer where your privacy comes first: no tracking, no ads, no data collection.
 
 CrytoTool is compliant with the protocol and respects all the principles included in it: [protocol-3305](https://github.com/ObscuritySecurity/protocol-3305)
