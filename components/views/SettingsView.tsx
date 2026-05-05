@@ -53,7 +53,6 @@ interface SettingsViewProps {
     openVault: () => void;
     disableVault: () => void;
   };
-  applyFullTheme: (theme: ThemeConfig) => void;
   openThemes: () => void;
   openFonts: () => void;
   onOpenAbout: () => void;

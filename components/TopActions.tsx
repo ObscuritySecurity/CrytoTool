@@ -8,7 +8,7 @@ interface TopActionsProps {
   activeTab: string;
   isCreatingFolder: boolean;
   newFolderName: string;
-  folderInputRef: React.RefObject<HTMLInputElement | null>;
+  folderInputRef: React.MutableRefObject<HTMLInputElement | null>;
   onAddFile: () => void;
   onStartFolderCreation: () => void;
   onNewFolderNameChange: (val: string) => void;

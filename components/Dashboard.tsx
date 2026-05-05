@@ -63,7 +63,10 @@ interface DashboardProps {
     setAttempts: (val: number) => void;
     inactivitySeconds: number;
     setInactivitySeconds: (val: number) => void;
+    countdownSeconds: number;
+    setCountdownSeconds: (val: number) => void;
   };
+  destructCountdown: number | null;
 }
 
 const formatBytes = (bytes: number, decimals = 2) => {
@@ -297,7 +300,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                            ext === 'webm' ? 'video/webm' :
                            item.category === 'video' ? 'video/mp4' : 'application/octet-stream';
 
-          const blob = new Blob([decryptedData], { type: mimeType });
+           const arrayBuffer = decryptedData.buffer.slice(decryptedData.byteOffset, decryptedData.byteOffset + decryptedData.byteLength) as ArrayBuffer;
+           const blob = new Blob([arrayBuffer], { type: mimeType });
           const url = URL.createObjectURL(blob);
           
           setDecryptedUrls(prev => ({ ...prev, [item.id]: url }));

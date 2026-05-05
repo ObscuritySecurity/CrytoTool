@@ -67,7 +67,8 @@ class VaultDB {
     
     if (item.fileData && !item.isEncrypted) {
         const encrypted = await cryptoService.encrypt(item.fileData);
-        item.fileData = new Blob([encrypted.ciphertext]);
+        const ciphertextBuffer = encrypted.ciphertext.buffer.slice(encrypted.ciphertext.byteOffset, encrypted.ciphertext.byteOffset + encrypted.ciphertext.byteLength) as ArrayBuffer;
+        item.fileData = new Blob([ciphertextBuffer]);
         item.iv = cryptoService.arrayBufferToBase64(encrypted.iv);
         item.algorithm = 'AES-GCM';
         item.isEncrypted = true;
@@ -137,21 +138,21 @@ class VaultDB {
 
   async exportDatabase(): Promise<ExportedItem[]> {
       const items = await this.getAllItems();
-      const exported: ExportedItem[] = await Promise.all(items.map(async (item) => {
-          let b64 = undefined;
-          if (item.fileData) {
-              b64 = await new Promise<string>((resolve) => {
-                  const reader = new FileReader();
-                  reader.onloadend = () => {
-                      const res = reader.result as string;
-                      resolve(res.split(',')[1]); 
-                  };
-                  reader.readAsDataURL(item.fileData);
-              });
-          }
-          const { fileData, ...rest } = item;
-          return { ...rest, fileDataBase64: b64 };
-      }));
+       const exported: ExportedItem[] = await Promise.all(items.map(async (item) => {
+           let b64 = undefined;
+           if (item.fileData) {
+               b64 = await new Promise<string>((resolve) => {
+                   const reader = new FileReader();
+                   reader.onloadend = () => {
+                       const res = reader.result as string;
+                       resolve(res.split(',')[1]);
+                   };
+                   reader.readAsDataURL(item.fileData!);
+               });
+           }
+           const { fileData, ...rest } = item;
+           return { ...rest, fileDataBase64: b64 };
+       }));
       return exported;
   }
 

@@ -461,10 +461,10 @@ const App: React.FC = () => {
                      localStorage.setItem('crytotool_ad_inactivity', v.toString());
                   },
                   countdownSeconds: destructCountdownSeconds,
-                  setCountdownSeconds: (v) => {
-                    setDestructCountdownSeconds(v);
-                    localStorage.setItem('crytotool_ad_countdown', v.toString());
-                  }
+                   setCountdownSeconds: (v: number) => {
+                     setDestructCountdownSeconds(v);
+                     localStorage.setItem('crytotool_ad_countdown', v.toString());
+                   }
                 }}
                 destructCountdown={destructCountdown}
               />

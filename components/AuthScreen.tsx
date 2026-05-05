@@ -17,6 +17,7 @@ interface AuthScreenProps {
     codes: string[];
   };
   onResetWithRecovery: (code: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
+  destructCountdown?: number | null;
 }
 
 export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockUntil, onFailedAttempt, recoverySettings, onResetWithRecovery }) => {
