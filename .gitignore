@@ -5,3 +5,4 @@ dist/
 .env.local
 key.pem
 cert.pem
+platforms/
