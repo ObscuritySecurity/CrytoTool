@@ -1,7 +1,7 @@
 <div align="center">
-  <img src="assets/CrytoTool.png" alt="CrytoTool Logo" width="200px" />
+  <img src="assets/CrytoTool.png" alt="CrytoTool Logo" width="150px" />
   <h1>CrytoTool</h1>
-  <p>
+  <p><strong>All-in-One Privacy.</strong></p>
     <a href="https://github.com/ObscuritySecurity/CrytoTool/releases">
       <img src="https://img.shields.io/badge/2.5.0--PRO-neon_green?style=flat-square" alt="Version" />
     </a>
