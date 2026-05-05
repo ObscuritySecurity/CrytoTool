@@ -4,7 +4,6 @@ version = "2.5.0"
 description = "Secure Crypto Vault"
 authors = ["ObscuritySecurity"]
 edition = "2021"
-build = "build.rs"
 
 [build-dependencies]
 tauri-build = { version = "1.5", features = [] }
