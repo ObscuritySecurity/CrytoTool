@@ -1,12 +1,14 @@
 {
   "appId": "com.crytotool.vault",
   "appName": "CrytoTool",
+  "version": "2.5.0",
   "webDir": "dist",
   "server": {
     "androidScheme": "https"
   },
   "android": {
-    "adjustMarginsForEdgeToEdge": "force"
+    "adjustMarginsForEdgeToEdge": "force",
+    "path": "platforme/android"
   },
   "plugins": {
     "SplashScreen": {
