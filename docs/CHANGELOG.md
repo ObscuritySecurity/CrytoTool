@@ -5,6 +5,22 @@ All notable changes to CrytoTool will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0-PRO] - 2026-05-05
+
+### Security
+- **CRITICAL**: Fixed streaming encryption nonce collision vulnerability — replaced shared-prefix counter with BLAKE2b-based nonce derivation (`streamCrypto.ts`)
+- **HIGH**: Replaced BLAKE2b with Argon2id for passphrase-based key derivation in manual encryption (`crypto.ts`)
+- **HIGH**: Increased master key Argon2id memory from 64MB to 128MB, removed deprecated `memory` parameter (`crypto.ts`)
+- **MEDIUM**: Replaced non-standard HKDF construction with WebCrypto native HKDF for AES-CTR key derivation (`cryptoPrimitives.ts`)
+- **MEDIUM**: Increased PBKDF2-SHA256 iterations from 100,000 to 600,000 for backup key derivation (`backupCrypto.ts`)
+
+### Changed
+- Manual encryption KDF: Argon2id (3 iterations, 192MB memory) instead of single-pass BLAKE2b
+- Streaming encryption KDF: Argon2id (3 iterations, 192MB memory) instead of BLAKE2b
+- AES-CTR HKDF: Now uses standard WebCrypto HKDF-SHA256 with IV as salt
+
+---
+
 ## [2.5.0-PRO] - 2026-05-01
 
 ### Added
@@ -44,8 +60,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Vault key exposure risk (moved to private field in EncryptionService)
 
 ### Security
-- Argon2id parameters: 64MB memory, 10 iterations, 4 parallelism
+- Argon2id parameters (master key): 128MB memory, 4 iterations, 4 parallelism
+- Argon2id parameters (passphrase KDF): 192MB memory, 3 iterations (libsodium)
 - AES-256-GCM for all vault encryption
-- PBKDF2-SHA256 (100k iterations) for backup keys
-- BLAKE2b for manual encryption key derivation
+- PBKDF2-SHA256 (600k iterations) for backup keys
+- WebCrypto native HKDF-SHA256 for AES-CTR key derivation
+- BLAKE2b-based nonce derivation for streaming encryption chunks
 - Zero server communication (100% client-side)

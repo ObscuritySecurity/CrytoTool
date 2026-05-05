@@ -1,5 +1,5 @@
 # CrytoTool Architecture Overview
-_Version: 2.5.0-PRO | Last Updated: 2026-05-01_
+_Version: 2.5.0-PRO | Last Updated: 2026-05-05_
 
 ## Table of Contents
 1. [Database Encryption (IndexedDB)](#1-database-encryption-indexeddb)
@@ -18,13 +18,13 @@ _Version: 2.5.0-PRO | Last Updated: 2026-05-01_
 CrytoTool uses **IndexedDB** (client-side only, no server) as its primary storage, wrapped by the `utils/db.ts` VaultDB service.
 
 ### Master Key Derivation
-The vault master key is derived from the user's Master Password using **Argon2id** via the `hash-wasm` library (`utils/crypto.ts:36-55`):
+The vault master key is derived from the user's Master Password using **Argon2id** via the `hash-wasm` library (`utils/crypto.ts:36-54`):
 ```
-Master Password + Random Salt (16 bytes) → Argon2id (10 iterations, 64MB memory, 4-way parallelism) → 32-byte hash → Imported as AES-256-GCM CryptoKey
+Master Password + Random Salt (16 bytes) → Argon2id (4 iterations, 128MB memory, 4-way parallelism) → 32-byte hash → Imported as AES-256-GCM CryptoKey
 ```
 Parameters:
-- Iterations: 10
-- Memory: 65536 KB (64MB)
+- Iterations: 4
+- Memory: 131072 KB (128MB)
 - Parallelism: 4 threads
 - Hash length: 32 bytes (256 bits)
 - Output: Raw binary, imported as `CryptoKey` for AES-GCM operations
@@ -80,10 +80,11 @@ Triggered via the `EncryptionModal` component (`components/EncryptionModal.tsx`)
 
 6. **Optional Vault Storage**: Save the generated key to `vaultStorage` with a user-selected category for easy reuse. **Security note**: All keys in `vaultStorage` are now encrypted with the Vault Key (AES-256-GCM) before being stored in localStorage (`utils/vaultStorage.ts`). The encrypted format is: `{ iv: base64, data: base64 }` where `data` is the encrypted JSON of all vault key entries.
 
-#### Manual Encryption Key Derivation (`crypto.ts:88-91`):
+#### Manual Encryption Key Derivation (`crypto.ts:87-97`):
 ```
-User-Generated Passphrase + Random Salt (16 bytes) → BLAKE2b (libsodium) → 32-byte raw key → Passed to selected primitive
+User-Generated Passphrase + Random Salt (16 bytes) → Argon2id (libsodium, 3 iterations, 192MB memory) → 32-byte raw key → Passed to selected primitive
 ```
+The passphrase-based KDF uses `sodium.crypto_pwhash()` with `crypto_pwhash_ALG_ARGON2ID13`, providing proper key stretching against brute-force attacks.
 
 #### Vault Key Storage Encryption (`utils/crypto.ts:232-266`, `utils/vaultStorage.ts`):
 ```
@@ -118,7 +119,7 @@ Implemented in `utils/backupCrypto.ts` and `components/views/BackupView.tsx`. Ba
 
 3. **Encrypt Backup** (`backupCryptoService.encryptBackup`):
    - Generate random 16-byte salt
-   - Derive AES-256 key: `Passphrase + Salt → PBKDF2-SHA256 (100,000 iterations) → AES-256-GCM CryptoKey`
+    - Derive AES-256 key: `Passphrase + Salt → PBKDF2-SHA256 (600,000 iterations) → AES-256-GCM CryptoKey`
    - Generate random 12-byte IV
    - Encrypt JSON string with AES-GCM (includes 16-byte GCM authentication tag)
 
@@ -133,7 +134,7 @@ Implemented in `utils/backupCrypto.ts` and `components/views/BackupView.tsx`. Ba
 1. Upload `.enc` backup file
 2. Enter 26-character backup key
 3. Extract salt (16 bytes) + IV (12 bytes) + ciphertext
-4. Derive key with PBKDF2-SHA256 (100k iterations)
+4. Derive key with PBKDF2-SHA256 (600k iterations)
 5. Decrypt with AES-GCM → Parse JSON
 6. Restore localStorage entries and import IndexedDB data via `db.importDatabase()`
 7. Reload the application
@@ -145,7 +146,7 @@ Designed for large files on low-RAM devices, implemented in `utils/streamCrypto.
 
 ### Encryption Flow (`streamCrypto.encrypt`):
 1. Generate random 16-byte salt and 12-byte base IV
-2. Derive stream key: `Passphrase + Salt → BLAKE2b (libsodium, 32-byte output) → AES-256-GCM CryptoKey`
+2. Derive stream key: `Passphrase + Salt → Argon2id (libsodium, 3 iterations, 192MB memory) → AES-256-GCM CryptoKey`
 3. Calculate total chunks: `Math.ceil(fileSize / 4MB)`
 4. Build header:
    ```typescript
@@ -161,7 +162,7 @@ Designed for large files on low-RAM devices, implemented in `utils/streamCrypto.
    }
    ```
 5. For each chunk:
-   - Derive chunk IV: `baseIV (first 8 bytes) + chunkIndex (4 bytes, big-endian)`
+   - Derive chunk IV: `BLAKE2b(chunkIndex (4 bytes) keyed with baseIV) → 12-byte nonce`
    - Encrypt chunk with AES-GCM using the derived key
    - Append encrypted chunk (includes GCM tag) to output
 6. Final output: `[Encoded Header][Chunk 0][Chunk 1]...[Chunk N]`
@@ -169,9 +170,9 @@ Designed for large files on low-RAM devices, implemented in `utils/streamCrypto.
 ### Decryption Flow (`streamCrypto.decrypt`):
 1. Decode header from first `headerSize` bytes
 2. Verify magic: `CRYTO_STREAM`
-3. Derive stream key once using salt from header
+3. Derive stream key once using salt from header (Argon2id, 3 iterations, 192MB memory)
 4. For each chunk:
-   - Derive chunk IV from baseIV + chunk index
+   - Derive chunk IV via `BLAKE2b(chunkIndex keyed with baseIV)`
    - Decrypt chunk with AES-GCM
 5. Reassemble all decrypted chunks into the original file
 
