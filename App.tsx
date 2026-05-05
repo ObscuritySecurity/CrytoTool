@@ -8,10 +8,17 @@ import { cryptoService } from './utils/crypto';
 import { db } from './utils/db';
 import { I18nProvider } from './utils/i18nContext';
 import { hashPin } from './utils/security';
+import { StatusBar, Style } from '@capacitor/status-bar';
 
 const App: React.FC = () => {
   const [showSplash, setShowSplash] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    if (!showSplash) {
+      StatusBar.setStyle({ style: Style.Dark });
+    }
+  }, [showSplash]);
   
   const [isSetupRequired, setIsSetupRequired] = useState(() => {
     const salt = localStorage.getItem('crytotool_salt');

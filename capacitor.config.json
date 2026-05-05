@@ -5,9 +5,16 @@
   "server": {
     "androidScheme": "https"
   },
+  "android": {
+    "adjustMarginsForEdgeToEdge": "force"
+  },
   "plugins": {
     "SplashScreen": {
       "launchShowDuration": 0
+    },
+    "StatusBar": {
+      "style": "DARK",
+      "overlaysWebView": false
     }
   }
 }

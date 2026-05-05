@@ -46,10 +46,12 @@ input, textarea, select {
 /* Safe area for mobile */
 @supports (padding: max(0px)) {
   body {
-    padding-left: max(0env(safe-area-inset-left), 0px);
-    padding-right: max(0env(safe-area-inset-right), 0px);
-    padding-bottom: max(0env(safe-area-inset-bottom), 0px);
+    padding-left: max(0px, env(safe-area-inset-left));
+    padding-right: max(0px, env(safe-area-inset-right));
+    padding-top: max(0px, env(safe-area-inset-top));
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
   }
+}
 }
 
 /* Glassmorphism Effects */
