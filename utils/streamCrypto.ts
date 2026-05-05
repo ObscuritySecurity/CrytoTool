@@ -28,18 +28,28 @@ interface StreamHeader {
     baseIV: Uint8Array;
 }
 
-function deriveChunkIV(baseIV: Uint8Array, chunkIndex: number): Uint8Array {
-    const iv = new Uint8Array(12);
-    iv.set(baseIV.slice(0, 8));
-    const view = new DataView(iv.buffer);
-    view.setUint32(8, chunkIndex, false);
-    return iv;
+async function deriveChunkIV(baseIV: Uint8Array, chunkIndex: number): Promise<Uint8Array> {
+    await sodium.ready;
+    const indexBytes = new Uint8Array([
+        (chunkIndex >>> 24) & 0xff,
+        (chunkIndex >>> 16) & 0xff,
+        (chunkIndex >>> 8) & 0xff,
+        chunkIndex & 0xff
+    ]);
+    const derived = sodium.crypto_generichash(12, indexBytes, baseIV);
+    return new Uint8Array(derived.buffer, derived.byteOffset, derived.byteLength);
 }
 
 async function deriveStreamKey(passphrase: string, salt: Uint8Array): Promise<CryptoKey> {
     await sodium.ready;
-    const passphraseBytes = new TextEncoder().encode(passphrase);
-    const keyBytes = sodium.crypto_generichash(32, passphraseBytes, salt);
+    const keyBytes = sodium.crypto_pwhash(
+        32,
+        passphrase,
+        salt,
+        3,
+        196608,
+        sodium.crypto_pwhash_ALG_ARGON2ID13
+    );
     
     return await window.crypto.subtle.importKey(
         'raw',
@@ -130,7 +140,7 @@ export const streamCrypto = {
             const start = i * CHUNK_SIZE;
             const end = Math.min(start + CHUNK_SIZE, data.length);
             const chunkData = data.slice(start, end);
-            const chunkIV = deriveChunkIV(baseIV, i);
+            const chunkIV = await deriveChunkIV(baseIV, i);
             
             const encrypted = await window.crypto.subtle.encrypt(
                 { name: 'AES-GCM', iv: chunkIV.buffer.slice(chunkIV.byteOffset, chunkIV.byteOffset + chunkIV.byteLength) as ArrayBuffer },
@@ -169,7 +179,7 @@ export const streamCrypto = {
         let offset = headerSize;
         
         for (let i = 0; i < header.totalChunks; i++) {
-            const chunkIV = deriveChunkIV(header.baseIV, i);
+            const chunkIV = await deriveChunkIV(header.baseIV, i);
             const chunkSize = (i < header.totalChunks - 1) 
                 ? header.chunkSize + 16 
                 : encryptedData.length - offset;

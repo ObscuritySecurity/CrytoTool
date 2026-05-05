@@ -6,7 +6,7 @@
  * It is isolated to facilitate security auditing.
  * 
  * Algorithms used:
- * - Key Derivation: PBKDF2-SHA256 (100,000 iterations, salt 16 bytes)
+ * - Key Derivation: PBKDF2-SHA256 (600,000 iterations, salt 16 bytes)
  * - Encryption: AES-256-GCM (Authenticated Encryption)
  * - Passphrase Entropy: 26 cryptographically generated Base32-like characters (130 bits)
  * 
@@ -14,7 +14,7 @@
  * [salt (16 bytes)] + [IV (12 bytes)] + [AES-GCM ciphertext + 16-byte GCM tag]
  */
 
-const PBKDF2_ITERATIONS = 100000;
+const PBKDF2_ITERATIONS = 600000;
 const SALT_LENGTH = 16;
 
 class BackupEncryptionService {
@@ -51,7 +51,7 @@ class BackupEncryptionService {
 
     /**
      * Derives AES-256 key from passphrase using PBKDF2-SHA256.
-     * 100,000 iterations + 16 bytes random salt.
+     * 600,000 iterations + 16 bytes random salt.
      */
     private async keyFromPassphrase(passphrase: string, salt: Uint8Array): Promise<CryptoKey> {
         const encoder = new TextEncoder();
@@ -81,7 +81,7 @@ class BackupEncryptionService {
      * Encrypts the entire backup JSON.
      * Protocol:
      * 1. Generate random salt (16 bytes)
-     * 2. Derive AES-256 key with PBKDF2 (100k iterations)
+     * 2. Derive AES-256 key with PBKDF2 (600k iterations)
      * 3. Generate unique IV (12 bytes)
      * 4. Encrypt with AES-GCM
      * 5. Concatenate: salt + IV + ciphertext

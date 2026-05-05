@@ -63,18 +63,17 @@ export const aesGcm = {
  *   - macKey (32 bytes) for HMAC-SHA256
  */
 
-async function hkdfSha256(ikm: Uint8Array, info: string): Promise<Uint8Array> {
-    const extractKey = await window.crypto.subtle.importKey(
-        'raw', toBufferSource(ikm), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+async function hkdfSha256(ikm: Uint8Array, salt: Uint8Array, info: string, length: number = 32): Promise<Uint8Array> {
+    const key = await window.crypto.subtle.importKey(
+        'raw', toBufferSource(ikm), { name: 'HKDF', hash: 'SHA-256' }, false, ['deriveBits']
     );
-    const prk = await window.crypto.subtle.sign('HMAC', extractKey, new Uint8Array(32));
-    
-    const expandKey = await window.crypto.subtle.importKey(
-        'raw', new Uint8Array(prk), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+    const infoBytes = new TextEncoder().encode(info);
+    const derived = await window.crypto.subtle.deriveBits(
+        { name: 'HKDF', hash: 'SHA-256', salt: toBufferSource(salt), info: infoBytes },
+        key,
+        length * 8
     );
-    const infoBytes = new Uint8Array([...new TextEncoder().encode(info), 0x01]);
-    const okm = await window.crypto.subtle.sign('HMAC', expandKey, toBufferSource(infoBytes));
-    return new Uint8Array(okm);
+    return new Uint8Array(derived);
 }
 
 async function computeHmac(key: Uint8Array, data: Uint8Array): Promise<Uint8Array> {
@@ -86,8 +85,8 @@ async function computeHmac(key: Uint8Array, data: Uint8Array): Promise<Uint8Arra
 
 export const aesCtr = {
     encrypt: async (data: Uint8Array, key: Uint8Array, iv: Uint8Array): Promise<Uint8Array> => {
-        const encryptionKey = await hkdfSha256(key, 'aes-ctr-encryption');
-        const macKey = await hkdfSha256(key, 'hmac-authentication');
+        const encryptionKey = await hkdfSha256(key, iv, 'aes-ctr-encryption');
+        const macKey = await hkdfSha256(key, iv, 'hmac-authentication');
         
         const cryptoKey = await window.crypto.subtle.importKey(
             'raw', toBufferSource(encryptionKey), { name: 'AES-CTR' }, false, ['encrypt']
@@ -104,8 +103,8 @@ export const aesCtr = {
         return result;
     },
     decrypt: async (data: Uint8Array, key: Uint8Array, iv: Uint8Array): Promise<Uint8Array> => {
-        const encryptionKey = await hkdfSha256(key, 'aes-ctr-encryption');
-        const macKey = await hkdfSha256(key, 'hmac-authentication');
+        const encryptionKey = await hkdfSha256(key, iv, 'aes-ctr-encryption');
+        const macKey = await hkdfSha256(key, iv, 'hmac-authentication');
         
         const tag = data.slice(-32);
         const ciphertext = data.slice(0, -32);

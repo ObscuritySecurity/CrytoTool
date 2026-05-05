@@ -37,9 +37,8 @@ class EncryptionService {
     const hash = await argon2id({
       password,
       salt,
-      iterations: 10,
-      memory: 65536,
-      memorySize: 65536,
+      iterations: 4,
+      memorySize: 131072,
       parallelism: 4,
       hashLength: 32, 
       outputType: 'binary',
@@ -85,10 +84,17 @@ class EncryptionService {
     const rawData = data instanceof Blob ? new Uint8Array(await data.arrayBuffer()) : data;
     const salt = window.crypto.getRandomValues(new Uint8Array(16));
 
-    // Derive a 32-byte raw key from the passphrase using Libsodium's Generic Hash (BLAKE2b)
-    // This creates a raw Uint8Array key suitable for passing to the primitives.
-    const passphraseBytes = new TextEncoder().encode(passphrase);
-    const key = sodium.crypto_generichash(32, passphraseBytes, salt);
+    // Derive a 32-byte raw key from the passphrase using Argon2id (libsodium)
+    // This provides proper key stretching against brute-force attacks.
+    const keyBytes = sodium.crypto_pwhash(
+        32,
+        passphrase,
+        salt,
+        3,
+        196608,
+        sodium.crypto_pwhash_ALG_ARGON2ID13
+    );
+    const key = new Uint8Array(keyBytes.buffer, keyBytes.byteOffset, keyBytes.byteLength);
 
     // Get correct IV length from primitives config
     const ivLength = IV_LENGTHS[algorithm] || 12;
@@ -141,9 +147,16 @@ class EncryptionService {
         return await streamCrypto.decrypt(encryptedData, passphrase);
     }
 
-    // Re-derive Key
-    const passphraseBytes = new TextEncoder().encode(passphrase);
-    const key = sodium.crypto_generichash(32, passphraseBytes, salt);
+    // Re-derive Key using Argon2id
+    const keyBytes = sodium.crypto_pwhash(
+        32,
+        passphrase,
+        salt,
+        3,
+        196608,
+        sodium.crypto_pwhash_ALG_ARGON2ID13
+    );
+    const key = new Uint8Array(keyBytes.buffer, keyBytes.byteOffset, keyBytes.byteLength);
 
     switch (algorithm) {
         case 'AES-GCM':
