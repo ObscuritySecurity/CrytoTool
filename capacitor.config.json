@@ -8,7 +8,7 @@
   },
   "android": {
     "adjustMarginsForEdgeToEdge": "force",
-    "path": "platforme/android"
+    "path": "platforms/android"
   },
   "plugins": {
     "SplashScreen": {

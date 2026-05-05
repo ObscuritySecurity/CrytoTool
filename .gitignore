@@ -1,8 +1,10 @@
-node_modules/
+assets/
+backup/
+cert.pem
 dist/
 .DS_Store
-*.log
 .env.local
 key.pem
-cert.pem
+*.log
+node_modules/
 platforms/
