@@ -142,6 +142,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Debug - List ARM64 Build Output
+        if: always()
+        run: |
+          echo "=== ARM64 Target Files ==="
+          find src-tauri/target/aarch64-unknown-linux-gnu -type f -name "crytotool" 2>/dev/null || echo "Binary not found"
+          ls -la src-tauri/target/aarch64-unknown-linux-gnu/release/bundle/ 2>/dev/null || echo "Bundle folder not found"
+
       - name: Upload Bundles (ARM64)
         uses: actions/upload-artifact@v6
         with:
