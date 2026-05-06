@@ -97,13 +97,6 @@ jobs:
             artifact_name: crytotool-linux-arm64
             cross_compile: true
           
-          # macOS Intel (x86_64)
-          - platform: macos-13
-            target: x86_64-apple-darwin
-            build_args: ""
-            bundle_path: "src-tauri/target/release/bundle/dmg/*.dmg"
-            artifact_name: crytotool-macos-intel-x86_64
-          
           # macOS Apple Silicon (ARM64)
           - platform: macos-14
             target: aarch64-apple-darwin
@@ -111,12 +104,12 @@ jobs:
             bundle_path: "src-tauri/target/release/bundle/dmg/*.dmg"
             artifact_name: crytotool-macos-arm64
           
-          # macOS Universal (combined Intel + ARM)
-          - platform: macos-14
-            target: ""
-            build_args: "--target universal-apple-darwin"
+          # macOS Intel (x86_64)
+          - platform: macos-13
+            target: x86_64-apple-darwin
+            build_args: ""
             bundle_path: "src-tauri/target/release/bundle/dmg/*.dmg"
-            artifact_name: crytotool-macos-universal
+            artifact_name: crytotool-macos-intel
     
     runs-on: ${{ matrix.platform }}
     steps:
