@@ -1,4 +1,4 @@
-name: Tauri Mobile & Desktop Build
+name: Tauri Multi-Arch Build
 
 on:
   push:
@@ -38,80 +38,122 @@ jobs:
           name: dist
           path: dist
 
-  build-desktop:
+  build-windows:
     needs: build-web
     strategy:
       fail-fast: false
       matrix:
         include:
-          # Windows x86_64 (64-bit)
-          - platform: windows-latest
+          - arch: x86_64
             target: x86_64-pc-windows-msvc
-            build_args: ""
-            bundle_path: "src-tauri/target/release/bundle/nsis/*.exe"
-            artifact_name: crytotool-windows-x86_64
-          
-          # Windows x86 (32-bit) - procesoare vechi
-          - platform: windows-latest
+            artifact: crytotool-windows-x86_64
+          - arch: x86-32bit
             target: i686-pc-windows-msvc
-            build_args: ""
-            bundle_path: "src-tauri/target/i686-pc-windows-msvc/release/bundle/nsis/*.exe"
-            artifact_name: crytotool-windows-x86-32bit
-          
-          # Windows ARM64
-          - platform: windows-latest
+            artifact: crytotool-windows-x86-32bit
+          - arch: arm64
             target: aarch64-pc-windows-msvc
-            build_args: ""
-            bundle_path: "src-tauri/target/aarch64-pc-windows-msvc/release/bundle/nsis/*.exe"
-            artifact_name: crytotool-windows-arm64
-          
-          # Linux x86_64 (64-bit)
-          - platform: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            build_args: "--bundles deb,appimage,rpm"
-            bundle_path: |
-              src-tauri/target/release/bundle/deb/*.deb
-              src-tauri/target/release/bundle/appimage/*.AppImage
-              src-tauri/target/release/bundle/rpm/*.rpm
-            artifact_name: crytotool-linux-x86_64
-          
-          # Linux x86 (32-bit) - procesoare vechi
-          - platform: ubuntu-latest
-            target: i686-unknown-linux-gnu
-            build_args: "--bundles deb,appimage,rpm"
-            bundle_path: |
-              src-tauri/target/i686-unknown-linux-gnu/release/bundle/deb/*.deb
-              src-tauri/target/i686-unknown-linux-gnu/release/bundle/appimage/*.AppImage
-              src-tauri/target/i686-unknown-linux-gnu/release/bundle/rpm/*.rpm
-            artifact_name: crytotool-linux-x86-32bit
-            cross_compile: true
-          
-          # Linux ARM64
-          - platform: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
-            build_args: "--bundles deb,appimage,rpm"
-            bundle_path: |
-              src-tauri/target/aarch64-unknown-linux-gnu/release/bundle/deb/*.deb
-              src-tauri/target/aarch64-unknown-linux-gnu/release/bundle/appimage/*.AppImage
-              src-tauri/target/aarch64-unknown-linux-gnu/release/bundle/rpm/*.rpm
-            artifact_name: crytotool-linux-arm64
-            cross_compile: true
-          
-          # macOS Apple Silicon (ARM64)
-          - platform: macos-14
-            target: aarch64-apple-darwin
-            build_args: ""
-            bundle_path: "src-tauri/target/release/bundle/dmg/*.dmg"
-            artifact_name: crytotool-macos-arm64
-          
-          # macOS Intel (x86_64)
-          - platform: macos-13
+            artifact: crytotool-windows-arm64
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      
+      - name: Install Rust (${{ env.RUST_TOOLCHAIN }})
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      
+      - name: Install Frontend Deps
+        run: npm install
+      
+      - name: Download Dist Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      
+      - name: Build Tauri App
+        run: npx --yes @tauri-apps/cli@latest build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: src-tauri/target/release/bundle/nsis/*.exe
+
+  build-macos:
+    needs: build-web
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-13
             target: x86_64-apple-darwin
-            build_args: ""
-            bundle_path: "src-tauri/target/release/bundle/dmg/*.dmg"
-            artifact_name: crytotool-macos-intel
-    
-    runs-on: ${{ matrix.platform }}
+            artifact: crytotool-macos-intel
+          - runner: macos-14
+            target: aarch64-apple-darwin
+            artifact: crytotool-macos-apple-silicon
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v5
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      
+      - name: Install Rust (${{ env.RUST_TOOLCHAIN }})
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      
+      - name: Install Frontend Deps
+        run: npm install
+      
+      - name: Download Dist Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      
+      - name: Build Tauri App
+        run: npx --yes @tauri-apps/cli@latest build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: src-tauri/target/release/bundle/dmg/*.dmg
+
+  build-linux:
+    needs: build-web
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            target: x86_64-unknown-linux-gnu
+            artifact: crytotool-linux-x86_64
+            cross_compile: false
+          - arch: x86-32bit
+            target: i686-unknown-linux-gnu
+            artifact: crytotool-linux-x86-32bit
+            cross_compile: true
+          - arch: arm64
+            target: aarch64-unknown-linux-gnu
+            artifact: crytotool-linux-arm64
+            cross_compile: true
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       
@@ -127,12 +169,11 @@ jobs:
           targets: ${{ matrix.target }}
       
       - name: Install Linux Dependencies
-        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf rpm
       
-      - name: Install Cross-Compilation Tools (Linux x86 32-bit)
+      - name: Install Cross-Compilation Tools (32-bit)
         if: matrix.target == 'i686-unknown-linux-gnu'
         run: |
           sudo apt-get update
@@ -141,7 +182,7 @@ jobs:
           echo '[target.i686-unknown-linux-gnu]' >> ~/.cargo/config.toml
           echo 'linker = "i686-linux-gnu-gcc"' >> ~/.cargo/config.toml
       
-      - name: Install Cross-Compilation Tools (Linux ARM64)
+      - name: Install Cross-Compilation Tools (ARM64)
         if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: |
           sudo apt-get update
@@ -160,15 +201,29 @@ jobs:
           path: dist
       
       - name: Build Tauri App
-        run: npx --yes @tauri-apps/cli@latest build ${{ matrix.build_args }}
+        run: npx --yes @tauri-apps/cli@latest build --bundles deb,appimage,rpm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Upload Artifacts
+      - name: Upload Artifact (Native x86_64)
+        if: matrix.cross_compile == false
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact_name }}
-          path: ${{ matrix.bundle_path }}
+          name: ${{ matrix.artifact }}
+          path: |
+            src-tauri/target/release/bundle/deb/*.deb
+            src-tauri/target/release/bundle/appimage/*.AppImage
+            src-tauri/target/release/bundle/rpm/*.rpm
+      
+      - name: Upload Artifact (Cross-compiled)
+        if: matrix.cross_compile == true
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            src-tauri/target/${{ matrix.target }}/release/bundle/deb/*.deb
+            src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage
+            src-tauri/target/${{ matrix.target }}/release/bundle/rpm/*.rpm
 
   build-android:
     needs: build-web
@@ -237,19 +292,15 @@ jobs:
         env:
           NDK_HOME: ${{ env.NDK_HOME }}
       
-      - name: List Android Output (Debug)
-        if: always()
-        run: find src-tauri -name "*.apk" -type f 2>/dev/null || echo "No APK found"
-      
       - name: Build Android APK (Release)
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
         run: npx --yes @tauri-apps/cli@latest android build --apk
         env:
           NDK_HOME: ${{ env.NDK_HOME }}
       
-      - name: List Android Output (Release)
+      - name: List Android APK Files
         if: always()
-        run: find src-tauri -name "*.apk" -type f 2>/dev/null || echo "No APK found"
+        run: find src-tauri/gen/android -name "*.apk" -type f 2>/dev/null || echo "No APK found"
       
       - name: Upload Android Debug APK
         if: always()
