@@ -1,4 +1,4 @@
-
+ 
 cert.pem
 dist/
 .DS_Store
@@ -6,3 +6,4 @@ dist/
 key.pem
 *.log
 node_modules/
+platforms/
