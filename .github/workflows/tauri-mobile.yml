@@ -169,11 +169,19 @@ jobs:
         env:
           NDK_HOME: ${{ env.NDK_HOME }}
       
+      - name: List Android Output (Debug)
+        if: always()
+        run: find src-tauri -name "*.apk" -type f 2>/dev/null || echo "No APK found"
+      
       - name: Build Android APK (Release)
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
         run: npx --yes @tauri-apps/cli@latest android build --apk
         env:
           NDK_HOME: ${{ env.NDK_HOME }}
+      
+      - name: List Android Output (Release)
+        if: always()
+        run: find src-tauri -name "*.apk" -type f 2>/dev/null || echo "No APK found"
       
       - name: Upload Android Debug APK
         if: always()
