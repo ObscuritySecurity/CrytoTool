@@ -1,0 +1,130 @@
+name: Android Build
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: 24
+  RUST_TOOLCHAIN: stable
+
+jobs:
+  build-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      
+      - name: Install Dependencies
+        run: npm install
+      
+      - name: Build Web Dist
+        run: npm run build
+      
+      - name: Upload Dist Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+  build-android:
+    needs: build-web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      
+      - name: Install Rust (${{ env.RUST_TOOLCHAIN }})
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+        
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+      
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          cmdline-tools-version: 12266719
+          packages: 'platform-tools build-tools;34.0.0 platforms;android-34 ndk;25.2.9519653'
+        
+      - name: Gradle cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: gradle-
+        
+      - name: Set NDK_HOME
+        run: |
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
+          echo "NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
+          echo "PATH=$ANDROID_HOME/ndk/25.2.9519653/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH" >> $GITHUB_ENV
+      
+      - name: Install Dependencies
+        run: npm install
+      
+      - name: Download Dist Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      
+      - name: Generate Icons from Source
+        run: npx --yes @tauri-apps/cli@latest icon assets/CrytoTool.png
+      
+      - name: Initialize Android Project
+        run: npx --yes @tauri-apps/cli@latest android init
+      
+      - name: Build Android APK (Debug)
+        run: npx --yes @tauri-apps/cli@latest android build --debug --apk
+        env:
+          NDK_HOME: ${{ env.NDK_HOME }}
+      
+      - name: Build Android APK (Release)
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        run: npx --yes @tauri-apps/cli@latest android build --apk
+        env:
+          NDK_HOME: ${{ env.NDK_HOME }}
+      
+      - name: List Android Output Files
+        if: always()
+        run: find src-tauri/gen/android -name "*.apk" -type f 2>/dev/null || echo "No APK found"
+      
+      - name: Upload Android Debug APK
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crytotool-android-debug
+          path: src-tauri/gen/android/app/build/outputs/apk/debug/*.apk
+      
+      - name: Upload Android Release APK
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        uses: actions/upload-artifact@v4
+        with:
+          name: crytotool-android-release
+          path: src-tauri/gen/android/app/build/outputs/apk/release/*.apk
