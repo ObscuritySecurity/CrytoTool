@@ -5,7 +5,7 @@
     <a href="https://github.com/ObscuritySecurity/CrytoTool/releases">
       <img src="https://img.shields.io/badge/2.5.0--PRO-neon_green?style=flat-square" alt="Version" />
     </a>
-    <a href="https://github.com/ObscuritySecurity/CrytoTool/blob/main/LICENSE">
+    <a href="https://github.com/ObscuritySecurity/CrytoTool/blob/main/LICENSE
       <img src="https://img.shields.io/github/license/ObscuritySecurity/CrytoTool?style=flat-square" alt="License" />
     </a>
     <a href="https://github.com/ObscuritySecurity/CrytoTool/commits/main">
