@@ -43,7 +43,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [macos-latest, ubuntu-latest, windows-latest]
+        include:
+          - platform: macos-latest
+            target: ""
+            bundle_path: "src-tauri/target/release/bundle/dmg/*.dmg"
+            artifact_name: crytotool-macos
+          - platform: windows-latest
+            target: ""
+            bundle_path: "src-tauri/target/release/bundle/nsis/*.exe"
+            artifact_name: crytotool-windows
+          - platform: ubuntu-latest
+            target: ""
+            bundle_path: "src-tauri/target/release/bundle/deb/*.deb"
+            artifact_name: crytotool-linux
     
     runs-on: ${{ matrix.platform }}
     steps:
@@ -73,34 +85,16 @@ jobs:
           name: dist
           path: dist
       
-      - name: Build Tauri App (Windows/macOS)
-        if: runner.os != 'Linux'
-        uses: tauri-apps/tauri-action@v0
+      - name: Build Tauri App
+        run: npx --yes @tauri-apps/cli@latest build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          projectPath: ./src-tauri
-          tauriScript: npx tauri
-          tagName: app-v__VERSION__
-          releaseName: 'CrytoTool v__VERSION__'
-          releaseBody: 'Security Update - Auto Generated'
-          releaseDraft: true
-          prerelease: false
       
-      - name: Build Tauri App (Linux)
-        if: runner.os == 'Linux'
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
         with:
-          projectPath: ./src-tauri
-          tauriScript: npx tauri
-          tagName: app-v__VERSION__
-          releaseName: 'CrytoTool v__VERSION__'
-          releaseBody: 'Security Update - Auto Generated'
-          releaseDraft: true
-          prerelease: false
-          args: --bundles deb,AppImage
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.bundle_path }}
 
   build-android:
     needs: build-web
@@ -139,7 +133,7 @@ jobs:
         with:
           path: |
             ~/.gradle/caches
-            ~/.gradle/wraper
+            ~/.gradle/wrapper
           key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: gradle-
         
@@ -163,10 +157,6 @@ jobs:
       
       - name: Initialize Android Project
         run: npx --yes @tauri-apps/cli@latest android init
-        env:
-          NDK_HOME: ${{ env.NDK_HOME }}
-          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
       
       - name: Build Android APK (Debug)
         run: npx --yes @tauri-apps/cli@latest android build --debug
@@ -192,46 +182,3 @@ jobs:
         with:
           name: crytotool-android-release
           path: src-tauri/gen/android/app/build/outputs/apk/release/*.apk
-
-  # iOS build requires $99 Apple Developer account
-  # Uncomment when ready to build for iOS
-  # build-ios:
-  #   needs: build-web
-  #   runs-on: macos-latest
-  #   steps:
-  #     - uses: actions/checkout@v5
-  #     
-  #     - name: Setup Node.js
-  #       uses: actions/setup-node@v5
-  #       with:
-  #         node-version: ${{ env.NODE_VERSION }}
-  #         cache: npm
-  #     
-  #     - name: Install Rust (${{ env.RUST_TOOLCHAIN }})
-  #       uses: dtolnay/rust-toolchain@stable
-  #       with:
-  #         targets: aarch64-apple-ios,x86_64-apple-ios,aarch64-apple-ios-sim
-  #     
-  #     - name: Setup CocoaPods
-  #       run: pod setup
-  #     
-  #     - name: Install Dependencies
-  #       run: npm install
-  #     
-  #     - name: Download Dist Artifact
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: dist
-  #         path: dist
-  #     
-  #     - name: Initialize iOS Project
-  #       run: npx --yes @tauri-apps/cli@latest ios init
-  #     
-  #     - name: Build iOS (Debug)
-  #       run: npx --yes @tauri-apps/cli@latest ios build --debug
-  #     
-  #     - name: Upload iOS App (Debug)
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: crytotool-ios-debug
-  #         path: src-tauri/gen/ios/build/
