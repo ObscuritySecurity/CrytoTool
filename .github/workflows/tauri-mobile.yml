@@ -40,8 +40,6 @@ jobs:
 
   build-desktop:
     needs: build-web
-    permissions:
-      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -75,7 +73,8 @@ jobs:
           name: dist
           path: dist
       
-      - name: Build Tauri App
+      - name: Build Tauri App (Windows/macOS)
+        if: runner.os != 'Linux'
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -88,30 +87,20 @@ jobs:
           releaseDraft: true
           prerelease: false
       
-      - name: Upload Windows Executables
-        if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v4
-        with:
-          name: crytotool-windows
-          path: src-tauri/target/release/*.msi
-      
-      - name: Upload macOS Executables
-        if: runner.os == 'macOS'
-        uses: actions/upload-artifact@v4
-        with:
-          name: crytotool-macos
-          path: |
-            src-tauri/target/release/*.dmg
-            src-tauri/target/release/*.app
-      
-      - name: Upload Linux Executables
+      - name: Build Tauri App (Linux)
         if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v4
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: crytotool-linux
-          path: |
-            src-tauri/target/release/*.AppImage
-            src-tauri/target/release/*.deb
+          projectPath: ./src-tauri
+          tauriScript: npx tauri
+          tagName: app-v__VERSION__
+          releaseName: 'CrytoTool v__VERSION__'
+          releaseBody: 'Security Update - Auto Generated'
+          releaseDraft: true
+          prerelease: false
+          args: --bundles deb,AppImage
 
   build-android:
     needs: build-web
@@ -129,10 +118,10 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
-       
+        
       - name: Rust cache
         uses: Swatinem/rust-cache@v2
-       
+        
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -144,7 +133,7 @@ jobs:
         with:
           cmdline-tools-version: 12266719
           packages: 'platform-tools build-tools;34.0.0 platforms;android-34 ndk;25.2.9519653'
-       
+        
       - name: Gradle cache
         uses: actions/cache@v3
         with:
@@ -153,7 +142,7 @@ jobs:
             ~/.gradle/wraper
           key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: gradle-
-       
+        
       - name: Set NDK_HOME
         run: |
           echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
@@ -183,29 +172,25 @@ jobs:
         run: npx --yes @tauri-apps/cli@latest android build --debug --apk
         env:
           NDK_HOME: ${{ env.NDK_HOME }}
-          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
       
-       - name: Build Android APK (Release)
-         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
-         run: npx --yes @tauri-apps/cli@latest android build --apk
-         env:
-           NDK_HOME: ${{ env.NDK_HOME }}
-           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+      - name: Build Android APK (Release)
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        run: npx --yes @tauri-apps/cli@latest android build --apk
+        env:
+          NDK_HOME: ${{ env.NDK_HOME }}
       
       - name: Upload Android Debug APK
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: crytotool-android-debug.apk
+          name: crytotool-android-debug
           path: src-tauri/gen/android/app/build/outputs/apk/debug/*.apk
       
       - name: Upload Android Release APK
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
         uses: actions/upload-artifact@v4
         with:
-          name: crytotool-android-release.apk
+          name: crytotool-android-release
           path: src-tauri/gen/android/app/build/outputs/apk/release/*.apk
 
   build-ios:
@@ -239,59 +224,12 @@ jobs:
       
       - name: Initialize iOS Project
         run: npx --yes @tauri-apps/cli@latest ios init
-        env:
-          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
       
       - name: Build iOS (Debug)
         run: npx --yes @tauri-apps/cli@latest ios build --debug
-        env:
-          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
       
       - name: Upload iOS App (Debug)
         uses: actions/upload-artifact@v4
         with:
           name: crytotool-ios-debug
           path: src-tauri/gen/ios/build/
-
-  update-version:
-    needs: [build-desktop, build-android, build-ios]
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
-    steps:
-      - uses: actions/checkout@v5
-      
-      - name: Update Version
-        run: |
-          VERSION=$(date +'%Y.%m.%d')
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-      
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ env.VERSION }}
-          name: CrytoTool v${{ env.VERSION }}
-          body: |
-            ## CrytoTool Vault v${{ env.VERSION }}
-            
-            ### Downloads
-            - **Windows**: CrytoTool_x64_en-US.msi
-            - **macOS**: CrytoTool_x64.dmg / CrytoTool_aarch64.dmg
-            - **Linux**: crytotool-x86_64.AppImage / crytotool_x64.deb
-            - **Android**: crytotool-android-release.apk
-            
-            ### Security
-            - Client-side encryption (Argon2id + AES-256-GCM)
-            - No telemetry, local-first storage
-            - Open source
-            
-            ### Changes
-            Auto-generated release from CI/CD pipeline.
-          draft: false
-          prerelease: false
-          files: |
-            src-tauri/gen/android/app/build/outputs/apk/release/*.apk
-            src-tauri/gen/android/app/build/outputs/bundle/release/*.aab
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
