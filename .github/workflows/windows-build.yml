@@ -20,74 +20,109 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-      
+
       - name: Install Dependencies
         run: npm install
-      
+
       - name: Build Web Dist
         run: npm run build
-      
+
       - name: Upload Dist Artifact
         uses: actions/upload-artifact@v6
         with:
           name: dist
           path: dist
 
-  build-windows:
+  build-windows-x86_64:
     needs: build-web
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: x86_64
-            target: x86_64-pc-windows-msvc
-            artifact: crytotool-windows-x86_64
-          - arch: arm64
-            target: aarch64-pc-windows-msvc
-            artifact: crytotool-windows-arm64
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-      
+
       - name: Install Rust (${{ env.RUST_TOOLCHAIN }})
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.target }}
-      
+          targets: x86_64-pc-windows-msvc
+
       - name: Install Frontend Deps
         run: npm install
-      
+
       - name: Download Dist Artifact
         uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist
-      
-      - name: Build Tauri App
-        run: npx --yes @tauri-apps/cli@latest build
+
+      - name: Build Tauri App (x86_64)
+        run: npx --yes @tauri-apps/cli@latest build --target x86_64-pc-windows-msvc
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Upload Installer (Bundle)
+
+      - name: Upload Installer (x86_64)
         uses: actions/upload-artifact@v6
         with:
-          name: ${{ matrix.artifact }}
-          path: src-tauri/target/release/bundle/nsis/*.exe
-      
-      - name: Upload Raw Binary
+          name: crytotool-windows-x86_64
+          path: src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
+
+      - name: Upload Raw Binary (x86_64)
         uses: actions/upload-artifact@v6
         with:
-          name: crytotool-windows-${{ matrix.arch }}-raw.exe
-          path: src-tauri/target/release/crytotool.exe
+          name: crytotool-windows-x86_64-raw.exe
+          path: src-tauri/target/x86_64-pc-windows-msvc/release/crytotool.exe
+
+  build-windows-arm64:
+    needs: build-web
+    runs-on: windows-latest
+    env:
+      CARGO_BUILD_TARGET: aarch64-pc-windows-msvc
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install Rust (${{ env.RUST_TOOLCHAIN }})
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-pc-windows-msvc
+
+      - name: Install Frontend Deps
+        run: npm install
+
+      - name: Download Dist Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Build Tauri App (ARM64)
+        run: npx --yes @tauri-apps/cli@latest build --target aarch64-pc-windows-msvc
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Installer (ARM64)
+        uses: actions/upload-artifact@v6
+        with:
+          name: crytotool-windows-arm64
+          path: src-tauri/target/aarch64-pc-windows-msvc/release/bundle/nsis/*.exe
+
+      - name: Upload Raw Binary (ARM64)
+        uses: actions/upload-artifact@v6
+        with:
+          name: crytotool-windows-arm64-raw.exe
+          path: src-tauri/target/aarch64-pc-windows-msvc/release/crytotool.exe
