@@ -87,6 +87,31 @@ jobs:
           releaseBody: 'Security Update - Auto Generated'
           releaseDraft: true
           prerelease: false
+      
+      - name: Upload Windows Executables
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: crytotool-windows
+          path: src-tauri/target/release/*.msi
+      
+      - name: Upload macOS Executables
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: crytotool-macos
+          path: |
+            src-tauri/target/release/*.dmg
+            src-tauri/target/release/*.app
+      
+      - name: Upload Linux Executables
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: crytotool-linux
+          path: |
+            src-tauri/target/release/*.AppImage
+            src-tauri/target/release/*.deb
 
   build-android:
     needs: build-web
@@ -161,21 +186,13 @@ jobs:
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
       
-      - name: Build Android APK (Release)
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
-        run: npx --yes @tauri-apps/cli@latest android build --apk
-        env:
-          NDK_HOME: ${{ env.NDK_HOME }}
-          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
-      
-      - name: Build Android APK (Release)
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
-        run: npx --yes @tauri-apps/cli@latest android build -- --apk
-        env:
-          NDK_HOME: ${{ env.NDK_HOME }}
-          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+       - name: Build Android APK (Release)
+         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+         run: npx --yes @tauri-apps/cli@latest android build --apk
+         env:
+           NDK_HOME: ${{ env.NDK_HOME }}
+           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
       
       - name: Upload Android Debug APK
         if: always()
