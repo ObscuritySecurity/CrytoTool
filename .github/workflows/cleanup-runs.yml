@@ -1,0 +1,82 @@
+name: Cleanup Old Workflow Runs
+
+on:
+  schedule:
+    # Run every Sunday at 3:00 AM UTC
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+    inputs:
+      keep_count:
+        description: 'Number of recent runs to keep per workflow'
+        required: false
+        default: '20'
+        type: string
+      dry_run:
+        description: 'Dry run - only list what would be deleted'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+      
+      - name: Cleanup Old Workflow Runs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          KEEP_COUNT: ${{ github.event.inputs.keep_count || '20' }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+        run: |
+          # List all workflows
+          workflows=$(gh workflow list --repo ${{ github.repository }} --json name --jq '.[].name')
+          
+          echo "Found workflows: $workflows"
+          
+          for workflow in $workflows; do
+            # Remove quotes from workflow name
+            workflow_name=$(echo "$workflow" | tr -d '"')
+            echo "Processing workflow: $workflow_name"
+            
+            # Get workflow ID
+            workflow_id=$(gh workflow list --repo ${{ github.repository }} --json name,id --jq ".[] | select(.name == \"$workflow_name\") | .id")
+            
+            if [ -z "$workflow_id" ]; then
+              echo "Could not find workflow ID for: $workflow_name"
+              continue
+            fi
+            
+            echo "Workflow ID: $workflow_id"
+            
+            # List all runs for this workflow, sorted by created (newest first)
+            runs=$(gh run list --workflow "$workflow_id" --repo ${{ github.repository }} --json databaseId,status,createdAt --jq 'sort_by(.createdAt) | reverse | .[3:]')
+            
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "DRY RUN - Would delete the following runs:"
+              echo "$runs" | jq -r '.databaseId'
+            else
+              # Delete old runs (skip the first KEEP_COUNT runs)
+              echo "$runs" | jq -r '.databaseId' | while read -r run_id; do
+                if [ -n "$run_id" ]; then
+                  echo "Deleting run ID: $run_id"
+                  gh run delete "$run_id" --repo ${{ github.repository }} || echo "Failed to delete run $run_id"
+                fi
+              done
+            fi
+            
+            echo "---"
+          done
+          
+          echo "Cleanup complete!"
