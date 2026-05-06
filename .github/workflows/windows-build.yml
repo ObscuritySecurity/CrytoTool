@@ -80,8 +80,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Upload Artifact
+      - name: Upload Installer (Bundle)
         uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.artifact }}
           path: src-tauri/target/release/bundle/nsis/*.exe
+      
+      - name: Upload Raw Binary
+        uses: actions/upload-artifact@v6
+        with:
+          name: crytotool-windows-${{ matrix.arch }}-raw.exe
+          path: src-tauri/target/release/crytotool.exe
