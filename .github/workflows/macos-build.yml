@@ -87,15 +87,15 @@ jobs:
           path: src-tauri/target/release/bundle/dmg/*.dmg
       
       - name: Upload Raw Binary (Intel x86_64)
-        if: matrix.target == 'x86_64-apple-darwin'
-        uses: actions/upload-artifact@v6
-        with:
-          name: crytotool-macos-intel-raw.app
-          path: src-tauri/target/release/CrytoTool.app
-      
-      - name: Upload Raw Binary (Apple Silicon ARM64)
-        if: matrix.target == 'aarch64-apple-darwin'
-        uses: actions/upload-artifact@v6
-        with:
-          name: crytotool-macos-arm64-raw.app
-          path: src-tauri/target/release/CrytoTool.app
+         if: matrix.target == 'x86_64-apple-darwin'
+         uses: actions/upload-artifact@v6
+         with:
+           name: crytotool-macos-intel-raw
+           path: src-tauri/target/release/bundle/macos/CrytoTool.app
+       
+       - name: Upload Raw Binary (Apple Silicon ARM64)
+         if: matrix.target == 'aarch64-apple-darwin'
+         uses: actions/upload-artifact@v6
+         with:
+           name: crytotool-macos-arm64-raw
+           path: src-tauri/target/release/bundle/macos/CrytoTool.app
