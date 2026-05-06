@@ -117,26 +117,11 @@ jobs:
           echo "=== Checking default release folder ==="
           ls -la src-tauri/target/release/bundle/ 2>/dev/null || echo "Not found"
       
-      - name: Upload Installer (Bundle)
-        if: matrix.cross_compile == false
+      - name: Upload All Bundles
         uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.artifact }}
-          path: src-tauri/target/release/bundle/**
-      
-      - name: Upload Raw Binary (x86_64)
-        if: matrix.target == 'x86_64-unknown-linux-gnu'
-        uses: actions/upload-artifact@v6
-        with:
-          name: crytotool-linux-x86_64-raw
-          path: src-tauri/target/release/crytotool
-      
-      - name: Upload Raw Binary (ARM64)
-        if: matrix.target == 'aarch64-unknown-linux-gnu'
-        uses: actions/upload-artifact@v6
-        with:
-          name: crytotool-linux-arm64-raw
-          path: src-tauri/target/aarch64-unknown-linux-gnu/release/crytotool
+          path: src-tauri/target/**/bundle/**
       
       - name: Upload Artifact (Cross-compiled ARM64)
         if: matrix.target == 'aarch64-unknown-linux-gnu'
