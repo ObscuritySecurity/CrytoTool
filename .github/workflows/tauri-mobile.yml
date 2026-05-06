@@ -111,13 +111,16 @@ jobs:
           java-version: '21'
       
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
+        with:
+          cmdline-tools-version: 12266719
+          packages: 'platform-tools build-tools;34.0.0 platforms;android-34 ndk;25.2.9519653'
       
-      - name: Install Android NDK
+      - name: Set NDK_HOME
         run: |
-          sdkmanager "ndk;25.2.9519653"
           echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
           echo "NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
+          echo "PATH=$ANDROID_HOME/ndk/25.2.9519653/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH" >> $GITHUB_ENV
       
       - name: Install Dependencies
         run: npm install
@@ -134,12 +137,14 @@ jobs:
       - name: Initialize Android Project
         run: npx --yes @tauri-apps/cli@latest android init
         env:
+          NDK_HOME: ${{ env.NDK_HOME }}
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
       
       - name: Build Android APK (Debug)
         run: npx --yes @tauri-apps/cli@latest android build --debug
         env:
+          NDK_HOME: ${{ env.NDK_HOME }}
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
       
@@ -147,6 +152,7 @@ jobs:
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
         run: npx --yes @tauri-apps/cli@latest android build
         env:
+          NDK_HOME: ${{ env.NDK_HOME }}
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
       
