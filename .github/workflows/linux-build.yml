@@ -109,6 +109,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
+      - name: Debug - List Build Output
+        if: always()
+        run: |
+          find src-tauri/target -name "*.deb" -o -name "*.AppImage" -o -name "*.rpm" 2>/dev/null | head -20
+          ls -la src-tauri/target/ || echo "No target folder"
+      
       - name: Upload Artifact (Native x86_64)
         if: matrix.cross_compile == false
         uses: actions/upload-artifact@v4
