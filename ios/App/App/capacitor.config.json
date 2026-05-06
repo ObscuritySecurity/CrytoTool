@@ -1,0 +1,6 @@
+{
+	"appId": "com.crytotool.vault",
+	"appName": "CrytoTool Vault",
+	"webDir": "dist",
+	"packageClassList": []
+}
