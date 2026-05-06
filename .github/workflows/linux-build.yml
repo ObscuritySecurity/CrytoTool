@@ -34,7 +34,7 @@ jobs:
         run: npm run build
       
       - name: Upload Dist Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: dist
           path: dist
@@ -117,7 +117,7 @@ jobs:
       
       - name: Upload Artifact (Native x86_64)
         if: matrix.cross_compile == false
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.artifact }}
           path: |
@@ -127,7 +127,7 @@ jobs:
       
       - name: Upload Artifact (Cross-compiled)
         if: matrix.cross_compile == true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.artifact }}
           path: |

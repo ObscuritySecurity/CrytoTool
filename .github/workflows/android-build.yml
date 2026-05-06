@@ -34,7 +34,7 @@ jobs:
         run: npm run build
       
       - name: Upload Dist Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: dist
           path: dist
@@ -118,14 +118,14 @@ jobs:
       
       - name: Upload Android Debug APK
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: crytotool-android-debug
           path: src-tauri/gen/android/app/build/outputs/apk/debug/*.apk
       
       - name: Upload Android Release APK
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: crytotool-android-release
           path: src-tauri/gen/android/app/build/outputs/apk/release/*.apk
