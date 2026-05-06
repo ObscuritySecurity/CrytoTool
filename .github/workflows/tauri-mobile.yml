@@ -129,20 +129,20 @@ jobs:
           path: dist
       
       - name: Initialize Android Project
-        run: npx tauri android init
+        run: npx --yes @tauri-apps/cli@latest android init
         env:
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
       
       - name: Build Android APK (Debug)
-        run: npx tauri android build --debug
+        run: npx --yes @tauri-apps/cli@latest android build --debug
         env:
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
       
       - name: Build Android APK (Release)
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
-        run: npx tauri android build
+        run: npx --yes @tauri-apps/cli@latest android build
         env:
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
@@ -190,13 +190,13 @@ jobs:
           path: dist
       
       - name: Initialize iOS Project
-        run: npx tauri ios init
+        run: npx --yes @tauri-apps/cli@latest ios init
         env:
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
       
       - name: Build iOS (Debug)
-        run: npx tauri ios build --debug
+        run: npx --yes @tauri-apps/cli@latest ios build --debug
         env:
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
