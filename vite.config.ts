@@ -1,9 +1,10 @@
+/// <reference types="node" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import fs from 'fs';
+import { existsSync, readFileSync } from 'fs';
 
-const https = fs.existsSync('key.pem') && fs.existsSync('cert.pem')
-  ? { key: fs.readFileSync('key.pem'), cert: fs.readFileSync('cert.pem') }
+const https = existsSync('key.pem') && existsSync('cert.pem')
+  ? { key: readFileSync('key.pem'), cert: readFileSync('cert.pem') }
   : undefined;
 
 export default defineConfig({

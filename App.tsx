@@ -8,7 +8,6 @@ import { cryptoService } from './utils/crypto';
 import { db } from './utils/db';
 import { I18nProvider } from './utils/i18nContext';
 import { hashPin } from './utils/security';
-import { StatusBar, Style } from '@capacitor/status-bar';
 
 const App: React.FC = () => {
   const [showSplash, setShowSplash] = useState(true);
@@ -16,7 +15,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (!showSplash) {
-      StatusBar.setStyle({ style: Style.Dark });
+      // StatusBar removed - Capacitor no longer used
     }
   }, [showSplash]);
   

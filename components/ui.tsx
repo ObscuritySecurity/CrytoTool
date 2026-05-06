@@ -508,7 +508,7 @@ export const Modal: React.FC<ModalProps> = ({
  * ANIMATE PRESENCE (re-export for convenience)
  * ============================================
  */
-const { AnimatePresence } = require('framer-motion');
+import { AnimatePresence } from 'framer-motion';
 
 /**
  * ============================================
