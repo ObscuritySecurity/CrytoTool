@@ -103,7 +103,10 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
-      
+       
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+       
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -115,7 +118,16 @@ jobs:
         with:
           cmdline-tools-version: 12266719
           packages: 'platform-tools build-tools;34.0.0 platforms;android-34 ndk;25.2.9519653'
-      
+       
+      - name: Gradle cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wraper
+          key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: gradle-
+       
       - name: Set NDK_HOME
         run: |
           echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
