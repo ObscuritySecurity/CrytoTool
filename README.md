@@ -11,7 +11,7 @@
     <a href="https://github.com/ObscuritySecurity/CrytoTool/commits/main">
       <img src="https://img.shields.io/github/last-commit/ObscuritySecurity/CrytoTool?style=flat-square" alt="Last Commit" />
     </a>
-    <a href="https://github.com/ObscuritySecurity/CrytoTool/actions/workflows/build.yml">
+    <a 
       <img src="https://github.com/ObscuritySecurity/CrytoTool/actions/workflows/build.yml/badge.svg?style=flat-square" alt="Build Status" />
     </a>
     <a href="#">
@@ -32,10 +32,7 @@
     <a href="https://tailwindcss.com/">
       <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" />
     </a>
-    <a href="https://capacitorjs.com/">
-      <img src="https://img.shields.io/badge/Capacitor-119EFF?style=flat-square&logo=capacitor&logoColor=white" alt="Capacitor" />
-    </a>
-    <a href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-38D.pdf">
+    <a "hhref="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-38D.pdf">
       <img src="https://img.shields.io/badge/AES--256--GCM-FF6F00?style=flat-square&logo=letsencrypt&logoColor=white" alt="AES-256-GCM" />
     </a>
     <a href="https://github.com/P-H-C/phc-winner-argon2">
