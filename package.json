@@ -7,8 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri",
-    "cap": "cap"
+    "tauri": "tauri"
   },
   "dependencies": {
     "@fontsource/caveat": "^5.2.8",
@@ -33,7 +32,7 @@
     "@fontsource/rubik": "^5.2.8",
     "@fontsource/space-mono": "^5.2.9",
     "@heroicons/react": "^2.0.18",
-    "@tauri-apps/api": "^1.5.0",
+    "@tauri-apps/api": "^2.0.0",
     "framer-motion": "^10.16.4",
     "hash-wasm": "^4.12.0",
     "libsodium-wrappers": "^0.8.2",
@@ -43,7 +42,7 @@
     "react-icons": "^4.11.0"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^1.5.0",
+    "@tauri-apps/cli": "^2.0.0",
     "@types/prop-types": "^15.7.15",
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",
@@ -51,7 +50,6 @@
     "autoprefixer": "^10.4.16",
     "postcss": "^8.5.13",
     "tailwindcss": "^3.3.5",
-    "tar": "^7.5.14",
     "typescript": "^5.2.2",
     "vite": "^8.0.10",
     "vite-plugin-mkcert": "^2.0.0"
