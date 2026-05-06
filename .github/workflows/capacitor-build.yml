@@ -37,10 +37,12 @@ jobs:
     - name: Sync Capacitor
       run: npx cap sync android
     
-    - name: Build Android with Java 21
+    - name: Configure Gradle Java Home
       working-directory: ./android
-      env:
-        JAVA_HOME: ${{ env.JAVA_HOME }}
+      run: echo "org.gradle.java.home=$JAVA_HOME" >> gradle.properties
+    
+    - name: Build Android
+      working-directory: ./android
       run: ./gradlew assembleRelease
     
     - name: Upload Android APK
