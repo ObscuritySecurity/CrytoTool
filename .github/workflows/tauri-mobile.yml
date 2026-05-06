@@ -169,13 +169,13 @@ jobs:
           TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
       
       - name: Build Android APK (Debug)
-        run: npx --yes @tauri-apps/cli@latest android build --debug --apk
+        run: npx --yes @tauri-apps/cli@latest android build --debug
         env:
           NDK_HOME: ${{ env.NDK_HOME }}
       
       - name: Build Android APK (Release)
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
-        run: npx --yes @tauri-apps/cli@latest android build --apk
+        run: npx --yes @tauri-apps/cli@latest android build
         env:
           NDK_HOME: ${{ env.NDK_HOME }}
       
@@ -193,43 +193,45 @@ jobs:
           name: crytotool-android-release
           path: src-tauri/gen/android/app/build/outputs/apk/release/*.apk
 
-  build-ios:
-    needs: build-web
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v5
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-      
-      - name: Install Rust (${{ env.RUST_TOOLCHAIN }})
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: aarch64-apple-ios,x86_64-apple-ios,aarch64-apple-ios-sim
-      
-      - name: Setup CocoaPods
-        run: pod setup
-      
-      - name: Install Dependencies
-        run: npm install
-      
-      - name: Download Dist Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist
-      
-      - name: Initialize iOS Project
-        run: npx --yes @tauri-apps/cli@latest ios init
-      
-      - name: Build iOS (Debug)
-        run: npx --yes @tauri-apps/cli@latest ios build --debug
-      
-      - name: Upload iOS App (Debug)
-        uses: actions/upload-artifact@v4
-        with:
-          name: crytotool-ios-debug
-          path: src-tauri/gen/ios/build/
+  # iOS build requires $99 Apple Developer account
+  # Uncomment when ready to build for iOS
+  # build-ios:
+  #   needs: build-web
+  #   runs-on: macos-latest
+  #   steps:
+  #     - uses: actions/checkout@v5
+  #     
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v5
+  #       with:
+  #         node-version: ${{ env.NODE_VERSION }}
+  #         cache: npm
+  #     
+  #     - name: Install Rust (${{ env.RUST_TOOLCHAIN }})
+  #       uses: dtolnay/rust-toolchain@stable
+  #       with:
+  #         targets: aarch64-apple-ios,x86_64-apple-ios,aarch64-apple-ios-sim
+  #     
+  #     - name: Setup CocoaPods
+  #       run: pod setup
+  #     
+  #     - name: Install Dependencies
+  #       run: npm install
+  #     
+  #     - name: Download Dist Artifact
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: dist
+  #         path: dist
+  #     
+  #     - name: Initialize iOS Project
+  #       run: npx --yes @tauri-apps/cli@latest ios init
+  #     
+  #     - name: Build iOS (Debug)
+  #       run: npx --yes @tauri-apps/cli@latest ios build --debug
+  #     
+  #     - name: Upload iOS App (Debug)
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: crytotool-ios-debug
+  #         path: src-tauri/gen/ios/build/
