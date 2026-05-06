@@ -1,0 +1,248 @@
+name: Tauri Mobile & Desktop Build
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: 24
+  RUST_TOOLCHAIN: stable
+
+jobs:
+  build-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      
+      - name: Install Dependencies
+        run: npm install
+      
+      - name: Build Web Dist
+        run: npm run build
+      
+      - name: Upload Dist Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+  build-desktop:
+    needs: build-web
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [macos-latest, ubuntu-latest, windows-latest]
+    
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v5
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      
+      - name: Install Rust (${{ env.RUST_TOOLCHAIN }})
+        uses: dtolnay/rust-toolchain@stable
+      
+      - name: Install Linux Dependencies
+        if: matrix.platform == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+      
+      - name: Install Frontend Deps
+        run: npm install
+      
+      - name: Download Dist Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      
+      - name: Build Tauri App
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: ./src-tauri
+          tauriScript: npx tauri
+          tagName: app-v__VERSION__
+          releaseName: 'CrytoTool v__VERSION__'
+          releaseBody: 'Security Update - Auto Generated'
+          releaseDraft: true
+          prerelease: false
+
+  build-android:
+    needs: build-web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      
+      - name: Install Rust (${{ env.RUST_TOOLCHAIN }})
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+      
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+      
+      - name: Install Android NDK
+        run: |
+          sdkmanager "ndk;25.2.9519653"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
+          echo "NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
+      
+      - name: Install Dependencies
+        run: npm install
+      
+      - name: Download Dist Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      
+      - name: Initialize Android Project
+        run: npx tauri android init
+        env:
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+      
+      - name: Build Android APK (Debug)
+        run: npx tauri android build --debug
+        env:
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+      
+      - name: Build Android APK (Release)
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        run: npx tauri android build
+        env:
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+      
+      - name: Upload Android Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: crytotool-android-debug.apk
+          path: src-tauri/gen/android/app/build/outputs/apk/debug/app-debug.apk
+      
+      - name: Upload Android Release APK
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        uses: actions/upload-artifact@v4
+        with:
+          name: crytotool-android-release.apk
+          path: src-tauri/gen/android/app/build/outputs/apk/release/app-release-unsigned.apk
+
+  build-ios:
+    needs: build-web
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      
+      - name: Install Rust (${{ env.RUST_TOOLCHAIN }})
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios,x86_64-apple-ios,aarch64-apple-ios-sim
+      
+      - name: Setup CocoaPods
+        run: pod setup
+      
+      - name: Install Dependencies
+        run: npm install
+      
+      - name: Download Dist Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      
+      - name: Initialize iOS Project
+        run: npx tauri ios init
+        env:
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+      
+      - name: Build iOS (Debug)
+        run: npx tauri ios build --debug
+        env:
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+      
+      - name: Upload iOS App (Debug)
+        uses: actions/upload-artifact@v4
+        with:
+          name: crytotool-ios-debug
+          path: src-tauri/gen/ios/build/
+
+  update-version:
+    needs: [build-desktop, build-android, build-ios]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    steps:
+      - uses: actions/checkout@v5
+      
+      - name: Update Version
+        run: |
+          VERSION=$(date +'%Y.%m.%d')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: CrytoTool v${{ env.VERSION }}
+          body: |
+            ## CrytoTool Vault v${{ env.VERSION }}
+            
+            ### Downloads
+            - **Windows**: CrytoTool_x64_en-US.msi
+            - **macOS**: CrytoTool_x64.dmg / CrytoTool_aarch64.dmg
+            - **Linux**: crytotool-x86_64.AppImage / crytotool_x64.deb
+            - **Android**: crytotool-android-release.apk
+            
+            ### Security
+            - Client-side encryption (Argon2id + AES-256-GCM)
+            - No telemetry, local-first storage
+            - Open source
+            
+            ### Changes
+            Auto-generated release from CI/CD pipeline.
+          draft: false
+          prerelease: false
+          files: |
+            src-tauri/gen/android/app/build/outputs/apk/release/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

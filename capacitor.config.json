@@ -7,8 +7,7 @@
     "androidScheme": "https"
   },
   "android": {
-    "adjustMarginsForEdgeToEdge": "force",
-    "path": "platforms/android"
+    "path": "android"
   },
   "plugins": {
     "SplashScreen": {
