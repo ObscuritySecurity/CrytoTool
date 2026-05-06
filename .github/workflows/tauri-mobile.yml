@@ -46,15 +46,20 @@ jobs:
         include:
           - platform: macos-latest
             target: ""
+            build_args: ""
             bundle_path: "src-tauri/target/release/bundle/dmg/*.dmg"
             artifact_name: crytotool-macos
           - platform: windows-latest
             target: ""
+            build_args: ""
             bundle_path: "src-tauri/target/release/bundle/nsis/*.exe"
             artifact_name: crytotool-windows
           - platform: ubuntu-latest
             target: ""
-            bundle_path: "src-tauri/target/release/bundle/deb/*.deb"
+            build_args: "--bundles deb,appimage"
+            bundle_path: |
+              src-tauri/target/release/bundle/deb/*.deb
+              src-tauri/target/release/bundle/appimage/*.AppImage
             artifact_name: crytotool-linux
     
     runs-on: ${{ matrix.platform }}
@@ -86,7 +91,7 @@ jobs:
           path: dist
       
       - name: Build Tauri App
-        run: npx --yes @tauri-apps/cli@latest build
+        run: npx --yes @tauri-apps/cli@latest build ${{ matrix.build_args }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
@@ -159,13 +164,13 @@ jobs:
         run: npx --yes @tauri-apps/cli@latest android init
       
       - name: Build Android APK (Debug)
-        run: npx --yes @tauri-apps/cli@latest android build --debug
+        run: npx --yes @tauri-apps/cli@latest android build --debug --apk
         env:
           NDK_HOME: ${{ env.NDK_HOME }}
       
       - name: Build Android APK (Release)
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
-        run: npx --yes @tauri-apps/cli@latest android build
+        run: npx --yes @tauri-apps/cli@latest android build --apk
         env:
           NDK_HOME: ${{ env.NDK_HOME }}
       
