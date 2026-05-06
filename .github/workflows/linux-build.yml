@@ -114,7 +114,10 @@ jobs:
       - name: Install Cross-Compilation Tools (ARM64)
         shell: bash
         run: |
+          # Add arm64 architecture
           sudo dpkg --add-architecture arm64
+          # Restrict security repo to amd64 only to avoid 404 errors for arm64
+          sudo sed -i 's|^deb http://security.ubuntu.com/ubuntu|deb [arch=amd64] http://security.ubuntu.com/ubuntu|g' /etc/apt/sources.list
           sudo apt-get update
           sudo apt-get install -y \
             gcc-aarch64-linux-gnu g++-aarch64-linux-gnu \
