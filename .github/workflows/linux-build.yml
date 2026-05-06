@@ -50,11 +50,6 @@ jobs:
             artifact: crytotool-linux-x86_64
             cross_compile: false
             bundles: "--bundles deb,appimage,rpm"
-          - arch: x86-32bit
-            target: i686-unknown-linux-gnu
-            artifact: crytotool-linux-x86-32bit
-            cross_compile: true
-            bundles: "--bundles deb,rpm"  # AppImage not supported for i686
           - arch: arm64
             target: aarch64-unknown-linux-gnu
             artifact: crytotool-linux-arm64
@@ -117,7 +112,7 @@ jobs:
         run: |
           echo "=== Searching for bundle files ==="
           find src-tauri/target -type d -name "bundle" 2>/dev/null | head -10
-          echo "=== Checking cross-compile target folder ==="
+          echo "=== Checking target folder ==="
           ls -la src-tauri/target/${{ matrix.target }}/release/bundle/ 2>/dev/null || echo "Not found"
           echo "=== Checking default release folder ==="
           ls -la src-tauri/target/release/bundle/ 2>/dev/null || echo "Not found"
@@ -128,15 +123,6 @@ jobs:
         with:
           name: ${{ matrix.artifact }}
           path: src-tauri/target/release/bundle/**
-      
-      - name: Upload Artifact (Cross-compiled x86 32-bit)
-        if: matrix.target == 'i686-unknown-linux-gnu'
-        uses: actions/upload-artifact@v6
-        with:
-          name: ${{ matrix.artifact }}
-          path: |
-            src-tauri/target/i686-unknown-linux-gnu/release/bundle/deb/*.deb
-            src-tauri/target/i686-unknown-linux-gnu/release/bundle/rpm/*.rpm
       
       - name: Upload Artifact (Cross-compiled ARM64)
         if: matrix.target == 'aarch64-unknown-linux-gnu'

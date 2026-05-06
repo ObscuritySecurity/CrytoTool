@@ -48,9 +48,6 @@ jobs:
           - arch: x86_64
             target: x86_64-pc-windows-msvc
             artifact: crytotool-windows-x86_64
-          - arch: x86-32bit
-            target: i686-pc-windows-msvc
-            artifact: crytotool-windows-x86-32bit
           - arch: arm64
             target: aarch64-pc-windows-msvc
             artifact: crytotool-windows-arm64
