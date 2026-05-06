@@ -11,9 +11,9 @@
     "cap": "cap"
   },
   "dependencies": {
-    "@capacitor/android": "^7.6.2",
-    "@capacitor/core": "^7.6.2",
-    "@capacitor/status-bar": "^7.0.0",
+    "@capacitor/android": "^5.7.8",
+    "@capacitor/core": "^5.7.8",
+    "@capacitor/status-bar": "^5.0.8",
     "@fontsource/caveat": "^5.2.8",
     "@fontsource/cinzel": "^5.2.8",
     "@fontsource/dancing-script": "^5.2.8",
@@ -36,7 +36,7 @@
     "@fontsource/rubik": "^5.2.8",
     "@fontsource/space-mono": "^5.2.9",
     "@heroicons/react": "^2.0.18",
-    "@tauri-apps/api": "^2.0.0",
+    "@tauri-apps/api": "^1.5.0",
     "framer-motion": "^10.16.4",
     "hash-wasm": "^4.12.0",
     "libsodium-wrappers": "^0.8.2",
@@ -47,8 +47,8 @@
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
-    "@capacitor/cli": "^7.6.2",
-    "@tauri-apps/cli": "^2.0.0",
+    "@capacitor/cli": "^5.7.8",
+    "@tauri-apps/cli": "^1.5.0",
     "@types/prop-types": "^15.7.15",
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",
