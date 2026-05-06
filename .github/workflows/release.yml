@@ -1,6 +1,10 @@
 name: Build Universal Linux App
 on: [push]
 
+permissions:
+  contents: write
+  packages: read
+
 jobs:
   build:
     runs-on: ubuntu-22.04 # Folosește o versiune mai veche pentru compatibilitate glibc mai largă
