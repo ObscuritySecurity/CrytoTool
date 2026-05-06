@@ -5,6 +5,7 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -155,6 +156,14 @@ jobs:
       
       - name: Build Android APK (Debug)
         run: npx --yes @tauri-apps/cli@latest android build --debug -- --apk
+        env:
+          NDK_HOME: ${{ env.NDK_HOME }}
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+      
+      - name: Build Android APK (Release)
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        run: npx --yes @tauri-apps/cli@latest android build -- --apk
         env:
           NDK_HOME: ${{ env.NDK_HOME }}
           TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
