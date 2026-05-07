@@ -60,15 +60,15 @@ jobs:
         id: version
         run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
 
-      - name: Upload to GitHub Release
+      - name: Upload DMG to Release
         if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          draft: true
-          files: |
-            src-tauri/target/release/*.app
-            src-tauri/target/release/bundle/macOS/*.dmg
-            src-tauri/target/release/bundle/macOS/*.app
+        run: |
+          echo "=== Uploading DMG files ==="
+          for f in $(find src-tauri/target/release -name "*.dmg" -type f 2>/dev/null); do
+            echo "Upload: $(basename $f)"
+            gh release upload "${{ github.ref_name }}" "$f" --clobber
+          done
+          echo "Done"
 
       - name: Upload artifact
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}

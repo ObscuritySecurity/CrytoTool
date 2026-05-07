@@ -116,16 +116,16 @@ jobs:
           echo "=== Final APK files ==="
           ls -la CrytoTool-*.apk 2>/dev/null || echo "No APK files found"
 
-      - name: Upload to GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          draft: true
-          files: CrytoTool-*.apk
+      - name: List all APK files
+        run: |
+          echo "=== All APK files in project ==="
+          find . -name "*.apk" -type f 2>/dev/null
 
-      - name: Upload APK artifacts
-        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-apk
-          path: CrytoTool-*.apk
+      - name: Upload all APKs to Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          cd src-tauri/gen/android/app/build/outputs/apk
+          for f in $(find . -name "*.apk" -type f); do
+            echo "Uploading: $f"
+            gh release upload "${{ github.ref_name }}" "$f" --clobber
+          done
