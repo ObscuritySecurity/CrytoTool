@@ -32,7 +32,7 @@ jobs:
 
       - name: Install Android SDK components
         run: |
-          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+          sdkmanager "platforms;android-35" "build-tools;35.0.0" "ndk;27.0.12077973"
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -51,23 +51,35 @@ jobs:
         run: npm run build
 
       - name: Init Android project
-        run: npm run tauri android init
+        run: |
+          echo "y" | npm run tauri android init
+        env:
+          NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/27.0.12077973
 
       - name: Generate app icons
         run: npm run tauri icon assets/CrytoTool.png
 
       - name: Build APK
         run: npm run tauri android build -- --apk
+        env:
+          NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/27.0.12077973
 
       - name: Get version
         id: version
         run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
 
-      - name: Rename APK
+      - name: Find APK
+        run: find src-tauri -name "*.apk" -type f 2>/dev/null || echo "No APK found"
+
+- name: Rename APK
         run: |
           APK="src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk"
           if [ -f "$APK" ]; then
             cp "$APK" "CrytoTool-${{ steps.version.outputs.version }}-android.apk"
+            echo "APK found and renamed"
+          else
+            echo "APK not found at $APK"
+            ls -la src-tauri/gen/android/app/build/outputs/apk/ 2>/dev/null || echo "outputs dir not found"
           fi
 
       - name: Upload to GitHub Release
