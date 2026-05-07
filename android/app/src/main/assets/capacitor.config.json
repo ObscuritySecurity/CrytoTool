@@ -1,21 +1,5 @@
 {
 	"appId": "com.crytotool.vault",
-	"appName": "CrytoTool",
-	"version": "2.5.0",
-	"webDir": "dist",
-	"server": {
-		"androidScheme": "https"
-	},
-	"android": {
-		"path": "android"
-	},
-	"plugins": {
-		"SplashScreen": {
-			"launchShowDuration": 0
-		},
-		"StatusBar": {
-			"style": "DARK",
-			"overlaysWebView": false
-		}
-	}
+	"appName": "CrytoTool Vault",
+	"webDir": "dist"
 }

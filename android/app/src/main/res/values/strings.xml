@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">CrytoTool</string>
-    <string name="title_activity_main">CrytoTool</string>
+    <string name="app_name">CrytoTool Vault</string>
+    <string name="title_activity_main">CrytoTool Vault</string>
     <string name="package_name">com.crytotool.vault</string>
     <string name="custom_url_scheme">com.crytotool.vault</string>
 </resources>
