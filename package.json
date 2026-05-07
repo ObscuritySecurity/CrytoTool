@@ -10,10 +10,6 @@
     "tauri": "tauri"
   },
   "dependencies": {
-    "@capacitor/android": "^6.2.1",
-    "@capacitor/cli": "^6.2.1",
-    "@capacitor/core": "^6.2.1",
-    "@capacitor/ios": "^6.2.1",
     "@fontsource/caveat": "^5.2.8",
     "@fontsource/cinzel": "^5.2.8",
     "@fontsource/dancing-script": "^5.2.8",
