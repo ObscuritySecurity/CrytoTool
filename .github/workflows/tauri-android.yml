@@ -74,8 +74,11 @@ jobs:
         id: version
         run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
 
-      - name: Find APK
-        run: find src-tauri -name "*.apk" -type f 2>/dev/null || echo "No APK found"
+      - name: Debug - list APK files
+        run: |
+          echo "=== Finding all APKs ==="
+          find . -name "*.apk" -type f 2>/dev/null
+          ls -la src-tauri/gen/android/app/build/outputs/apk/ 2>/dev/null || echo "No outputs dir"
 
       - name: Generate debug keystore
         run: |
@@ -83,11 +86,16 @@ jobs:
             -storepass crytotool123 -keypass crytotool123 \
             -dname "CN=CrytoTool, O=CrytoTool, C=US"
 
-      - name: Sign all APKs
+      - name: Sign and rename APKs
         run: |
           BUILD_TOOLS="${ANDROID_HOME}/build-tools/35.0.0"
+          VERSION="${{ steps.version.outputs.version }}"
           
-          for APK in $(find src-tauri/gen/android/app/build/outputs/apk -name "*.apk" -type f | grep -v aligned | grep -v signed); do
+          # Find and process all unsigned APKs
+          for APK in $(find src-tauri/gen/android/app/build/outputs/apk -name "*.apk" -type f 2>/dev/null | grep -v aligned | grep -v signed); do
+            ARCH=$(basename $(dirname $(dirname $APK)))
+            echo "Processing: $APK (arch: $ARCH)"
+            
             ALIGNED="${APK%.apk}-aligned.apk"
             SIGNED="${APK%.apk}-signed.apk"
             
@@ -99,27 +107,25 @@ jobs:
               --out "$SIGNED" "$ALIGNED"
             
             rm -f "$ALIGNED"
-            echo "Signed: $(basename $SIGNED)"
+            
+            # Copy to root with proper name
+            cp "$SIGNED" "CrytoTool-${VERSION}-android-${ARCH}.apk"
+            echo "Created: CrytoTool-${VERSION}-android-${ARCH}.apk"
           done
-
-      - name: Rename APKs
-        run: |
-          for APK in $(find src-tauri/gen/android/app/build/outputs/apk -name "*-signed.apk" -type f); do
-            ARCH=$(basename $(dirname $(dirname $APK)))
-            mv "$APK" "CrytoTool-${{ steps.version.outputs.version }}-android-${ARCH}.apk"
-            echo "Renamed: CrytoTool-${{ steps.version.outputs.version }}-android-${ARCH}.apk"
-          done
+          
+          echo "=== Final APK files ==="
+          ls -la CrytoTool-*.apk 2>/dev/null || echo "No APK files found"
 
       - name: Upload to GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           draft: true
-          files: CrytoTool-${{ steps.version.outputs.version }}-android-*.apk
+          files: CrytoTool-*.apk
 
       - name: Upload APK artifacts
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: CrytoTool-${{ steps.version.outputs.version }}-android-*.apk
+          path: CrytoTool-*.apk
