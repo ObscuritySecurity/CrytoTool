@@ -7,3 +7,4 @@ key.pem
 *.log
 node_modules/
 platforms/
+!android/
