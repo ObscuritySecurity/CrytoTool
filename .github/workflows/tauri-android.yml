@@ -65,8 +65,8 @@ jobs:
       - name: Generate app icons
         run: npm run tauri icon assets/CrytoTool.png
 
-      - name: Build APK
-        run: npm run tauri android build -- --apk
+      - name: Build APK per architecture
+        run: npm run tauri android build -- --apk --split-per-abi
         env:
           NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/27.0.12077973
 
@@ -83,40 +83,43 @@ jobs:
             -storepass crytotool123 -keypass crytotool123 \
             -dname "CN=CrytoTool, O=CrytoTool, C=US"
 
-- name: Sign APK
+- name: Sign all APKs
         run: |
-          UNSIGNED="src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk"
-          SIGNED="src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-signed.apk"
           BUILD_TOOLS="${ANDROID_HOME}/build-tools/35.0.0"
           
-          "$BUILD_TOOLS/zipalign" -v -p 4 "$UNSIGNED" "${UNSIGNED%.apk}-aligned.apk"
-          "$BUILD_TOOLS/apksigner" sign \
-            --ks release.keystore \
-            --ks-pass pass:crytotool123 \
-            --key-pass pass:crytotool123 \
-            --out "$SIGNED" "${UNSIGNED%.apk}-aligned.apk"
-          
-          echo "APK signed successfully"
-          "$BUILD_TOOLS/apksigner" verify -v "$SIGNED"
+          for APK in $(find src-tauri/gen/android/app/build/outputs/apk -name "*.apk" -type f | grep -v aligned | grep -v signed); do
+            ALIGNED="${APK%.apk}-aligned.apk"
+            SIGNED="${APK%.apk}-signed.apk"
+            
+            "$BUILD_TOOLS/zipalign" -v -p 4 "$APK" "$ALIGNED"
+            "$BUILD_TOOLS/apksigner" sign \
+              --ks release.keystore \
+              --ks-pass pass:crytotool123 \
+              --key-pass pass:crytotool123 \
+              --out "$SIGNED" "$ALIGNED"
+            
+            rm -f "$ALIGNED"
+            echo "Signed: $(basename $SIGNED)"
+          done
 
-- name: Rename APK
+- name: Rename APKs
         run: |
-          APK="src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-signed.apk"
-          if [ -f "$APK" ]; then
-            cp "$APK" "CrytoTool-${{ steps.version.outputs.version }}-android.apk"
-            echo "APK signed and renamed"
-          fi
+          for APK in $(find src-tauri/gen/android/app/build/outputs/apk -name "*-signed.apk" -type f); do
+            ARCH=$(basename $(dirname $(dirname $APK)))
+            mv "$APK" "CrytoTool-${{ steps.version.outputs.version }}-android-${ARCH}.apk"
+            echo "Renamed: CrytoTool-${{ steps.version.outputs.version }}-android-${ARCH}.apk"
+          done
 
       - name: Upload to GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           draft: true
-          files: CrytoTool-*-android.apk
+          files: CrytoTool-${{ steps.version.outputs.version }}-android-*.apk
 
-      - name: Upload APK artifact
+      - name: Upload APK artifacts
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: src-tauri/gen/android/app/build/outputs/apk/
+          path: CrytoTool-${{ steps.version.outputs.version }}-android-*.apk
