@@ -147,7 +147,7 @@ CrytoTool is built on the shoulders of giants. We are deeply grateful for these 
 
 #### Framework & UI
 - **[Tauri](https://tauri.app/)** — Secure, lightweight desktop backend
-- **[Capacitor](https://capacitorjs.com/)** — Cross-platform mobile framework
+- 
 - **[React](https://react.dev/)** — UI library
 - **[Tailwind CSS](https://tailwindcss.com/)** — Utility-first CSS framework
 - **[Framer Motion](https://www.framer.com/motion/)** — Animation library
