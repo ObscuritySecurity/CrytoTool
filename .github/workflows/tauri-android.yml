@@ -71,15 +71,34 @@ jobs:
       - name: Find APK
         run: find src-tauri -name "*.apk" -type f 2>/dev/null || echo "No APK found"
 
+- name: Generate debug keystore
+        run: |
+          keytool -genkey -v -keystore release.keystore -alias crytotool -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass crytotool123 -keypass crytotool123 \
+            -dname "CN=CrytoTool, O=CrytoTool, C=US"
+
+- name: Sign APK
+        run: |
+          UNSIGNED="src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk"
+          SIGNED="src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-signed.apk"
+          BUILD_TOOLS="${ANDROID_HOME}/build-tools/35.0.0"
+          
+          "$BUILD_TOOLS/zipalign" -v -p 4 "$UNSIGNED" "${UNSIGNED%.apk}-aligned.apk"
+          "$BUILD_TOOLS/apksigner" sign \
+            --ks release.keystore \
+            --ks-pass pass:crytotool123 \
+            --key-pass pass:crytotool123 \
+            --out "$SIGNED" "${UNSIGNED%.apk}-aligned.apk"
+          
+          echo "APK signed successfully"
+          "$BUILD_TOOLS/apksigner" verify -v "$SIGNED"
+
 - name: Rename APK
         run: |
-          APK="src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk"
+          APK="src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-signed.apk"
           if [ -f "$APK" ]; then
             cp "$APK" "CrytoTool-${{ steps.version.outputs.version }}-android.apk"
-            echo "APK found and renamed"
-          else
-            echo "APK not found at $APK"
-            ls -la src-tauri/gen/android/app/build/outputs/apk/ 2>/dev/null || echo "outputs dir not found"
+            echo "APK signed and renamed"
           fi
 
       - name: Upload to GitHub Release
