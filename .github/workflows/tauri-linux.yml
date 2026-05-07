@@ -43,6 +43,11 @@ jobs:
       - name: Build Tauri
         run: npm run tauri build
 
+      - name: List bundle files
+        run: |
+          echo "=== Looking for bundles ==="
+          find src-tauri/target/release/bundle -type f
+
       - name: Get version
         id: version
         run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
