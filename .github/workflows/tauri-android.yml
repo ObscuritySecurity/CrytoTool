@@ -77,13 +77,13 @@ jobs:
       - name: Find APK
         run: find src-tauri -name "*.apk" -type f 2>/dev/null || echo "No APK found"
 
-- name: Generate debug keystore
+      - name: Generate debug keystore
         run: |
           keytool -genkey -v -keystore release.keystore -alias crytotool -keyalg RSA -keysize 2048 -validity 10000 \
             -storepass crytotool123 -keypass crytotool123 \
             -dname "CN=CrytoTool, O=CrytoTool, C=US"
 
-- name: Sign all APKs
+      - name: Sign all APKs
         run: |
           BUILD_TOOLS="${ANDROID_HOME}/build-tools/35.0.0"
           
@@ -102,7 +102,7 @@ jobs:
             echo "Signed: $(basename $SIGNED)"
           done
 
-- name: Rename APKs
+      - name: Rename APKs
         run: |
           for APK in $(find src-tauri/gen/android/app/build/outputs/apk -name "*-signed.apk" -type f); do
             ARCH=$(basename $(dirname $(dirname $APK)))
@@ -111,6 +111,18 @@ jobs:
           done
 
       - name: Upload to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: CrytoTool-${{ steps.version.outputs.version }}-android-*.apk
+
+      - name: Upload APK artifacts
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: CrytoTool-${{ steps.version.outputs.version }}-android-*.apk
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
