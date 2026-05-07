@@ -38,7 +38,7 @@ jobs:
         run: npm run build
 
       - name: Build Tauri
-        run: npm run tauri build -- --target aarch64-apple-darwin
+        run: npm run tauri build -- --target aarch64-apple-darwin --bundles app,dmg
 
       - name: List bundle files
         run: |

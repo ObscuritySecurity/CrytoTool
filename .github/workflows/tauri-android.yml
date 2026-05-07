@@ -66,7 +66,8 @@ jobs:
         run: npm run tauri icon assets/CrytoTool.png
 
       - name: Build APK
-        run: npm run tauri android build -- --apk --split-per-abi
+        run: |
+          npm run tauri android build -- --apk --split-per-abi 2>&1 | tail -50
         env:
           NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/27.0.12077973
 
