@@ -38,10 +38,12 @@ jobs:
         run: npm run build
 
       - name: Build Apple Silicon
-        run: npm run tauri build -- --target aarch64-apple-darwin
+        run: |
+          npm run tauri build -- --target aarch64-apple-darwin --bundles app,dmg 2>&1 | tail -50
 
       - name: Build Intel
-        run: npm run tauri build -- --target x86_64-apple-darwin
+        run: |
+          npm run tauri build -- --target x86_64-apple-darwin --bundles app,dmg 2>&1 | tail -50
 
       - name: Find all bundle files
         run: |
