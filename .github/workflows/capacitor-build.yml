@@ -39,7 +39,9 @@ jobs:
     
     - name: Configure Gradle Java Home
       working-directory: ./android
-      run: echo "org.gradle.java.home=$JAVA_HOME" >> gradle.properties
+      run: |
+        echo "" >> gradle.properties
+        echo "org.gradle.java.home=$JAVA_HOME" >> gradle.properties
     
     - name: Build Android
       working-directory: ./android
