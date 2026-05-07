@@ -24,7 +24,7 @@ jobs:
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-apple-darwin
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
@@ -37,11 +37,11 @@ jobs:
       - name: Build web assets
         run: npm run build
 
-      - name: Build Tauri
+      - name: Build Apple Silicon
         run: npm run tauri build -- --target aarch64-apple-darwin
 
-      - name: Find bundle files
-        run: find src-tauri/target/release/bundle -type f 2>/dev/null
+      - name: Build Intel
+        run: npm run tauri build -- --target x86_64-apple-darwin
 
       - name: Get version
         id: version
