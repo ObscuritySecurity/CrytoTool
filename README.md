@@ -71,9 +71,10 @@ CrytoTool uses a 100% client-side architecture with 4 layers of encryption:
 | Layer | What it does | Key detail |
 |-------|----------------|------------|
 | **1. Database Encryption** | Auto-encrypts every file in IndexedDB | AES-256-GCM, keys from Master Password via Argon2id |
-| **2. File & Folder Encryption** | Manual encryption with 6 algorithms | AES-GCM, XChaCha20-Poly1305, ChaCha20-Poly1305, AES-CTR, Salsa20-Poly1305, AES-GCM-Stream |
-| **3. Encrypted Backup** | Creates secure backups of all data | PBKDF2-SHA256 + AES-256-GCM, unique 26-char key |
-| **4. Streaming Encryption** | Handles large files on any device | 4MB chunks, AES-GCM per chunk, safe for low-RAM devices |
+| **2. Metadata Encryption** | Encrypts file names, tags, artist, album, and custom metadata fields | AES-256-GCM, vault key, each file's metadata encrypted as a single JSON blob |
+| **3. File & Folder Encryption** | Manual encryption with 6 algorithms | AES-GCM, XChaCha20-Poly1305, ChaCha20-Poly1305, AES-CTR, Salsa20-Poly1305, AES-GCM-Stream |
+| **4. Encrypted Backup** | Creates secure backups of all data | PBKDF2-SHA256 + AES-256-GCM, unique 26-char key |
+| **5. Streaming Encryption** | Handles large files on any device | 4MB chunks, AES-GCM per chunk, safe for low-RAM devices |
 
 For full technical details, consult the [Technical Architecture](https://github.com/ObscuritySecurity/CrytoTool/blob/main/architecture.md).
 
@@ -92,6 +93,7 @@ For full technical details, consult the [Technical Architecture](https://github.
 
 **Advanced Security & Privacy**
 -   **IndexedDB Encryption:** Files are automatically encrypted using AES-256-GCM with keys derived from your Master Password via Argon2id. For more details, see the [Technical Architecture](https://github.com/ObscuritySecurity/CrytoTool/blob/main/architecture.md) (Section 1).
+-   **Metadata Encryption:** File names, tags, artist, album, and other sensitive metadata fields are encrypted using AES-256-GCM with the vault key. Metadata is stored as a single encrypted JSON blob alongside each file entry. See [metadataCrypto.ts](https://github.com/ObscuritySecurity/CrytoTool/blob/main/utils/metadataCrypto.ts).
 -   **Strong Master Password:** Secure your entire vault with a master password (minimum 30 characters).
 -   **Encrypted Backups:** Create fully encrypted backups protected by a unique, separate encryption key using PBKDF2-SHA256 and AES-256-GCM. For more details, see the [Technical Architecture](https://github.com/ObscuritySecurity/CrytoTool/blob/main/architecture.md) (Section 3).
 -   **Critical Settings Password:** Add an optional, second password to protect access to sensitive settings.
