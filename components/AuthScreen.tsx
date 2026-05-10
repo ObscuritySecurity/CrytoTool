@@ -166,6 +166,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
           <span className={`font-bold tracking-tight ${isLocked ? 'text-red-500' : 'text-white'}`}>Cryto</span>
           <span style={{ color: isLocked ? '#ef4444' : accentColor }}>Tool</span>
         </div>
+        <p className="text-sm text-muted mb-6 tracking-wide">All-in-One Privacy</p>
       </div>
 
       <motion.div 
