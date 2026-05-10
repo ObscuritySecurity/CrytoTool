@@ -1,5 +1,5 @@
 
-import sodium from 'libsodium-wrappers';
+import { argon2id } from 'hash-wasm';
 
 /**
  * STREAMING CRYPTO SERVICE
@@ -29,28 +29,30 @@ interface StreamHeader {
 }
 
 async function deriveChunkIV(baseIV: Uint8Array, chunkIndex: number): Promise<Uint8Array> {
-    await sodium.ready;
-    const indexBytes = new Uint8Array([
-        (chunkIndex >>> 24) & 0xff,
-        (chunkIndex >>> 16) & 0xff,
-        (chunkIndex >>> 8) & 0xff,
-        chunkIndex & 0xff
-    ]);
-    const derived = sodium.crypto_generichash(12, indexBytes, baseIV);
-    return new Uint8Array(derived.buffer, derived.byteOffset, derived.byteLength);
+    const encoder = new TextEncoder();
+    const info = encoder.encode(`chunk-iv-${chunkIndex}`);
+    const key = await window.crypto.subtle.importKey(
+        'raw',
+        baseIV.buffer.slice(baseIV.byteOffset, baseIV.byteOffset + baseIV.byteLength) as ArrayBuffer,
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign']
+    );
+    const derived = await window.crypto.subtle.sign('HMAC', key, info);
+    return new Uint8Array(derived).slice(0, 12);
 }
 
 async function deriveStreamKey(passphrase: string, salt: Uint8Array): Promise<CryptoKey> {
-    await sodium.ready;
-    const keyBytes = sodium.crypto_pwhash(
-        32,
-        passphrase,
+    const keyBytes = await argon2id({
+        password: passphrase,
         salt,
-        3,
-        196608,
-        sodium.crypto_pwhash_ALG_ARGON2ID13
-    );
-    
+        iterations: 4,
+        memorySize: 131072,
+        parallelism: 4,
+        hashLength: 32,
+        outputType: 'binary',
+    }) as Uint8Array;
+
     return await window.crypto.subtle.importKey(
         'raw',
         keyBytes.buffer.slice(keyBytes.byteOffset, keyBytes.byteOffset + keyBytes.byteLength) as ArrayBuffer,

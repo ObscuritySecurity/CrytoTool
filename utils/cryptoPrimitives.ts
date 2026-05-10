@@ -16,12 +16,13 @@ import sodium from 'libsodium-wrappers';
  * - Libsodium (WASM) for ChaCha20/Poly1305 and Salsa20
  */
 
-// Ensure sodium is loaded before direct calls.
-const sodiumReady = sodium.ready;
-
 // Helper for TypeScript compatibility with WebCrypto
 function toBufferSource(arr: Uint8Array): BufferSource {
     return arr.buffer.slice(arr.byteOffset, arr.byteOffset + arr.byteLength) as ArrayBuffer;
+}
+
+async function ensureSodiumReady(): Promise<void> {
+    await sodium.ready;
 }
 
 /**
@@ -136,10 +137,12 @@ export const aesCtr = {
  * IV: 12 bytes (96 bits)
  */
 export const chacha20Poly1305 = {
-    encrypt: (data: Uint8Array, key: Uint8Array, iv: Uint8Array): Uint8Array => {
+    encrypt: async (data: Uint8Array, key: Uint8Array, iv: Uint8Array): Promise<Uint8Array> => {
+        await ensureSodiumReady();
         return sodium.crypto_aead_chacha20poly1305_ietf_encrypt(data, null, null, iv, key);
     },
-    decrypt: (data: Uint8Array, key: Uint8Array, iv: Uint8Array): Uint8Array => {
+    decrypt: async (data: Uint8Array, key: Uint8Array, iv: Uint8Array): Promise<Uint8Array> => {
+        await ensureSodiumReady();
         return sodium.crypto_aead_chacha20poly1305_ietf_decrypt(null, data, null, iv, key);
     }
 };
@@ -151,10 +154,12 @@ export const chacha20Poly1305 = {
  * IV: 24 bytes (192 bits)
  */
 export const xChacha20Poly1305 = {
-    encrypt: (data: Uint8Array, key: Uint8Array, iv: Uint8Array): Uint8Array => {
+    encrypt: async (data: Uint8Array, key: Uint8Array, iv: Uint8Array): Promise<Uint8Array> => {
+        await ensureSodiumReady();
         return sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(data, null, null, iv, key);
     },
-    decrypt: (data: Uint8Array, key: Uint8Array, iv: Uint8Array): Uint8Array => {
+    decrypt: async (data: Uint8Array, key: Uint8Array, iv: Uint8Array): Promise<Uint8Array> => {
+        await ensureSodiumReady();
         return sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(null, data, null, iv, key);
     }
 };
@@ -166,10 +171,12 @@ export const xChacha20Poly1305 = {
  * IV: 24 bytes (192 bits)
  */
 export const salsa20Poly1305 = {
-    encrypt: (data: Uint8Array, key: Uint8Array, iv: Uint8Array): Uint8Array => {
+    encrypt: async (data: Uint8Array, key: Uint8Array, iv: Uint8Array): Promise<Uint8Array> => {
+        await ensureSodiumReady();
         return sodium.crypto_secretbox_easy(data, iv, key);
     },
-    decrypt: (data: Uint8Array, key: Uint8Array, iv: Uint8Array): Uint8Array => {
+    decrypt: async (data: Uint8Array, key: Uint8Array, iv: Uint8Array): Promise<Uint8Array> => {
+        await ensureSodiumReady();
         return sodium.crypto_secretbox_open_easy(data, iv, key);
     }
 };

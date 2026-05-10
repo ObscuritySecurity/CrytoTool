@@ -1,10 +1,5 @@
 
 import { argon2id } from 'hash-wasm';
-import sodium from 'libsodium-wrappers';
-// Crypto Service Notes:
-// - All cryptographic operations rely on WebCrypto where possible and libsodium-wrappers for hardened primitives.
-// - Vault keys are kept in memory and never written to localStorage to minimize leakage risk.
-// - This module is a central point for encryption/decryption logic; keep interfaces stable and well-documented.
 import { 
     aesGcm, 
     aesCtr, 
@@ -26,11 +21,6 @@ export interface EncryptedData {
 
 class EncryptionService {
   private vaultKey: CryptoKey | null = null;
-  private sodiumReady: Promise<void>;
-
-  constructor() {
-    this.sodiumReady = sodium.ready;
-  }
 
   // --- MASTER KEY DERIVATION (For Vault Access) ---
   async deriveMasterKey(password: string, salt: Uint8Array): Promise<CryptoKey> {
@@ -79,22 +69,18 @@ class EncryptionService {
     passphrase: string, 
     algorithm: CryptoAlgorithm
   ): Promise<EncryptedData> {
-    await this.sodiumReady;
-    
     const rawData = data instanceof Blob ? new Uint8Array(await data.arrayBuffer()) : data;
     const salt = window.crypto.getRandomValues(new Uint8Array(16));
 
-    // Derive a 32-byte raw key from the passphrase using Argon2id (libsodium)
-    // This provides proper key stretching against brute-force attacks.
-    const keyBytes = sodium.crypto_pwhash(
-        32,
-        passphrase,
+    const key = await argon2id({
+        password: passphrase,
         salt,
-        3,
-        196608,
-        sodium.crypto_pwhash_ALG_ARGON2ID13
-    );
-    const key = new Uint8Array(keyBytes.buffer, keyBytes.byteOffset, keyBytes.byteLength);
+        iterations: 4,
+        memorySize: 131072,
+        parallelism: 4,
+        hashLength: 32,
+        outputType: 'binary',
+    }) as Uint8Array;
 
     // Get correct IV length from primitives config
     const ivLength = IV_LENGTHS[algorithm] || 12;
@@ -111,13 +97,13 @@ class EncryptionService {
             ciphertext = await aesCtr.encrypt(rawData, key, iv);
             break;
         case 'ChaCha20-Poly1305':
-            ciphertext = chacha20Poly1305.encrypt(rawData, key, iv);
+            ciphertext = await chacha20Poly1305.encrypt(rawData, key, iv);
             break;
         case 'XChaCha20-Poly1305':
-            ciphertext = xChacha20Poly1305.encrypt(rawData, key, iv);
+            ciphertext = await xChacha20Poly1305.encrypt(rawData, key, iv);
             break;
         case 'Salsa20-Poly1305':
-            ciphertext = salsa20Poly1305.encrypt(rawData, key, iv);
+            ciphertext = await salsa20Poly1305.encrypt(rawData, key, iv);
             break;
         default:
             throw new Error(`Algorithm ${algorithm} not supported.`);
@@ -141,22 +127,19 @@ class EncryptionService {
     salt: Uint8Array, 
     algorithm: CryptoAlgorithm
   ): Promise<Uint8Array> {
-    await this.sodiumReady;
-
     if (algorithm === 'AES-GCM-Stream') {
         return await streamCrypto.decrypt(encryptedData, passphrase);
     }
 
-    // Re-derive Key using Argon2id
-    const keyBytes = sodium.crypto_pwhash(
-        32,
-        passphrase,
+    const key = await argon2id({
+        password: passphrase,
         salt,
-        3,
-        196608,
-        sodium.crypto_pwhash_ALG_ARGON2ID13
-    );
-    const key = new Uint8Array(keyBytes.buffer, keyBytes.byteOffset, keyBytes.byteLength);
+        iterations: 4,
+        memorySize: 131072,
+        parallelism: 4,
+        hashLength: 32,
+        outputType: 'binary',
+    }) as Uint8Array;
 
     switch (algorithm) {
         case 'AES-GCM':
@@ -164,11 +147,11 @@ class EncryptionService {
         case 'AES-CTR':
             return await aesCtr.decrypt(encryptedData, key, iv);
         case 'ChaCha20-Poly1305':
-            return chacha20Poly1305.decrypt(encryptedData, key, iv);
+            return await chacha20Poly1305.decrypt(encryptedData, key, iv);
         case 'XChaCha20-Poly1305':
-            return xChacha20Poly1305.decrypt(encryptedData, key, iv);
+            return await xChacha20Poly1305.decrypt(encryptedData, key, iv);
         case 'Salsa20-Poly1305':
-            return salsa20Poly1305.decrypt(encryptedData, key, iv);
+            return await salsa20Poly1305.decrypt(encryptedData, key, iv);
         default:
             throw new Error(`Algorithm ${algorithm} not supported.`);
     }

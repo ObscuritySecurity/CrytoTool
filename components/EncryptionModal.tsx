@@ -379,19 +379,19 @@ export const EncryptionModal: React.FC<EncryptionModalProps> = ({ isOpen, onClos
                                          <span className="text-[10px] md:text-base font-bold text-white">AES-GCM Stream</span>
                                      </div>
                                      <div className="flex items-center gap-1 md:gap-2">
-                                         <button
-                                             onClick={(e) => { e.stopPropagation(); setInfoAlgo('AES-GCM-Stream'); }}
-                                             className="text-zinc-600 hover:text-neon-green"
-                                         >
-                                             <HelpCircle size={8} className="md:size-4" />
-                                         </button>
-                                         <span className="text-[7px] md:text-xs px-1.5 md:px-3 py-0.5 md:py-1.5 rounded md:rounded-full bg-neon-green/20 text-neon-green font-bold">Recommended</span>
-                                     </div>
-                                 </div>
-                                 <p className="text-[7px] md:text-sm text-zinc-500 mt-1 md:mt-2">Streaming — any size, any device. Ideal for old phones and tablets.</p>
-                             </button>
+                                          <span
+                                              onClick={(e) => { e.stopPropagation(); setInfoAlgo('AES-GCM-Stream'); }}
+                                              className="text-zinc-600 hover:text-neon-green cursor-pointer"
+                                          >
+                                               <HelpCircle size={8} className="md:size-4" />
+                                           </span>
+                                          <span className="text-[7px] md:text-xs px-1.5 md:px-3 py-0.5 md:py-1.5 rounded md:rounded-full bg-neon-green/20 text-neon-green font-bold">Recommended</span>
+                                      </div>
+                                  </div>
+                                  <p className="text-[7px] md:text-sm text-zinc-500 mt-1 md:mt-2">Streaming — any size, any device. Ideal for old phones and tablets.</p>
+                              </button>
 
-                             <div className="flex items-center gap-2 md:gap-4 my-2 md:my-4">
+                              <div className="flex items-center gap-2 md:gap-4 my-2 md:my-4">
                                  <div className="flex-1 h-px bg-zinc-800" />
                                  <span className="text-[7px] md:text-xs font-black uppercase text-zinc-700">Other algorithms</span>
                                  <div className="flex-1 h-px bg-zinc-800" />
@@ -406,22 +406,22 @@ export const EncryptionModal: React.FC<EncryptionModalProps> = ({ isOpen, onClos
                                      >
                                          <div className="flex justify-between items-start mb-0.5 md:mb-2">
                                              <span className="text-[9px] md:text-sm font-bold text-zinc-300">{algo.name}</span>
-                                             <div className="flex items-center gap-1 md:gap-2">
-                                                 <button
-                                                     onClick={(e) => { e.stopPropagation(); setInfoAlgo(algo.id); }}
-                                                     className="text-zinc-600 hover:text-neon-green"
-                                                 >
-                                                     <HelpCircle size={8} className="md:size-4" />
-                                                 </button>
-                                                 <span className="text-[6px] md:text-[9px] px-1 md:px-2.5 py-0.5 md:py-1 rounded bg-black text-zinc-500 font-mono">{algo.badge}</span>
-                                             </div>
-                                         </div>
-                                         <p className="text-[7px] md:text-xs text-zinc-500 leading-relaxed">{algo.desc}</p>
-                                     </button>
-                                 ))}
-                             </div>
-                        </motion.div>
-                    )}
+                                              <div className="flex items-center gap-1 md:gap-2">
+                                                  <span
+                                                      onClick={(e) => { e.stopPropagation(); setInfoAlgo(algo.id); }}
+                                                      className="text-zinc-600 hover:text-neon-green cursor-pointer"
+                                                  >
+                                                      <HelpCircle size={8} className="md:size-4" />
+                                                   </span>
+                                                  <span className="text-[6px] md:text-[9px] px-1 md:px-2.5 py-0.5 md:py-1 rounded bg-black text-zinc-500 font-mono">{algo.badge}</span>
+                                              </div>
+                                          </div>
+                                          <p className="text-[7px] md:text-xs text-zinc-500 leading-relaxed">{algo.desc}</p>
+                                      </button>
+                                  ))}
+                              </div>
+                         </motion.div>
+                     )}
 
                      {/* STEP 2: KEY GENERATION */}
                      {step === 'key' && (
