@@ -60,7 +60,7 @@
 
 CrytoTool respects the people behind the screen. It's a four-in-one, client-side encryption file manager, gallery, music player, and document viewer where your privacy comes first: 
 
-no tracking, no ads, no data collection. it's also a file manager and vault with multiple layers of security and deep customization works independently of the operating system CrytoTool works in sandbox mode 
+no tracking, no ads, no data collection, file names, tags, and metadata are also encrypted, not just file contents. it's also a file manager and vault with multiple layers of security and deep customization works independently of the operating system CrytoTool works in sandbox mode 
 
 CrytoTool is compliant with the protocol and respects all the principles included in it: [protocol-3305](https://github.com/ObscuritySecurity/protocol-3305)
 
@@ -71,10 +71,9 @@ CrytoTool uses a 100% client-side architecture with 4 layers of encryption:
 | Layer | What it does | Key detail |
 |-------|----------------|------------|
 | **1. Database Encryption** | Auto-encrypts every file in IndexedDB | AES-256-GCM, keys from Master Password via Argon2id |
-| **2. Metadata Encryption** | Encrypts file names, tags, artist, album, and custom metadata fields | AES-256-GCM, vault key, each file's metadata encrypted as a single JSON blob |
-| **3. File & Folder Encryption** | Manual encryption with 6 algorithms | AES-GCM, XChaCha20-Poly1305, ChaCha20-Poly1305, AES-CTR, Salsa20-Poly1305, AES-GCM-Stream |
-| **4. Encrypted Backup** | Creates secure backups of all data | PBKDF2-SHA256 + AES-256-GCM, unique 26-char key |
-| **5. Streaming Encryption** | Handles large files on any device | 4MB chunks, AES-GCM per chunk, safe for low-RAM devices |
+| **2. File & Folder Encryption** | Manual encryption with 6 algorithms | AES-GCM, XChaCha20-Poly1305, ChaCha20-Poly1305, AES-CTR, Salsa20-Poly1305, AES-GCM-Stream |
+| **3. Encrypted Backup** | Creates secure backups of all data | PBKDF2-SHA256 + AES-256-GCM, unique 26-char key |
+| **4. Streaming Encryption** | Handles large files on any device | 4MB chunks, AES-GCM per chunk, safe for low-RAM devices |
 
 For full technical details, consult the [Technical Architecture](https://github.com/ObscuritySecurity/CrytoTool/blob/main/architecture.md).
 
