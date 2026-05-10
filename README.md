@@ -51,13 +51,13 @@ For full technical details, consult the [Technical Architecture](https://github.
 
 ---
 
-### 🛡️ Problems CrytoTool Solves
+### problems solved
 
-| # | Problem | Solution |
-|---|---------|----------|
-| 1 | File managers rely on system passwords — security is a facade, not real protection. | Isolated encrypted vault with Argon2id + AES-256-GCM and progressive lockout. |
-| 2 | Fragmented apps for gallery, music, documents — switching between them wastes time. | All-in-one file manager with built-in media player, document viewer, and gallery. |
-| 3 | Most tools offer one algorithm — no flexibility for different security needs. | Six encryption algorithms with user-selectable parameters and key sizes. |
+> **The main problem that CrytoTool solves** is that most file managers do not provide real security, everything is a facade, only with the system password can you access the most sensitive data. CrytoTool solves this problem through an isolated system and multiple layers of security.
+
+> **The second problem it solves** is that most people are tired of having different apps for everything, especially in a file manager where you should have everything, look here we come — we offer gallery, music, documents and others in the future.
+
+> **The third and last problem we solve** is that most file managers do not give you the option to choose from multiple encryption algorithms. CrytoTool gives you the option to choose from six encryption algorithms.
 
 ---
 ### Key Features
