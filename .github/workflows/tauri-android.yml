@@ -105,6 +105,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: app-v${{ steps.version.outputs.version }}
           draft: true
           files: CrytoTool-android.apk
 
