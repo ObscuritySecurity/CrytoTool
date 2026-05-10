@@ -119,13 +119,13 @@ Want to see your name here? Check the [Contributing Guide](https://github.com/Ob
 
 CrytoTool is built on the shoulders of giants. We are deeply grateful for these open-source projects and standards:
 
-#### 🔐 Core Crypto
+#### Core Crypto
 - **[Web Crypto API](https://www.w3.org/TR/WebCryptoAPI/)** — AES-256-GCM encryption, random IV generation, and CryptoKey management. The heart of every encryption operation in CrytoTool. Built into the browser — no third-party code needed for the most critical operations.
 - **[hash-wasm](https://github.com/Daninet/hash-wasm)** — Argon2id implementation for master key derivation (128 MB memory, 4 iterations)
 - **[libsodium-wrappers](https://github.com/jedisct1/libsodium.js)** — Audited ChaCha20, XChaCha20, Salsa20, and BLAKE2b primitives
 - **[NIST SP 800-38D](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-38D.pdf)** — The AES-GCM standard that governs our encryption
 
-#### 🖥️ Framework & Runtime
+#### Framework & Runtime
 - **[Tauri](https://tauri.app/)** — Secure, lightweight desktop backend (Rust + WebView)
 - **[React](https://react.dev/)** — UI library
 - **[TypeScript](https://www.typescriptlang.org/)** — Type safety across the entire codebase
@@ -133,12 +133,12 @@ CrytoTool is built on the shoulders of giants. We are deeply grateful for these 
 - **[Tailwind CSS](https://tailwindcss.com/)** — Utility-first CSS framework
 - **[Framer Motion](https://www.framer.com/motion/)** — Animation library
 
-#### 🎨 Icons & Fonts
+#### Icons & Fonts
 - **[Lucide](https://lucide.dev/)** — Beautiful icon set
 - **[Heroicons](https://heroicons.com/)** — Icon set by the Tailwind team
 - **[Fontsource](https://fontsource.org/)** — Self-hosted open-source fonts (20 font families)
 
-#### 📜 Inspiration
+#### Inspiration
 - **[Protocol-3305](https://github.com/ObscuritySecurity/protocol-3305)** — The foundational protocol guiding our privacy-first principles
 
 ---
