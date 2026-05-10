@@ -144,5 +144,5 @@ Talk about it. Write about it. Show it to your friends. Help us prove that a pri
   <sub><b>CrytoTool</b> — built with respect for people and their data.</sub>
   <br>
   <sub>🇷🇴 Made with ❤️ in România</sub><br>
-  <a href="https://github.com/ObscuritySecurity/CrytoTool/blob/main/LICENSE"><sub>MIT License</sub></a>
+  <a href="https://github.com/ObscuritySecurity/CrytoTool/blob/main/LICENSE"><sub>AGPL-3.0 License</sub></a>
 </div>
