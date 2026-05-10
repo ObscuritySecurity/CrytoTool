@@ -1,8 +1,9 @@
 
 import { cryptoService, CryptoAlgorithm } from './crypto';
+import { metadataCrypto, EncryptedMeta } from './metadataCrypto';
 
 const DB_NAME = 'CrytoToolVault';
-const DB_VERSION = 2; // Incremented version for schema change if needed (but keypath same)
+const DB_VERSION = 3;
 const STORE_NAME = 'files';
 
 export interface Tag {
@@ -20,24 +21,23 @@ export interface DBItem {
   date: string;
   status?: string;
   category?: 'image' | 'video' | 'audio' | 'doc' | 'other';
-  // Store encrypted data
-  fileData?: Blob; 
-  iv?: string; // Base64
-  salt?: string; // Base64 (for key derivation)
+  fileData?: Blob;
+  iv?: string;
+  salt?: string;
   algorithm?: CryptoAlgorithm;
   isEncrypted?: boolean;
-  externalUrl?: string;
+  isFavorite?: boolean;
+  isTrashed?: boolean;
+  iconOnlyMode?: boolean;
+  encryptedMeta?: EncryptedMeta;
+  tags?: Tag[];
   artist?: string;
   album?: string;
   coverUrl?: string;
-  isFavorite?: boolean;
-  isTrashed?: boolean;
-  tags?: Tag[];
   customIcon?: string;
-  iconOnlyMode?: boolean;
+  externalUrl?: string;
 }
 
-// Export interface (serialization Blob -> Base64)
 export interface ExportedItem extends Omit<DBItem, 'fileData'> {
     fileDataBase64?: string;
 }
@@ -58,12 +58,55 @@ class VaultDB {
         if (!db.objectStoreNames.contains(STORE_NAME)) {
           db.createObjectStore(STORE_NAME, { keyPath: 'id' });
         }
+        if (e.oldVersion < 3) {
+          const transaction = (e.target as IDBOpenDBRequest).transaction;
+          if (transaction) {
+            const store = transaction.objectStore(STORE_NAME);
+            store.openCursor().onsuccess = (event) => {
+              const cursor = (event.target as IDBRequest).result;
+              if (cursor) {
+                const item = cursor.value;
+                if (!item.encryptedMeta && item.name) {
+                  item.encryptedMeta = {
+                    ciphertext: btoa(unescape(encodeURIComponent(item.name))),
+                    iv: '',
+                  };
+                  delete item.tags;
+                  delete item.artist;
+                  delete item.album;
+                  delete item.coverUrl;
+                  delete item.customIcon;
+                  delete item.externalUrl;
+                  cursor.update(item);
+                }
+                cursor.continue();
+              }
+            };
+          }
+        }
       };
     });
   }
 
   async addItem(item: DBItem): Promise<void> {
     await this.ensureInit();
+
+    if (!item.encryptedMeta && (item.name || item.tags || item.artist || item.album || item.coverUrl || item.customIcon || item.externalUrl)) {
+      try {
+        item.encryptedMeta = await metadataCrypto.encrypt({
+          name: item.name || 'untitled',
+          tags: item.tags,
+          artist: item.artist,
+          album: item.album,
+          coverUrl: item.coverUrl,
+          customIcon: item.customIcon,
+          externalUrl: item.externalUrl,
+        });
+        item = metadataCrypto.stripFromItem(item) as DBItem;
+      } catch {
+        // vault key unavailable — lasă în clar
+      }
+    }
     
     if (item.fileData && !item.isEncrypted) {
         const encrypted = await cryptoService.encrypt(item.fileData);
@@ -85,8 +128,23 @@ class VaultDB {
 
   async updateItem(item: DBItem): Promise<void> {
     await this.ensureInit();
-    
-    // NOTE: Manual encryption only via EncryptionModal. No auto-encryption.
+
+    if (!item.encryptedMeta && (item.name || item.tags || item.artist || item.album || item.coverUrl || item.customIcon || item.externalUrl)) {
+      try {
+        item.encryptedMeta = await metadataCrypto.encrypt({
+          name: item.name || 'untitled',
+          tags: item.tags,
+          artist: item.artist,
+          album: item.album,
+          coverUrl: item.coverUrl,
+          customIcon: item.customIcon,
+          externalUrl: item.externalUrl,
+        });
+        item = metadataCrypto.stripFromItem(item) as DBItem;
+      } catch {
+        // vault key unavailable — lasă în clar
+      }
+    }
 
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([STORE_NAME], 'readwrite');
