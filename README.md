@@ -11,8 +11,17 @@
     <a href="https://github.com/ObscuritySecurity/CrytoTool/commits/main">
       <img src="https://img.shields.io/github/last-commit/ObscuritySecurity/CrytoTool?style=flat-square" alt="Last Commit" />
     </a>
-    <a 
-      <img src="https://github.com/ObscuritySecurity/CrytoTool/actions/workflows/build.yml/badge.svg?style=flat-square" alt="Build Status" />
+    <a href="https://github.com/ObscuritySecurity/CrytoTool/actions/workflows/tauri-linux.yml">
+      <img src="https://github.com/ObscuritySecurity/CrytoTool/actions/workflows/tauri-linux.yml/badge.svg?style=flat-square" alt="Linux Build" />
+    </a>
+    <a href="https://github.com/ObscuritySecurity/CrytoTool/actions/workflows/tauri-windows.yml">
+      <img src="https://github.com/ObscuritySecurity/CrytoTool/actions/workflows/tauri-windows.yml/badge.svg?style=flat-square" alt="Windows Build" />
+    </a>
+    <a href="https://github.com/ObscuritySecurity/CrytoTool/actions/workflows/tauri-macos.yml">
+      <img src="https://github.com/ObscuritySecurity/CrytoTool/actions/workflows/tauri-macos.yml/badge.svg?style=flat-square" alt="macOS Build" />
+    </a>
+    <a href="https://github.com/ObscuritySecurity/CrytoTool/actions/workflows/tauri-android.yml">
+      <img src="https://github.com/ObscuritySecurity/CrytoTool/actions/workflows/tauri-android.yml/badge.svg?style=flat-square" alt="Android Build" />
     </a>
     <a href="#">
       <img src="https://img.shields.io/badge/Stable-brightgreen?style=flat-square" alt="Stable Status" />
