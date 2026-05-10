@@ -18,7 +18,7 @@ npm run cap      # Build Capacitor mobile app
 
 ## Key Conventions
 - **Code comments**: English only (for international contributors)
-- **Romanian UI**: Use "persoane" instead of "utilizatori"
+- **People-first language**: Always use "people" / "persoane" / "oameni". Never "users" / "utilizatori" in any language.
 - **Version**: 2.5.0-PRO
 - **No telemetry**: Zero data collection, local-first
 

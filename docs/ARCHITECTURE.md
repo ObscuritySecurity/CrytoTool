@@ -31,7 +31,7 @@ Implemented in `utils/metadataCrypto.ts`. All sensitive metadata fields (file na
 | Field | Description | Encrypted? |
 |-------|-------------|------------|
 | `name` | File/folder display name | **YES** |
-| `tags` | User-assigned tags with label + color | **YES** |
+| `tags` | Person-assigned tags with label + color | **YES** |
 | `artist` | Audio artist metadata | **YES** |
 | `album` | Audio album metadata | **YES** |
 | `coverUrl` | Cover image URL | **YES** |
@@ -60,7 +60,7 @@ On upgrade to `DB_VERSION = 3`, existing items without `encryptedMeta` are migra
 
 ---
 ### Master Key Derivation
-The vault master key is derived from the user's Master Password using **Argon2id** via the `hash-wasm` library (`utils/crypto.ts:36-54`):
+The vault master key is derived from the person's Master Password using **Argon2id** via the `hash-wasm` library (`utils/crypto.ts:36-54`):
 ```
 Master Password + Random Salt (16 bytes) → Argon2id (4 iterations, 128MB memory, 4-way parallelism) → 32-byte hash → Imported as AES-256-GCM CryptoKey
 ```
@@ -94,7 +94,7 @@ When a file is added via `db.addItem()` (`utils/db.ts:65-83`):
 - **Algorithm**: AES-256-GCM (industry standard)
 - **Key**: In-memory Vault Key (derived from Master Password via Argon2id)
 - **Storage**: IndexedDB with `isEncrypted: true` flag
-- **No user intervention required**: Key management is automatic
+- **No intervention required**: Key management is automatic
 
 ### Manual Encryption
 Triggered via the `EncryptionModal` component (`components/EncryptionModal.tsx`) for files already in the vault.
@@ -120,11 +120,11 @@ Triggered via the `EncryptionModal` component (`components/EncryptionModal.tsx`)
 
 5. **Store in IndexedDB**: Update the file entry with `ciphertext`, `iv` (base64), `salt` (base64, for key derivation), `algorithm`, `isEncrypted: true`
 
-6. **Optional Vault Storage**: Save the generated key to `vaultStorage` with a user-selected category for easy reuse. **Security note**: All keys in `vaultStorage` are now encrypted with the Vault Key (AES-256-GCM) before being stored in localStorage (`utils/vaultStorage.ts`). The encrypted format is: `{ iv: base64, data: base64 }` where `data` is the encrypted JSON of all vault key entries.
+6. **Optional Vault Storage**: Save the generated key to `vaultStorage` with a selected category for easy reuse. **Security note**: All keys in `vaultStorage` are now encrypted with the Vault Key (AES-256-GCM) before being stored in localStorage (`utils/vaultStorage.ts`). The encrypted format is: `{ iv: base64, data: base64 }` where `data` is the encrypted JSON of all vault key entries.
 
 #### Manual Encryption Key Derivation (`crypto.ts:75-83`):
 ```
-User-Generated Passphrase + Random Salt (16 bytes) → Argon2id (hash-wasm, 4 iterations, 128MB memory, 4-way parallel) → 32-byte raw key → Passed to selected primitive
+Person-Generated Passphrase + Random Salt (16 bytes) → Argon2id (hash-wasm, 4 iterations, 128MB memory, 4-way parallel) → 32-byte raw key → Passed to selected primitive
 ```
 The passphrase-based KDF uses `argon2id` from `hash-wasm`, replacing the previous `libsodium.crypto_pwhash()` dependency. This provides proper key stretching against brute-force attacks without requiring WebAssembly loading for libsodium's pwhash module.
 
@@ -333,5 +333,5 @@ IndexedDB: "CrytoToolVault" (Version 3)
 | `isEncrypted` | boolean (optional) | Whether the file is encrypted |
 | `category` | 'image' \| 'video' \| 'audio' \| 'doc' \| 'other' (optional) | File category |
 | `isTrashed` | boolean (optional) | Whether the item is in the trash |
-| `tags` | Tag[] (optional) | User-assigned tags |
+| `tags` | Tag[] (optional) | Person-assigned tags |
 | `customIcon` | string (optional) | Custom icon for the item |
