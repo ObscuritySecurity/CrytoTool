@@ -101,6 +101,18 @@ Explore these guides to understand our project's principles, technical design, a
 
 
 
+### Contributors
+
+Thanks to everyone who has contributed to making CrytoTool better.
+
+<div align="center">
+  <a href="https://github.com/wtshex1"><img src="https://github.com/wtshex1.png" width="48" height="48" style="border-radius:50%;margin:4px" alt="wtshex1" /></a>
+</div>
+
+<br>
+
+Want to see your name here? Check the [Contributing Guide](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/CONTRIBUTING.md) to get started.
+
 ---
 
 ### Acknowledgements
