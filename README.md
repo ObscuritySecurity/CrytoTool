@@ -141,9 +141,8 @@ Talk about it. Write about it. Show it to your friends. Help us prove that a pri
 <br>
 
 <div align="center">
-  <a href="https://github.com/ObscuritySecurity/CrytoTool">
-    <img src="https://img.shields.io/badge/🇷🇴 Made%20in%20România-8B0000?style=flat&labelColor=002B7F&color=CE1126" alt="Made in România" />
-  </a>
+  <sub><b>CrytoTool</b> — built with respect for people and their data.</sub>
   <br>
-  <sub><b>CrytoTool</b> — construit cu respect pentru oameni și datele lor.</sub>
+  <sub>🇷🇴 Made with ❤️ in România</sub><br>
+  <a href="https://github.com/ObscuritySecurity/CrytoTool/blob/main/LICENSE"><sub>MIT License</sub></a>
 </div>
