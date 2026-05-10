@@ -1,22 +1,64 @@
 # CrytoTool Architecture Overview
-_Version: 2.5.0-PRO | Last Updated: 2026-05-05_
+_Version: 2.5.0-PRO | Last Updated: 2026-05-10_
 
 ## Table of Contents
 1. [Database Encryption (IndexedDB)](#1-database-encryption-indexeddb)
-2. [File & Folder Encryption](#2-file--folder-encryption)
+2. [Metadata Encryption](#2-metadata-encryption)
+3. [File & Folder Encryption](#3-file--folder-encryption)
    - [Automatic Encryption (Vault Default)](#automatic-encryption-vault-default)
    - [Manual Encryption](#manual-encryption)
-3. [Encrypted Backup System](#3-encrypted-backup-system)
-4. [Streaming Encryption](#4-streaming-encryption)
-5. [Project Directory Structure](#5-project-directory-structure)
+4. [Encrypted Backup System](#4-encrypted-backup-system)
+5. [Streaming Encryption](#5-streaming-encryption)
+6. [Project Directory Structure](#6-project-directory-structure)
    - [Source Code Tree](#source-code-tree)
    - [IndexedDB Data Hierarchy](#indexeddb-data-hierarchy)
 
 ---
 
-## 1. Database Encryption (IndexedDB)
-CrytoTool uses **IndexedDB** (client-side only, no server) as its primary storage, wrapped by the `utils/db.ts` VaultDB service.
+## 2. Metadata Encryption
+Implemented in `utils/metadataCrypto.ts`. All sensitive metadata fields (file names, tags, artist, album, coverUrl, customIcon, externalUrl) are encrypted with AES-256-GCM using the in-memory vault key before being stored in IndexedDB.
 
+### Encryption Flow (`metadataCrypto.ts:21-24`)
+```
+{ name, tags, artist, album, coverUrl, customIcon, externalUrl }
+  → JSON.stringify
+  → cryptoService.encryptString(json)  // AES-256-GCM with vault key + random IV
+  → { ciphertext: base64, iv: base64 }
+  → stored in DBItem.encryptedMeta
+```
+
+### Metadata Fields Protected
+| Field | Description | Encrypted? |
+|-------|-------------|------------|
+| `name` | File/folder display name | **YES** |
+| `tags` | User-assigned tags with label + color | **YES** |
+| `artist` | Audio artist metadata | **YES** |
+| `album` | Audio album metadata | **YES** |
+| `coverUrl` | Cover image URL | **YES** |
+| `customIcon` | Custom icon identifier | **YES** |
+| `externalUrl` | External file reference URL | **YES** |
+
+### Fields That Remain Plaintext
+These fields stay unencrypted because they are required for IndexedDB queries, filtering, and UI rendering without needing to decrypt every record:
+`id`, `parentId`, `type`, `size`, `date`, `category`, `isEncrypted`, `isTrashed`, `isFavorite`, `iv`, `salt`, `algorithm`, `iconOnlyMode`
+
+### Write Path (`db.ts:94-109`)
+When `addItem()` or `updateItem()` is called:
+1. Check if `item.encryptedMeta` is absent and sensitive fields exist
+2. Call `metadataCrypto.encrypt()` → produces `{ ciphertext, iv }`
+3. Call `metadataCrypto.stripFromItem()` → removes plaintext name, tags, artist etc.
+4. Set `item.encryptedMeta` to the encrypted blob
+5. Store the item in IndexedDB
+
+### Read Path
+Items are returned from IndexedDB with `encryptedMeta` intact. The UI layer calls `metadataCrypto.extractPlaintext(item)` or `metadataCrypto.getDisplayName(item)` to decrypt on-demand using the in-memory vault key. Fallback to legacy plaintext fields if `encryptedMeta` is absent (backward compatibility).
+
+### Schema Migration (`db.ts:61-86`)
+On upgrade to `DB_VERSION = 3`, existing items without `encryptedMeta` are migrated via a cursor:
+- Plaintext `name` is base64-encoded into `encryptedMeta.ciphertext`
+- Legacy `tags`, `artist`, `album`, `coverUrl`, `customIcon`, `externalUrl` are removed
+
+---
 ### Master Key Derivation
 The vault master key is derived from the user's Master Password using **Argon2id** via the `hash-wasm` library (`utils/crypto.ts:36-54`):
 ```
@@ -46,7 +88,7 @@ When a file is added via `db.addItem()` (`utils/db.ts:65-83`):
 
 ---
 
-## 2. File & Folder Encryption
+## 3. File & Folder Encryption
 ### Automatic Encryption (Vault Default)
 - **Trigger**: Any file added via the Dashboard, Upload, or New Folder action
 - **Algorithm**: AES-256-GCM (industry standard)
@@ -80,11 +122,11 @@ Triggered via the `EncryptionModal` component (`components/EncryptionModal.tsx`)
 
 6. **Optional Vault Storage**: Save the generated key to `vaultStorage` with a user-selected category for easy reuse. **Security note**: All keys in `vaultStorage` are now encrypted with the Vault Key (AES-256-GCM) before being stored in localStorage (`utils/vaultStorage.ts`). The encrypted format is: `{ iv: base64, data: base64 }` where `data` is the encrypted JSON of all vault key entries.
 
-#### Manual Encryption Key Derivation (`crypto.ts:87-97`):
+#### Manual Encryption Key Derivation (`crypto.ts:75-83`):
 ```
-User-Generated Passphrase + Random Salt (16 bytes) → Argon2id (libsodium, 3 iterations, 192MB memory) → 32-byte raw key → Passed to selected primitive
+User-Generated Passphrase + Random Salt (16 bytes) → Argon2id (hash-wasm, 4 iterations, 128MB memory, 4-way parallel) → 32-byte raw key → Passed to selected primitive
 ```
-The passphrase-based KDF uses `sodium.crypto_pwhash()` with `crypto_pwhash_ALG_ARGON2ID13`, providing proper key stretching against brute-force attacks.
+The passphrase-based KDF uses `argon2id` from `hash-wasm`, replacing the previous `libsodium.crypto_pwhash()` dependency. This provides proper key stretching against brute-force attacks without requiring WebAssembly loading for libsodium's pwhash module.
 
 #### Vault Key Storage Encryption (`utils/crypto.ts:232-266`, `utils/vaultStorage.ts`):
 ```
@@ -96,7 +138,7 @@ JSON.stringify(vaultKeyEntries) → TextEncoder → AES-GCM (Vault Key, random I
 
 ---
 
-## 3. Encrypted Backup System
+## 4. Encrypted Backup System
 Implemented in `utils/backupCrypto.ts` and `components/views/BackupView.tsx`. Backups are fully client-side and never sent to a server.
 
 ### Backup Creation Flow (`BackupView.tsx:30-74`):
@@ -141,12 +183,12 @@ Implemented in `utils/backupCrypto.ts` and `components/views/BackupView.tsx`. Ba
 
 ---
 
-## 4. Streaming Encryption
+## 5. Streaming Encryption
 Designed for large files on low-RAM devices, implemented in `utils/streamCrypto.ts`. Processes files in 4MB chunks to avoid loading the entire file into memory.
 
 ### Encryption Flow (`streamCrypto.encrypt`):
 1. Generate random 16-byte salt and 12-byte base IV
-2. Derive stream key: `Passphrase + Salt → Argon2id (libsodium, 3 iterations, 192MB memory) → AES-256-GCM CryptoKey`
+2. Derive stream key: `Passphrase + Salt → Argon2id (hash-wasm, 4 iterations, 128MB memory) → AES-256-GCM CryptoKey`
 3. Calculate total chunks: `Math.ceil(fileSize / 4MB)`
 4. Build header:
    ```typescript
@@ -162,23 +204,23 @@ Designed for large files on low-RAM devices, implemented in `utils/streamCrypto.
    }
    ```
 5. For each chunk:
-   - Derive chunk IV: `BLAKE2b(chunkIndex (4 bytes) keyed with baseIV) → 12-byte nonce`
-   - Encrypt chunk with AES-GCM using the derived key
+    - Derive chunk IV: `HMAC-SHA256(chunkIndex, keyed with baseIV) → first 12 bytes`
+    - Encrypt chunk with AES-GCM using the derived key
    - Append encrypted chunk (includes GCM tag) to output
 6. Final output: `[Encoded Header][Chunk 0][Chunk 1]...[Chunk N]`
 
 ### Decryption Flow (`streamCrypto.decrypt`):
 1. Decode header from first `headerSize` bytes
 2. Verify magic: `CRYTO_STREAM`
-3. Derive stream key once using salt from header (Argon2id, 3 iterations, 192MB memory)
+3. Derive stream key once using salt from header (Argon2id, 4 iterations, 128MB memory)
 4. For each chunk:
-   - Derive chunk IV via `BLAKE2b(chunkIndex keyed with baseIV)`
+   - Derive chunk IV via `HMAC-SHA256(chunkIndex keyed with baseIV) → first 12 bytes`
    - Decrypt chunk with AES-GCM
 5. Reassemble all decrypted chunks into the original file
 
 ---
 
-## 5. Project Directory Structure
+## 6. Project Directory Structure
 
 ### Source Code Tree
 ```
@@ -210,6 +252,7 @@ CrytoTool/
 │   ├── 📄 crypto.ts             # Master key derivation, AES-GCM encrypt/decrypt
 │   ├── 📄 cryptoPrimitives.ts   # Isolated crypto primitives (aesGcm, aesCtr, chacha20, etc.)
 │   ├── 📄 streamCrypto.ts       # 4MB chunked streaming encryption
+│   ├── 📄 metadataCrypto.ts     # AES-GCM metadata encryption (names, tags, artist, etc.)
 │   ├── 📄 backupCrypto.ts       # Backup key gen, PBKDF2, AES-256-GCM backup encrypt/decrypt
 │   ├── 📄 db.ts                 # IndexedDB wrapper (CRUD, export/import)
 │   ├── 📄 vaultStorage.ts       # localStorage vault key management
@@ -257,7 +300,7 @@ CrytoTool/
 
 ### IndexedDB Data Hierarchy
 ```
-IndexedDB: "CrytoToolVault" (Version 2)
+IndexedDB: "CrytoToolVault" (Version 3)
 └── Object Store: "files" (keyPath: 'id')
     │
     ├── 📁 Root Folder (parentId: null, type: 'folder')
@@ -279,7 +322,8 @@ IndexedDB: "CrytoToolVault" (Version 2)
 | `id` | string | Unique UUID for the item |
 | `parentId` | string \| null | ID of parent folder (null = root level) |
 | `type` | 'file' \| 'folder' \| 'system' | Item type |
-| `name` | string | Display name |
+| `name` | string | Display name (empty if encryptedMeta present) |
+| `encryptedMeta` | `{ ciphertext: string, iv: string }` (optional) | AES-256-GCM encrypted metadata blob (name, tags, artist, album, etc.) |
 | `size` | string (optional) | Human-readable file size |
 | `date` | string | Creation/modification date |
 | `fileData` | Blob (optional) | Encrypted file data (files only) |
