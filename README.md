@@ -137,3 +137,13 @@ We do not need your money. We need your voice.
 Our mission is to build software that respects people, and that mission can only succeed if people know there is a better way. If you believe in this project, the most valuable contribution you can make is to share it.
 
 Talk about it. Write about it. Show it to your friends. Help us prove that a private, secure, and respectful internet is not only possible—it's necessary.
+
+<br>
+
+<div align="center">
+  <a href="https://github.com/ObscuritySecurity/CrytoTool">
+    <img src="https://img.shields.io/badge/🇷🇴 Made%20in%20România-8B0000?style=flat&labelColor=002B7F&color=CE1126" alt="Made in România" />
+  </a>
+  <br>
+  <sub><b>CrytoTool</b> — construit cu respect pentru oameni și datele lor.</sub>
+</div>
