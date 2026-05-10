@@ -30,11 +30,11 @@
 
 
 
-CrytoTool respects the people behind the screen. It's a four-in-one, client-side encryption file manager, gallery, music player, and document viewer where your privacy comes first: 
+CrytoTool respects the people behind the screen. It's a four-in-one, client-side encrypted file manager, gallery, music player, and document viewer where your privacy comes first: **no tracking, no ads, no data collection**.
 
-no tracking, no ads, no data collection, file names, tags, and metadata are also encrypted, not just file contents. it's also a file manager and vault with multiple layers of security and deep customization works independently of the operating system CrytoTool works in sandbox mode 
+File names, tags, and metadata are encrypted — not just file contents. It works independently of the operating system, fully sandboxed.
 
-CrytoTool is compliant with the protocol and respects all the principles included in it: [protocol-3305](https://github.com/ObscuritySecurity/protocol-3305)
+CrytoTool is compliant with the [Protocol-3305](https://github.com/ObscuritySecurity/protocol-3305) and respects all its principles.
 
 ### Architecture Overview
 
@@ -51,7 +51,7 @@ For full technical details, consult the [Technical Architecture](https://github.
 
 ---
 
-### problems solved
+### Problems Solved
 
 > **The main problem that CrytoTool solves** is that most file managers do not provide real security, everything is a facade, only with the system password can you access the most sensitive data. CrytoTool solves this problem through an isolated system and multiple layers of security.
 
@@ -73,11 +73,10 @@ For full technical details, consult the [Technical Architecture](https://github.
 -   **Access Recovery:** Regain access to your vault if you lose your master password using either 10 single-use recovery codes or a unique, one-time reset token.
 -   **Auto-Lock & Visual Obfuscation:** The app can automatically lock and blur the screen after a period of inactivity.
 
-**Effortless Code Management**
--   **Add Codes Easily:** Add new 2FA accounts by entering details manually or by scanning a QR code from an image in your gallery.
--   **Powerful Search:** Instantly find any code by searching for its issuer or account name.
--   **Safe Deletion:** Move codes to a Trash area, from where you can restore them or delete them permanently.
--   **Manual & Streaming Encryption:** Encrypt files manually with 6 algorithms (AES-GCM, XChaCha20-Poly1305, ChaCha20-Poly1305, AES-CTR, Salsa20-Poly1305, AES-GCM-Stream). For more details, see the [Technical Architecture](https://github.com/ObscuritySecurity/CrytoTool/blob/main/architecture.md) (Sections 2 & 4).
+**Manual & Streaming Encryption**
+-   **Multi-Algorithm Support:** Encrypt files manually with 6 algorithms — AES-GCM, XChaCha20-Poly1305, ChaCha20-Poly1305, AES-CTR + HMAC, Salsa20-Poly1305, and AES-GCM-Stream for large files.
+-   **Vault Key Storage:** Store generated encryption keys in an encrypted vault, categorized for easy access.
+-   **Streaming Encryption:** Handles large files (600 MiB+) in 4 MB chunks with AES-GCM per chunk — safe for low-RAM devices.
 
 **Deep Customization**
 -   **Theme Gallery & Accent Colors:** Personalize the app's appearance with a rich theme gallery and a custom accent color picker.
@@ -100,13 +99,7 @@ Explore these guides to understand our project's principles, technical design, a
 -   [Release Guide](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/RELEASE.md) How to create releases for web, desktop, and mobile.
 -   [Changelog](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/CHANGELOG.md) History of versions and changes.
 
-### Contributors
 
-Thank you to everyone who has contributed to CrytoTool!  
-Special thanks to all the people who helped with code, documentation, testing, and translations.
-
-<!-- Contributors: add yourself here or use @all-contributors bot -->
-<!-- Format: - [@username](https://github.com/username) - contribution type -->
 
 ---
 
@@ -120,7 +113,6 @@ CrytoTool is built on the shoulders of giants. We are deeply grateful for these 
 
 #### Framework & UI
 - **[Tauri](https://tauri.app/)** — Secure, lightweight desktop backend
-- 
 - **[React](https://react.dev/)** — UI library
 - **[Tailwind CSS](https://tailwindcss.com/)** — Utility-first CSS framework
 - **[Framer Motion](https://www.framer.com/motion/)** — Animation library
