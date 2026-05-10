@@ -9,6 +9,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { db, DBItem } from '../utils/db';
 import { cryptoService } from '../utils/crypto';
+import { metadataCrypto } from '../utils/metadataCrypto';
 import { FileSystemItem, ViewState, AppTheme, ThemeConfig, ThemeCategory } from '../types';
 import { useI18n } from '../utils/i18nContext';
 
@@ -408,9 +409,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
         { id: 'sys-2', parentId: null, type: 'system', name: 'Backup', status: 'Secure', date: 'System', category: 'other' },
       ];
 
-      const loadedItems: FileSystemItem[] = dbItems.map(i => {
-         return { ...i, url: i.externalUrl, rawBlob: i.fileData };
-      });
+      const loadedItems: FileSystemItem[] = await Promise.all(dbItems.map(async (i) => {
+         const item: any = { ...i, url: i.externalUrl, rawBlob: i.fileData };
+         if (metadataCrypto.hasEncryptedMeta(i)) {
+           try {
+             const meta = await metadataCrypto.decrypt(i.encryptedMeta);
+             item.decryptedName = meta.name;
+             item.decryptedTags = meta.tags;
+             item.decryptedArtist = meta.artist;
+             item.decryptedAlbum = meta.album;
+             item.decryptedCoverUrl = meta.coverUrl;
+             item.decryptedCustomIcon = meta.customIcon;
+             item.decryptedExternalUrl = meta.externalUrl;
+           } catch (e) {
+             console.warn('Failed to decrypt metadata for item', i.id, e);
+           }
+         }
+         return item as FileSystemItem;
+      }));
       
       setAllItems([...systemItems, ...loadedItems]);
     } catch (e) {
@@ -460,7 +476,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const handleItemAction = (action: string, item: FileSystemItem) => {
     if (item.type === 'system') return;
     if (action === 'customize') { setItemToCustomize(item); setIsCustomizeModalOpen(true); }
-    else if (action === 'rename') { setRenamingId(item.id); setRenameValue(item.name); }
+    else if (action === 'rename') { setRenamingId(item.id); setRenameValue((item as any).decryptedName || item.name); }
     else if (action === 'delete') { moveToTrash(item.id); }
     else if (action === 'favorite') { toggleFavorite(item); }
     else if (action === 'encrypt') { setItemToEncrypt(item); setIsEncryptionModalOpen(true); }
@@ -601,8 +617,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
       if (!renamingId || !renameValue.trim()) { setRenamingId(null); return; }
       const item = allItems.find(i => i.id === renamingId);
       if (item && item.type !== 'system') {
-          const dbItem: DBItem = { ...item, fileData: item.rawBlob, name: renameValue };
-          delete (dbItem as any).url; delete (dbItem as any).rawBlob;
+          const dbItem: any = { ...item, fileData: item.rawBlob };
+          if (metadataCrypto.hasEncryptedMeta(item)) {
+            const meta = await metadataCrypto.decrypt(item.encryptedMeta);
+            meta.name = renameValue;
+            dbItem.encryptedMeta = await metadataCrypto.encrypt(meta);
+            dbItem.name = '';
+            delete dbItem.tags; delete dbItem.artist; delete dbItem.album;
+            delete dbItem.coverUrl; delete dbItem.customIcon; delete dbItem.externalUrl;
+          } else {
+            dbItem.name = renameValue;
+          }
+          delete dbItem.url; delete dbItem.rawBlob;
           await db.updateItem(dbItem);
           loadFiles();
       }

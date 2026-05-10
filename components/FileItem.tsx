@@ -140,7 +140,7 @@ export const FileItem: React.FC<{
           {RenderedIcon || <DefaultIcon size={20} className={iconColorClass} />}
         </div>
         <div className="flex-1 min-w-0">
-          <h4 className="text-sm font-semibold truncate text-primary">{item.name}</h4>
+          <h4 className="text-sm font-semibold truncate text-primary">{(item as any).decryptedName || item.name}</h4>
           {item.isEncrypted && item.salt && (
               <div className="flex items-center gap-1 mt-0.5">
                   <LucideIcons.Lock size={8} className="text-neon-green" />
@@ -181,12 +181,12 @@ export const FileItem: React.FC<{
                     className="w-full bg-transparent border-none outline-none text-lg font-bold text-neon-green p-0 truncate"
                 />
             ) : (
-                <h4 className="text-lg font-bold text-primary mb-1 truncate">{item.name}</h4>
+                <h4 className="text-lg font-bold text-primary mb-1 truncate">{(item as any).decryptedName || item.name}</h4>
             )}
             
-            {!isRenaming && item.tags && item.tags.length > 0 && (
+            {!isRenaming && ((item as any).decryptedTags || item.tags) && ((item as any).decryptedTags || item.tags).length > 0 && (
                 <div className="flex gap-1 flex-wrap">
-                    {item.tags.map(t => (
+                    {((item as any).decryptedTags || item.tags).map((t: any) => (
                         <span key={t.id} className="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wide text-black" style={{ backgroundColor: t.color }}>
                             {t.label}
                         </span>

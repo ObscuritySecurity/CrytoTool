@@ -88,7 +88,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ items, onNavigate, the
                     ) : (
                         <img 
                             src={decryptedUrls[lightboxItem.id] || lightboxItem.url || lightboxItem.customIcon} 
-                            alt={lightboxItem.name} 
+                            alt={(lightboxItem as any).decryptedName || lightboxItem.name} 
                             className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
                             onClick={(e) => e.stopPropagation()}
                         />
@@ -149,7 +149,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ items, onNavigate, the
                   item.category === 'video' ? (
                     <video src={decryptedUrls[item.id]} className="w-full h-full object-cover" muted />
                   ) : (
-                    <img src={decryptedUrls[item.id]} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt={item.name} />
+                    <img src={decryptedUrls[item.id]} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt={(item as any).decryptedName || item.name} />
                   )
                 ) : item.isEncrypted ? (
                   <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900/80">
@@ -173,7 +173,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ items, onNavigate, the
                 )}
 
                 <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                    <p className="text-xs font-bold text-white truncate">{item.name}</p>
+                    <p className="text-xs font-bold text-white truncate">{(item as any).decryptedName || item.name}</p>
                     <p className="text-[10px] text-zinc-400">{item.size}</p>
                 </div>
               </motion.div>

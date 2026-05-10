@@ -22,7 +22,7 @@ export const SearchView: React.FC<SearchViewProps> = ({ items, onNavigate, onBac
     const lowerQ = query.toLowerCase();
     return items.filter(item => 
       item.type !== 'system' && 
-      item.name.toLowerCase().includes(lowerQ)
+      ((item as any).decryptedName || item.name).toLowerCase().includes(lowerQ)
     );
   }, [items, query]);
 

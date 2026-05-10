@@ -77,7 +77,7 @@ export const MusicView: React.FC<MusicViewProps> = ({ items, onPlay, currentSong
                 >
                   <div className="w-[140px] h-[140px] rounded-2xl overflow-hidden relative shadow-lg">
                     {item.customIcon || item.coverUrl ? (
-                      <img src={item.customIcon || item.coverUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <img src={(item as any).decryptedCustomIcon || (item as any).decryptedCoverUrl || item.customIcon || item.coverUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : (
                       <div className="w-full h-full bg-zinc-900 flex items-center justify-center border border-zinc-800">
                         <Music size={40} className="text-zinc-700" />
@@ -91,8 +91,8 @@ export const MusicView: React.FC<MusicViewProps> = ({ items, onPlay, currentSong
                     </div>
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-white truncate">{item.name}</h4>
-                    <p className="text-xs text-zinc-500 truncate">{item.artist || 'Unknown'}</p>
+                    <h4 className="text-sm font-bold text-white truncate">{(item as any).decryptedName || item.name}</h4>
+                    <p className="text-xs text-zinc-500 truncate">{(item as any).decryptedArtist || item.artist || 'Unknown'}</p>
                   </div>
                 </motion.div>
               ))}
@@ -130,9 +130,9 @@ export const MusicView: React.FC<MusicViewProps> = ({ items, onPlay, currentSong
                 >
                   {/* Thumbnail */}
                   <div className="w-12 h-12 rounded-lg bg-zinc-900 flex items-center justify-center shrink-0 overflow-hidden relative shadow-sm">
-                    {item.customIcon || item.coverUrl ? (
+                    {(item as any).decryptedCustomIcon || (item as any).decryptedCoverUrl || item.customIcon || item.coverUrl ? (
                         <>
-                          <img src={item.customIcon || item.coverUrl} className={`w-full h-full object-cover transition-opacity ${isCurrent && isPlaying ? 'opacity-40' : 'opacity-100'}`} alt="Art" />
+                          <img src={(item as any).decryptedCustomIcon || (item as any).decryptedCoverUrl || item.customIcon || item.coverUrl} className={`w-full h-full object-cover transition-opacity ${isCurrent && isPlaying ? 'opacity-40' : 'opacity-100'}`} alt="Art" />
                           {isCurrent && isPlaying && (
                               <div className="absolute inset-0 flex items-center justify-center">
                                   <Equalizer />
@@ -146,8 +146,8 @@ export const MusicView: React.FC<MusicViewProps> = ({ items, onPlay, currentSong
 
                   {/* Info */}
                   <div className="flex-1 min-w-0 flex flex-col justify-center">
-                    <h4 className={`text-sm font-bold truncate mb-0.5 ${isCurrent ? 'text-neon-green' : 'text-zinc-200'}`}>{item.name}</h4>
-                    <p className="text-xs text-zinc-500 truncate">{item.artist || 'Unknown Artist'}</p>
+                    <h4 className={`text-sm font-bold truncate mb-0.5 ${isCurrent ? 'text-neon-green' : 'text-zinc-200'}`}>{(item as any).decryptedName || item.name}</h4>
+                    <p className="text-xs text-zinc-500 truncate">{(item as any).decryptedArtist || item.artist || 'Unknown Artist'}</p>
                   </div>
 
                   {/* Actions */}
