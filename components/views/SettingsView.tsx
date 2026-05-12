@@ -353,28 +353,103 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                 <h3 className={`text-[10px] font-black uppercase tracking-[0.2em] mb-4 flex items-center gap-2 text-muted`}><Shield size={14} /> {t('securityAndInfo')}</h3>
                 <div className="p-6 rounded-[32px] glass-card space-y-8">
                 
-                {/* --- VAULT (NEW) --- */}
-                <div className="pb-6 border-b border-border">
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                             <Key size={16} className={props.vaultSettings.enabled ? "text-neon-green" : "text-muted"} />
-                             <label className="text-sm font-bold uppercase tracking-wider text-primary">{t('vaultKeys')}</label>
-                        </div>
-                        <button 
-                            onClick={props.vaultSettings.enabled ? props.vaultSettings.disableVault : props.vaultSettings.openVault}
-                            className={`w-12 h-7 rounded-full transition-colors flex items-center px-1 ${props.vaultSettings.enabled ? 'bg-neon-green' : 'bg-surface border border-border'}`}
-                        >
-                            <motion.div 
-                                layout 
-                                className={`w-5 h-5 rounded-full bg-white shadow-sm`} 
-                                animate={{ x: props.vaultSettings.enabled ? 18 : 0 }}
-                            />
-                        </button>
-                    </div>
-                    <p className="text-[10px] text-muted mb-3">{t('vaultKeysDesc')}</p>
-                </div>
+{/* --- VAULT (NEW) --- */}
+                 <div className="pb-6 border-b border-border">
+                     <div className="flex items-center justify-between mb-2">
+                         <div className="flex items-center gap-2">
+                              <Key size={16} className={props.vaultSettings.enabled ? "text-neon-green" : "text-muted"} />
+                              <label className="text-sm font-bold uppercase tracking-wider text-primary">{t('vaultKeys')}</label>
+                         </div>
+                         <div className="flex items-center gap-2">
+<button
+                                  onClick={props.vaultSettings.enabled ? props.vaultSettings.disableVault : props.vaultSettings.openVault}
+                                  className={`w-12 h-7 rounded-full transition-colors flex items-center px-1 ${props.vaultSettings.enabled ? 'bg-neon-green' : 'bg-surface border border-border'}`}
+                              >
+                                  <motion.div
+                                      layout
+                                      className={`w-5 h-5 rounded-full bg-white shadow-sm`}
+                                      animate={{ x: props.vaultSettings.enabled ? 18 : 0 }}
+                                  />
+                              </button>
+                          </div>
+                      </div>
+                      <p className="text-[10px] text-muted mb-3">{t('vaultKeysDesc')}</p>
+                  </div>
 
-                {/* SETTINGS LOCK CONFIG */}
+                  {/* === ZONA DE PERICOL: AUTODISTRUGERE === */}
+                  <div className="border-t border-border pt-6 bg-red-500/5 -mx-6 px-6 pb-6 mt-6 border-b">
+                      <div className="flex items-center justify-between mb-6">
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-red-500 flex items-center gap-2">
+                          <Skull size={14} /> {t('autoDestructLabel')}
+                          </h4>
+                          <button
+                              onClick={() => props.autoDestructSettings.setEnabled(!props.autoDestructSettings.enabled)}
+                              className={`w-12 h-7 rounded-full transition-colors flex items-center px-1 ${props.autoDestructSettings.enabled ? 'bg-red-500' : 'bg-surface border border-border'}`}
+                          >
+                              <motion.div
+                                  layout
+                                  className={`w-5 h-5 rounded-full bg-white shadow-sm`}
+                                  animate={{ x: props.autoDestructSettings.enabled ? 18 : 0 }}
+                              />
+                          </button>
+                      </div>
+
+                      {props.autoDestructSettings.enabled && (
+                          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-6">
+                              <p className="text-[10px] text-red-500/80 leading-relaxed bg-red-500/10 p-3 rounded-xl border border-red-500/20">
+                                  <span className="font-bold">{t('warningAttention')}</span> {t('autoDestructWarning')}
+                              </p>
+
+                              {/* Trigger 1: Failed Attempts */}
+                              <div className="space-y-4">
+                                  <div className="flex justify-between items-center">
+                                      <label className="text-sm font-bold uppercase tracking-wider text-primary">{t('attemptThreshold')}</label>
+                                      <span className="text-xs font-mono text-red-500 font-bold">{props.autoDestructSettings.attempts}</span>
+                                  </div>
+                                  <input
+                                      type="range" min="1" max="10" step="1"
+                                      value={props.autoDestructSettings.attempts}
+                                      onChange={(e) => props.autoDestructSettings.setAttempts(parseInt(e.target.value))}
+                                      className="w-full accent-red-500 h-1.5 bg-surface rounded-lg appearance-none cursor-pointer"
+                                  />
+                                  <p className="text-[10px] text-muted">{t('deleteAfterXAttempts')}</p>
+                              </div>
+
+                              {/* Trigger 2: Inactivitate (Dead Man's Switch) */}
+                              <div className="space-y-4 border-t border-red-500/20 pt-4">
+                                  <div className="flex justify-between items-center">
+                                      <label className="text-sm font-bold uppercase tracking-wider text-primary">{t('inactivityDeadMan')}</label>
+                                      <span className="text-xs font-mono text-red-500 font-bold">
+                                          {inactivityValue === 0 ? 'OFF' : `${inactivityValue} ${inactivityUnit}`}
+                                      </span>
+                                  </div>
+                                  <div className="flex gap-2">
+                                      <input
+                                          type="number"
+                                          min="0"
+                                          value={inactivityValue}
+                                          onChange={(e) => handleInactivityChange(parseInt(e.target.value) || 0, inactivityUnit)}
+                                          className="w-20 bg-surface border border-border rounded-lg px-3 py-2 text-sm font-bold text-center outline-none focus:border-red-500"
+                                      />
+                                      <div className="flex-1 flex bg-surface border border-border rounded-lg p-1">
+                                          {(['sec', 'min', 'hour', 'day'] as const).map(u => (
+                                              <button
+                                                  key={u}
+                                                  onClick={() => handleInactivityChange(inactivityValue, u)}
+                                                  className={`flex-1 text-[10px] font-bold uppercase rounded-md transition-colors ${inactivityUnit === u ? 'bg-red-500 text-white' : 'text-muted hover:text-primary'}`}
+                                              >
+                                                  {u}
+                                              </button>
+                                          ))}
+                                      </div>
+                                  </div>
+                                  <p className="text-[10px] text-muted">{t('deleteIfNotOpened')}</p>
+                              </div>
+                          </motion.div>
+                      )}
+                  </div>
+
+                 {/* SETTINGS LOCK CONFIG */}
                 <div className="pb-6 border-b border-border">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
@@ -452,79 +527,6 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                     <div className="flex justify-between items-center"><label className="text-sm font-bold uppercase tracking-wider text-primary">Auto Lock</label><span className="text-xs font-mono text-neon-green font-bold">{props.autoLockSettings.value}s</span></div>
                     <input type="range" min="5" max="120" step="5" value={props.autoLockSettings.value} onChange={(e) => props.autoLockSettings.setValue(parseInt(e.target.value))} className="w-full accent-neon-green h-1.5 bg-surface rounded-lg appearance-none cursor-pointer" />
                     <p className="text-[10px] text-muted">{t('autoLockDesc')}</p>
-                </div>
-
-                {/* === ZONA DE PERICOL: AUTODISTRUGERE === */}
-                <div className="border-t border-border pt-6 bg-red-500/5 -mx-6 px-6 pb-6 mt-6 border-b">
-                    <div className="flex items-center justify-between mb-6">
-                        <h4 className="text-[10px] font-black uppercase tracking-widest text-red-500 flex items-center gap-2">
-                        <Skull size={14} /> {t('autoDestructLabel')}
-                        </h4>
-                        <button 
-                            onClick={() => props.autoDestructSettings.setEnabled(!props.autoDestructSettings.enabled)}
-                            className={`w-12 h-7 rounded-full transition-colors flex items-center px-1 ${props.autoDestructSettings.enabled ? 'bg-red-500' : 'bg-surface border border-border'}`}
-                        >
-                            <motion.div 
-                                layout 
-                                className={`w-5 h-5 rounded-full bg-white shadow-sm`} 
-                                animate={{ x: props.autoDestructSettings.enabled ? 18 : 0 }}
-                            />
-                        </button>
-                    </div>
-
-                    {props.autoDestructSettings.enabled && (
-                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-6">
-                            <p className="text-[10px] text-red-500/80 leading-relaxed bg-red-500/10 p-3 rounded-xl border border-red-500/20">
-                                <span className="font-bold">{t('warningAttention')}</span> {t('autoDestructWarning')}
-                            </p>
-
-                            {/* Trigger 1: Failed Attempts */}
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <label className="text-sm font-bold uppercase tracking-wider text-primary">{t('attemptThreshold')}</label>
-                                    <span className="text-xs font-mono text-red-500 font-bold">{props.autoDestructSettings.attempts}</span>
-                                </div>
-                                <input 
-                                    type="range" min="1" max="10" step="1" 
-                                    value={props.autoDestructSettings.attempts} 
-                                    onChange={(e) => props.autoDestructSettings.setAttempts(parseInt(e.target.value))} 
-                                    className="w-full accent-red-500 h-1.5 bg-surface rounded-lg appearance-none cursor-pointer" 
-                                />
-                                <p className="text-[10px] text-muted">{t('deleteAfterXAttempts')}</p>
-                            </div>
-
-                            {/* Trigger 2: Inactivitate (Dead Man's Switch) */}
-                            <div className="space-y-4 border-t border-red-500/20 pt-4">
-                                <div className="flex justify-between items-center">
-                                    <label className="text-sm font-bold uppercase tracking-wider text-primary">{t('inactivityDeadMan')}</label>
-                                    <span className="text-xs font-mono text-red-500 font-bold">
-                                        {inactivityValue === 0 ? 'OFF' : `${inactivityValue} ${inactivityUnit}`}
-                                    </span>
-                                </div>
-                                <div className="flex gap-2">
-                                    <input 
-                                        type="number" 
-                                        min="0"
-                                        value={inactivityValue} 
-                                        onChange={(e) => handleInactivityChange(parseInt(e.target.value) || 0, inactivityUnit)} 
-                                        className="w-20 bg-surface border border-border rounded-lg px-3 py-2 text-sm font-bold text-center outline-none focus:border-red-500"
-                                    />
-                                    <div className="flex-1 flex bg-surface border border-border rounded-lg p-1">
-                                        {(['sec', 'min', 'hour', 'day'] as const).map(u => (
-                                            <button 
-                                                key={u}
-                                                onClick={() => handleInactivityChange(inactivityValue, u)}
-                                                className={`flex-1 text-[10px] font-bold uppercase rounded-md transition-colors ${inactivityUnit === u ? 'bg-red-500 text-white' : 'text-muted hover:text-primary'}`}
-                                            >
-                                                {u}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                                <p className="text-[10px] text-muted">{t('deleteIfNotOpened')}</p>
-                            </div>
-                        </motion.div>
-                    )}
                 </div>
 
                 {/* PROGRESSIVE LOCK UI - DISABLED IF AUTO DESTRUCT ON */}
