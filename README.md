@@ -29,7 +29,6 @@
 </div>
 
 
-
 CrytoTool respects the people behind the screen. It's a four-in-one, client-side encrypted file manager, gallery, music player, and document viewer where your privacy comes first: **no tracking, no ads, no data collection**.
 
 File names, tags, and metadata are encrypted — not just file contents. It works independently of the operating system, fully sandboxed.
