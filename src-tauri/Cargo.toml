@@ -1,9 +1,9 @@
 [package]
 name = "crytotool"
 version = "2.5.0"
-description = "Secure Crypto Vault"
+description = ""
 authors = ["ObscuritySecurity"]
-edition = "2021"
+edition = "2026"
 
 [lib]
 name = "app_lib"
