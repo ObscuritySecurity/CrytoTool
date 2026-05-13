@@ -1,7 +1,7 @@
 {
   "name": "crytotool-vault",
   "private": true,
-  "version": "2.5.0-PRO",
+  "version": "2.5.0-beta",
   "type": "module",
   "scripts": {
     "dev": "vite",
