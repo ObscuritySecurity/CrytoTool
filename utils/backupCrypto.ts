@@ -1,3 +1,4 @@
+import { argon2id } from 'hash-wasm';
 
 /**
  * BACKUP CRYPTO SERVICE
@@ -6,7 +7,7 @@
  * It is isolated to facilitate security auditing.
  * 
  * Algorithms used:
- * - Key Derivation: PBKDF2-SHA256 (600,000 iterations, salt 16 bytes)
+ * - Key Derivation: Argon2id (19 iterations, 64MB memory, 4 parallelism)
  * - Encryption: AES-256-GCM (Authenticated Encryption)
  * - Passphrase Entropy: 26 cryptographically generated Base32-like characters (130 bits)
  * 
@@ -14,7 +15,6 @@
  * [salt (16 bytes)] + [IV (12 bytes)] + [AES-GCM ciphertext + 16-byte GCM tag]
  */
 
-const PBKDF2_ITERATIONS = 600000;
 const SALT_LENGTH = 16;
 
 class BackupEncryptionService {
@@ -50,28 +50,24 @@ class BackupEncryptionService {
     }
 
     /**
-     * Derives AES-256 key from passphrase using PBKDF2-SHA256.
-     * 600,000 iterations + 16 bytes random salt.
+     * Derives AES-256 key from passphrase using Argon2id.
+     * 19 iterations, 64MB memory, 4 parallelism.
      */
     private async keyFromPassphrase(passphrase: string, salt: Uint8Array): Promise<CryptoKey> {
-        const encoder = new TextEncoder();
-        const keyMaterial = await window.crypto.subtle.importKey(
-            'raw',
-            encoder.encode(passphrase),
-            { name: 'PBKDF2' },
-            false,
-            ['deriveKey']
-        );
+        const hash = await argon2id({
+            password: passphrase,
+            salt,
+            iterations: 19,
+            memorySize: 65536,
+            parallelism: 4,
+            hashLength: 32,
+            outputType: 'binary',
+        }) as Uint8Array;
 
-        return await window.crypto.subtle.deriveKey(
-            {
-                name: 'PBKDF2',
-                salt: Uint8Array.from(salt),
-                iterations: PBKDF2_ITERATIONS,
-                hash: 'SHA-256'
-            },
-            keyMaterial,
-            { name: 'AES-GCM', length: 256 },
+        return await window.crypto.subtle.importKey(
+            'raw',
+            hash as BufferSource,
+            { name: 'AES-GCM' },
             false,
             ['encrypt', 'decrypt']
         );
@@ -81,7 +77,7 @@ class BackupEncryptionService {
      * Encrypts the entire backup JSON.
      * Protocol:
      * 1. Generate random salt (16 bytes)
-     * 2. Derive AES-256 key with PBKDF2 (600k iterations)
+     * 2. Derive AES-256 key with Argon2id
      * 3. Generate unique IV (12 bytes)
      * 4. Encrypt with AES-GCM
      * 5. Concatenate: salt + IV + ciphertext
@@ -110,7 +106,7 @@ class BackupEncryptionService {
 
     /**
      * Decrypts the backup file.
-     * Extracts salt, derives key with PBKDF2, then decrypts.
+     * Extracts salt, derives key with Argon2id, then decrypts.
      */
     async decryptBackup(backupBlob: Blob, passphrase: string): Promise<string> {
         const arrayBuffer = await backupBlob.arrayBuffer();
