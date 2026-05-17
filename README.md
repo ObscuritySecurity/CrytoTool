@@ -80,8 +80,10 @@ For full technical details, consult the [Technical Architecture](https://github.
 **file management** 
 -   **file manager:** navigate between files and folders Add files, Add folder, rename, duplicate, select, move, copy, download, encryption, decryption, style,
 
-**Manual & Streaming Encryption**
--   **Multi-Algorithm Support:** Encrypt files manually with 6 algorithms — AES-GCM, XChaCha20-Poly1305, ChaCha20-Poly1305, AES-CTR + HMAC, Salsa20-Poly1305, and AES-GCM-Stream for large files.
+**gallery music documents**
+-   **multiple models:** gallery-view photos, videos, favorites, albums,
+-   music-listen songs, albums, artists, playlist,
+-   documents - view standard document formats
 -   **Vault Key Storage:** Store generated encryption keys in an encrypted vault, categorized for easy access.
 -   **Streaming Encryption:** Handles large files (600 MiB+) in 4 MB chunks with AES-GCM per chunk — safe for low-RAM devices.
 
