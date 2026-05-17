@@ -77,8 +77,8 @@ For full technical details, consult the [Technical Architecture](https://github.
 -   **Unique Reset Token:** A single-use recovery token that allows you to reset your master password without losing your data.
 -   **Encrypted Backups:** Create fully encrypted backups of all your data.
 
-**file management**
--   **:** and other sensitive metadata fields are encrypted using AES-256-GCM with the vault key. Metadata is stored as a single encrypted JSON blob alongside each file entry. See [metadataCrypto.ts](https://github.com/ObscuritySecurity/CrytoTool/blob/main/utils/metadataCrypto.ts).
+**file management** 
+-   **file manager:** navigate between files and folders rename, duplicate, select, move, copy, download, encryption, decryption, style,
 
 **Manual & Streaming Encryption**
 -   **Multi-Algorithm Support:** Encrypt files manually with 6 algorithms — AES-GCM, XChaCha20-Poly1305, ChaCha20-Poly1305, AES-CTR + HMAC, Salsa20-Poly1305, and AES-GCM-Stream for large files.
