@@ -131,7 +131,7 @@ CrytoTool is built on the shoulders of giants. We are deeply grateful for these 
 - **[Web Crypto API](https://www.w3.org/TR/WebCryptoAPI/)** — AES-256-GCM encryption, random IV generation, and CryptoKey management. The heart of every encryption operation in CrytoTool. Built into the browser — no third-party code needed for the most critical operations.
 - **[hash-wasm](https://github.com/Daninet/hash-wasm)** — Argon2id implementation for master key derivation (128 MB memory, 4 iterations)
 - **[libsodium-wrappers](https://github.com/jedisct1/libsodium.js)** — Audited ChaCha20, XChaCha20, Salsa20, and BLAKE2b primitives
-- **[NIST SP 800-38D](https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-38D.pdf)** — The AES-GCM standard that governs our encryption
+- **[NIST SP 800-38D](https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-38d.pdf)** — The AES-GCM standard that governs our encryption
 
 #### Framework & Runtime
 - **[Tauri](https://tauri.app/)** — Secure, lightweight desktop backend (Rust + WebView)
