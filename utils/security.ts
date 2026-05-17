@@ -30,63 +30,107 @@ export const getBackoffTime = (failedAttempts: number): number => {
   return 0;
 };
 
+const PIN_PBKDF2_ITERATIONS = 100000;
+
+function bytesToHex(bytes: Uint8Array): string {
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function hexToBytes(hex: string): Uint8Array {
+  return new Uint8Array(hex.match(/.{2}/g)!.map(byte => parseInt(byte, 16)));
+}
+
+async function derivePinHash(pin: string, salt: Uint8Array): Promise<string> {
+  const encoder = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(pin),
+    { name: 'PBKDF2' },
+    false,
+    ['deriveBits']
+  );
+
+  const hashBuffer = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: salt as BufferSource,
+      iterations: PIN_PBKDF2_ITERATIONS,
+      hash: 'SHA-256'
+    },
+    keyMaterial,
+    256
+  );
+
+  return bytesToHex(new Uint8Array(hashBuffer));
+}
+
+function timingSafeEqual(a: string, b: string): boolean {
+  const aBytes = new TextEncoder().encode(a);
+  const bBytes = new TextEncoder().encode(b);
+  const maxLen = Math.max(aBytes.length, bBytes.length);
+
+  let diff = aBytes.length ^ bBytes.length;
+
+  for (let i = 0; i < maxLen; i++) {
+    diff |= (aBytes[i] || 0) ^ (bBytes[i] || 0);
+  }
+
+  return diff === 0;
+}
+
 /**
- * Hash PIN with SHA-256 + salt for secure storage in localStorage.
- * We never store the PIN in plain text.
- * Now encrypted with Vault Key before storing.
+ * Hash PIN with PBKDF2-SHA256 + random salt for secure storage.
+ * Returns format: "saltHex:hashHex" encrypted with Vault Key.
  */
 export async function hashPin(pin: string): Promise<string> {
-  const salt = 'crytotool_vault_pin_salt_v1';
-  const encoder = new TextEncoder();
-  const data = encoder.encode(salt + pin + salt);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const hashHex = await derivePinHash(pin, salt);
+  const saltHex = bytesToHex(salt);
+  const combined = `${saltHex}:${hashHex}`;
   
-  // Encrypt the hash with Vault Key before storing
+  // Encrypt the combined salt+hash with Vault Key before storing
   try {
-    const encrypted = await cryptoService.encryptString(hashHex);
+    const encrypted = await cryptoService.encryptString(combined);
     return JSON.stringify({ iv: encrypted.iv, data: encrypted.ciphertext });
   } catch {
-    // If Vault Key not available, return plaintext (fallback for setup)
-    return hashHex;
+    throw new Error('Vault not initialized. Cannot store PIN securely.');
   }
 }
 
 /**
  * Verify a PIN by comparing the hash with the stored one.
  * Handles both encrypted and legacy plaintext formats.
+ * Uses timing-safe comparison to prevent side-channel attacks.
  */
-export async function verifyPin(pin: string, storedHash: string): Promise<boolean> {
-  let hash: string;
+export async function verifyPin(pin: string, storedValue: string): Promise<boolean> {
+  let storedCombined: string;
   
-  // Check if stored hash is encrypted (new format)
+  // Check if stored value is encrypted (new format)
   try {
-    const parsed = JSON.parse(storedHash);
+    const parsed = JSON.parse(storedValue);
     if (parsed.iv && parsed.data) {
-      hash = await cryptoService.decryptString(parsed.data, parsed.iv);
+      storedCombined = await cryptoService.decryptString(parsed.data, parsed.iv);
     } else {
-      hash = storedHash; // Legacy plaintext
+      storedCombined = storedValue; // Legacy plaintext
     }
   } catch {
-    hash = storedHash; // Legacy plaintext
+    storedCombined = storedValue; // Legacy plaintext
   }
   
-  const newHash = await hashPin(pin);
-  // If newHash is encrypted, compare encrypted forms
-  if (newHash.startsWith('{')) {
-    let diff = 0;
-    if (newHash.length !== storedHash.length) return false;
-    for (let i = 0; i < newHash.length; i++) {
-      diff |= newHash.charCodeAt(i) ^ storedHash.charCodeAt(i);
-    }
-    return diff === 0;
+  // Parse salt:hash format
+  const parts = storedCombined.split(':');
+  if (parts.length !== 2) return false;
+  
+  const [saltHex, storedHashHex] = parts;
+  let salt: Uint8Array;
+  try {
+    salt = hexToBytes(saltHex);
+  } catch {
+    return false; // Legacy format without salt
   }
   
-  // Compare plaintext hashes
-  let diff = 0;
-  if (hash.length !== newHash.length) return false;
-  for (let i = 0; i < hash.length; i++) {
-    diff |= hash.charCodeAt(i) ^ newHash.charCodeAt(i);
-  }
-  return diff === 0;
+  const newHashHex = await derivePinHash(pin, salt);
+  
+  // Timing-safe comparison
+  return timingSafeEqual(storedHashHex, newHashHex);
 }

@@ -18,7 +18,7 @@ import sodium from 'libsodium-wrappers';
 
 // Helper for TypeScript compatibility with WebCrypto
 function toBufferSource(arr: Uint8Array): BufferSource {
-    return arr.buffer.slice(arr.byteOffset, arr.byteOffset + arr.byteLength) as ArrayBuffer;
+    return arr as BufferSource;
 }
 
 async function ensureSodiumReady(): Promise<void> {

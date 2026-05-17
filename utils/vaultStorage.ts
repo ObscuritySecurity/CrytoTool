@@ -25,36 +25,28 @@ const STORAGE_KEY = 'crytotool_vault_keys';
 
 /**
  * Generate a random ID suffix using a cryptographically secure
- * random number generator when available.
- * Falls back to Math.random() only if no secure API exists.
+ * random number generator. Throws if CSPRNG is unavailable.
  */
 function generateRandomIdSuffix(length: number): string {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
     const charsLength = chars.length;
 
-    // Prefer Web Crypto API if available
     const cryptoObj: Crypto | null =
         (typeof window !== 'undefined' && (window.crypto || (window as any).msCrypto)) ||
         (typeof self !== 'undefined' && (self as any).crypto) ||
         null;
 
-    if (cryptoObj && typeof cryptoObj.getRandomValues === 'function') {
-        const randomValues = new Uint8Array(length);
-        cryptoObj.getRandomValues(randomValues);
-        let result = '';
-        for (let i = 0; i < length; i++) {
-            result += chars[randomValues[i] % charsLength];
-        }
-        return result;
+    if (!cryptoObj || typeof cryptoObj.getRandomValues !== 'function') {
+        throw new Error('Cryptographically secure random number generator not available');
     }
 
-    // Fallback: non-crypto, should be rare
-    let fallbackResult = '';
+    const randomValues = new Uint8Array(length);
+    cryptoObj.getRandomValues(randomValues);
+    let result = '';
     for (let i = 0; i < length; i++) {
-        const idx = Math.floor(Math.random() * charsLength);
-        fallbackResult += chars[idx];
+        result += chars[randomValues[i] % charsLength];
     }
-    return fallbackResult;
+    return result;
 }
 
 export const vaultStorage = {

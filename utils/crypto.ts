@@ -27,8 +27,8 @@ class EncryptionService {
     const hash = await argon2id({
       password,
       salt,
-      iterations: 4,
-      memorySize: 131072,
+      iterations: 19,
+      memorySize: 65536,
       parallelism: 4,
       hashLength: 32, 
       outputType: 'binary',
@@ -36,7 +36,7 @@ class EncryptionService {
 
     return await window.crypto.subtle.importKey(
       'raw',
-      hash.buffer.slice(hash.byteOffset, hash.byteOffset + hash.byteLength) as ArrayBuffer,
+      hash as BufferSource,
       { name: 'AES-GCM' },
       false,
       ['encrypt', 'decrypt']
@@ -75,8 +75,8 @@ class EncryptionService {
     const key = await argon2id({
         password: passphrase,
         salt,
-        iterations: 4,
-        memorySize: 131072,
+        iterations: 19,
+        memorySize: 65536,
         parallelism: 4,
         hashLength: 32,
         outputType: 'binary',
@@ -134,8 +134,8 @@ class EncryptionService {
     const key = await argon2id({
         password: passphrase,
         salt,
-        iterations: 4,
-        memorySize: 131072,
+        iterations: 19,
+        memorySize: 65536,
         parallelism: 4,
         hashLength: 32,
         outputType: 'binary',
@@ -165,9 +165,9 @@ class EncryptionService {
     const rawData = data instanceof Blob ? new Uint8Array(await data.arrayBuffer()) : data;
 
     const ciphertext = await window.crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv: iv.buffer.slice(iv.byteOffset, iv.byteOffset + iv.byteLength) as ArrayBuffer },
+      { name: 'AES-GCM', iv: iv as BufferSource },
       key,
-      rawData.buffer.slice(rawData.byteOffset, rawData.byteOffset + rawData.byteLength) as ArrayBuffer
+      rawData as BufferSource
     );
 
     return {
@@ -197,9 +197,9 @@ class EncryptionService {
     // Default Vault Decryption
     if (algorithm === 'AES-GCM') {
         const decrypted = await window.crypto.subtle.decrypt(
-          { name: 'AES-GCM', iv: iv.buffer.slice(iv.byteOffset, iv.byteOffset + iv.byteLength) as ArrayBuffer },
+          { name: 'AES-GCM', iv: iv as BufferSource },
           key,
-          encryptedData.buffer.slice(encryptedData.byteOffset, encryptedData.byteOffset + encryptedData.byteLength) as ArrayBuffer
+          encryptedData as BufferSource
         );
         return new Uint8Array(decrypted);
     } 
@@ -248,19 +248,13 @@ class EncryptionService {
   // Decrypts a string using the Vault Key
   async decryptString(ciphertextB64: string, ivB64: string, key: CryptoKey = this.vaultKey!): Promise<string> {
     if (!key) throw new Error("Vault key not initialized");
-    const ciphertext = this.base64ToArrayBuffer(ciphertextB64).buffer.slice(
-      this.base64ToArrayBuffer(ciphertextB64).byteOffset,
-      this.base64ToArrayBuffer(ciphertextB64).byteOffset + this.base64ToArrayBuffer(ciphertextB64).byteLength
-    ) as ArrayBuffer;
-    const iv = this.base64ToArrayBuffer(ivB64).buffer.slice(
-      this.base64ToArrayBuffer(ivB64).byteOffset,
-      this.base64ToArrayBuffer(ivB64).byteOffset + this.base64ToArrayBuffer(ivB64).byteLength
-    ) as ArrayBuffer;
+    const ciphertextBytes = this.base64ToArrayBuffer(ciphertextB64);
+    const ivBytes = this.base64ToArrayBuffer(ivB64);
 
     const decrypted = await window.crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv },
+      { name: 'AES-GCM', iv: ivBytes as BufferSource },
       key,
-      ciphertext
+      ciphertextBytes as BufferSource
     );
 
     const decoder = new TextDecoder();
