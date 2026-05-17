@@ -89,6 +89,11 @@ For full technical details, consult the [Technical Architecture](https://github.
 
 - encrypted-backup create backup of the entire application or restore the .enc backup
 
+- search folders and files
+- trash delete files and folders
+- settings customize your preferences
+- view the storage space occupied by photos, videos, music, documents, and others,
+
 **Deep Customization**
 -   **Theme Gallery & Accent Colors:** Personalize the app's appearance with a rich theme gallery and a custom accent color picker.
 -   **Multi-Language Support:** The interface is available in over 50 languages to provide a native experience for people worldwide.
