@@ -47,7 +47,7 @@ async function deriveStreamKey(passphrase: string, salt: Uint8Array): Promise<Cr
         password: passphrase,
         salt,
         iterations: 19,
-        memorySize: 65536,
+        memorySize: 131072,
         parallelism: 4,
         hashLength: 32,
         outputType: 'binary',

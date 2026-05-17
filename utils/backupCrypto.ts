@@ -51,14 +51,14 @@ class BackupEncryptionService {
 
     /**
      * Derives AES-256 key from passphrase using Argon2id.
-     * 19 iterations, 64MB memory, 4 parallelism.
+     * 19 iterations, 128MB memory, 4 parallelism.
      */
     private async keyFromPassphrase(passphrase: string, salt: Uint8Array): Promise<CryptoKey> {
         const hash = await argon2id({
             password: passphrase,
             salt,
             iterations: 19,
-            memorySize: 65536,
+            memorySize: 131072,
             parallelism: 4,
             hashLength: 32,
             outputType: 'binary',
