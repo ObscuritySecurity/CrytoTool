@@ -36,6 +36,14 @@ File names, tags, and metadata are encrypted — not just file contents. It work
 
 CrytoTool is compliant with the [Protocol-3305](https://github.com/ObscuritySecurity/protocol-3305) and respects all its principles.
 
+### No Software Is Perfect
+
+No software is perfect — including CrytoTool. That's exactly why we need a community. Bugs, vulnerabilities, and edge cases will always exist. The difference between good software and great software is **transparency** and **how actively you work with the people who use it**.
+
+CrytoTool is open source so anyone can audit the code, report issues, suggest improvements, or contribute fixes. We don't hide behind closed doors. Every vulnerability found is a chance to make the project stronger. Every bug reported helps protect the people who trust us with their data.
+
+If you find something, [report it](https://github.com/ObscuritySecurity/CrytoTool/issues). If you can fix something, [open a pull request](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/CONTRIBUTING.md). Security is not a product — it's a process, and we build it together.
+
 ### Architecture Overview
 
 CrytoTool uses a 100% client-side architecture with 4 layers of encryption:
