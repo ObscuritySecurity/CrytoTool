@@ -106,4 +106,4 @@ Before submitting your PR, ensure:
 - We build software that respects people
 - Questions? Open a discussion or issue
 
-Thank you for helping make CrytoTool better for everyone. We build this with love and respect for every single person who contributes.
+Thank you for helping make CrytoTool better for everyone. We build this project with love and respect for every single person who contributes.

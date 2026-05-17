@@ -121,7 +121,7 @@ Explore these guides to understand our project's principles, technical design, a
 
 ### Contributors
 
-Thank you for helping make CrytoTool better for everyone. We build this with love and respect for every single person who contributes.
+Thank you for helping make CrytoTool better for everyone. We build this project with love and respect for every single person who contributes.
 
 <div align="center">
   <a href="https://github.com/wtshex1"><img src="https://github.com/wtshex1.png" width="48" height="48" style="border-radius:50%;margin:4px" alt="wtshex1" /></a>
