@@ -95,8 +95,17 @@ For full technical details, consult the [Technical Architecture](https://github.
 - view the storage space occupied by photos, videos, music, documents, and others,
 
 **Deep Customization**
--   **Theme Gallery & Accent Colors:** Personalize the app's appearance with a rich theme gallery and a custom accent color picker.
--   **Multi-Language Support:** The interface is available in over 50 languages to provide a native experience for people worldwide.
+-   **themes:** choose from over 100 themes across multiple categories
+
+-   fonts choose from over 40 fonts in multiple categories
+
+-   choose between dark mode or light mode or the system adapts to you
+
+-   choose a custom hand-picked accent color with our color picker
+
+-   choose from over 10 icon packs for folders and files or upload your own icon you can also add labels
+
+-   personalize your experience with over 50 languages, no matter where in the world you are, the app speaks your language
 
 ---
 
