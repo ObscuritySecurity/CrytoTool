@@ -2,6 +2,8 @@
 
 Thank you for your interest in contributing! CrytoTool respects the people behind the screen, and we welcome contributions that align with our mission of privacy-first, secure software.
 
+By submitting a pull request, you agree that your contribution is licensed under AGPL-3.0.
+
 ## How to Contribute
 
 ### Reporting Issues
@@ -44,7 +46,7 @@ Thank you for your interest in contributing! CrytoTool respects the people behin
 - Follow glassmorphism design (`styles/glass.css`)
 - Use `t('key')` for all text (never hardcode strings)
 - Support all 50+ languages (update `utils/i18n.ts`)
-- Responsive design: mobile-first, test at 375px and 1920px
+- Responsive design: mobile-first, test at 375px and 1920px (test via browser DevTools at 375px)
 - Animations via Framer Motion with presets from `DESIGN.md`
 
 ### Commit Messages
@@ -59,9 +61,15 @@ style(ui): apply glassmorphism to new modal
 ```
 Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 
+## Code Quality Tools (Recommended)
+```bash
+npm run lint       # Check code style
+npm run format     # Auto-format code
+```
+
 ## Development Setup
 ```bash
-git clone https://github.com/YOUR_USERNAME/CrytoTool.git
+git clone https://github.com/ObscuritySecurity/CrytoTool.git
 cd CrytoTool
 npm install
 npm run dev
@@ -70,8 +78,10 @@ npm run dev
 ## Testing
 ```bash
 npm run build  # Must pass with no TypeScript errors
-npm run tauri  # Test desktop build (optional)
+npm run test   # Unit tests (if available)
+npm run tauri  # Desktop build test (mandatory for src-tauri/ changes)
 ```
+Unit tests for crypto primitives are planned. See issue #XXX for progress.
 
 ## Review Checklist
 Before submitting your PR, ensure:
@@ -81,9 +91,15 @@ Before submitting your PR, ensure:
 - [ ] Updates documentation if adding features
 - [ ] Follows glassmorphism design
 - [ ] Works on mobile and desktop viewports
-- [ ] All 50+ languages updated (or marked for translation)
+- [ ] English source strings updated in utils/i18n.ts
+- [ ] Other languages marked with // TODO: translate if not updated
 - [ ] No console errors or warnings
 - [ ] Security-related code reviewed against `SECURITY.md`
+
+## Decision Making
+- Technical disputes are resolved by project maintainers
+- For major architectural changes, open a discussion before PR
+- Security-related decisions are final and non-negotiable
 
 ## Community
 - Be respectful to other contributors
