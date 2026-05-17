@@ -9,7 +9,7 @@
   <br>
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white" alt="TypeScript" /></a> <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB" alt="React" /></a> <a href="https://vitejs.dev/"><img src="https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white" alt="Vite" /></a> <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" /></a> <a href="https://tauri.app/"><img src="https://img.shields.io/badge/Tauri-24C8D8?style=flat&logo=tauri&logoColor=white" alt="Tauri" /></a>
   <br>
-  <a href="https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-38d.pdf"><img src="https://img.shields.io/badge/AES--256--GCM-FF6F00?style=flat&logo=letsencrypt&logoColor=white" alt="AES-256-GCM" /></a> <a href="https://github.com/P-H-C/phc-winner-argon2"><img src="https://img.shields.io/badge/Argon2id-9C27B0?style=flat&logo=password&logoColor=white" alt="Argon2id" /></a>
+  <a href="https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-38d.pdf"><img src="https://img.shields.io/badge/AES--256--GCM-FF6F00?style=flat&logo=letsencrypt&logoColor=white" alt="AES-256-GCM" /></a> <a href="https://github.com/P-H-C/phc-winner-argon2"><img src="https://img.shields.io/badge/Argon2id-9C27B0?style=flat&logo=password&logoColor=white" alt="Argon2id" /></a> <a href="https://github.com/ObscuritySecurity/CrytoTool/blob/main/utils/i18n.ts"><img src="https://img.shields.io/badge/52_Languages-4CAF50?style=flat&logo=translate&logoColor=white" alt="52 Languages" /></a>
   </p>
 </div>  
 
@@ -44,6 +44,8 @@ CrytoTool is open source so anyone can audit the code, report issues, suggest im
 
 If you find something, [report it](https://github.com/ObscuritySecurity/CrytoTool/issues). If you can fix something, [open a pull request](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/CONTRIBUTING.md). Security is not a product — it's a process, and we build it together.
 
+**Audit Status:** The CrytoTool codebase has not yet undergone a professional third-party security audit. Professional audits are expensive, and as a community-driven project we don't have the budget for one yet. We hope to fund a full audit in the future. Until then, the code is open for anyone to review — and we encourage you to do so.
+
 ### Architecture Overview
 
 CrytoTool uses a 100% client-side architecture with 4 layers of encryption:
@@ -52,7 +54,7 @@ CrytoTool uses a 100% client-side architecture with 4 layers of encryption:
 |-------|----------------|------------|
 | **1. Database Encryption** | Auto-encrypts every file in IndexedDB | AES-256-GCM, keys from Master Password via Argon2id |
 | **2. File & Folder Encryption** | Manual encryption with 6 algorithms | AES-GCM, XChaCha20-Poly1305, ChaCha20-Poly1305, AES-CTR, Salsa20-Poly1305, AES-GCM-Stream |
-| **3. Encrypted Backup** | Creates secure backups of all data | PBKDF2-SHA256 + AES-256-GCM, unique 26-char key |
+| **3. Encrypted Backup** | Creates secure backups of all data | Argon2id + AES-256-GCM, unique 26-char key |
 | **4. Streaming Encryption** | Handles large files on any device | 4MB chunks, AES-GCM per chunk, safe for low-RAM devices |
 
 For full technical details, consult the [Technical Architecture](https://github.com/ObscuritySecurity/CrytoTool/blob/main/architecture.md).
@@ -147,7 +149,7 @@ CrytoTool is built on the shoulders of giants. We are deeply grateful for these 
 
 #### Core Crypto
 - **[Web Crypto API](https://www.w3.org/TR/WebCryptoAPI/)** — AES-256-GCM encryption, random IV generation, and CryptoKey management. The heart of every encryption operation in CrytoTool. Built into the browser — no third-party code needed for the most critical operations.
-- **[hash-wasm](https://github.com/Daninet/hash-wasm)** — Argon2id implementation for master key derivation (128 MB memory, 4 iterations)
+- **[hash-wasm](https://github.com/Daninet/hash-wasm)** — Argon2id implementation for master key derivation (128 MB memory, 19 iterations)
 - **[libsodium-wrappers](https://github.com/jedisct1/libsodium.js)** — Audited ChaCha20, XChaCha20, Salsa20, and BLAKE2b primitives
 - **[NIST SP 800-38D](https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-38d.pdf)** — The AES-GCM standard that governs our encryption
 

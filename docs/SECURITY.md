@@ -12,7 +12,7 @@ _Version: 2.5.0-PRO | Last Updated: 2026-05-01_
 
 | Attack | How We Protect | Status |
 |--------|----------------|--------|
-| **Master Password Brute-force** | Argon2id (128MB memory, 4 iterations, 4 threads) — drastically slows down brute-force | ✅ Protected |
+| **Master Password Brute-force** | Argon2id (128MB memory, 19 iterations, 4 threads) — drastically slows down brute-force | ✅ Protected |
 | **Physical Device Access** | Vault Key only in memory (RAM), cleared on lock; IndexedDB encrypted with AES-GCM | ✅ Protected |
 | **Browser localStorage Access** | Manual encryption keys are now encrypted with Vault Key (AES-256-GCM) before storage | ✅ Protected (from commit 0201163) |
 | **Algorithm Collision** | Standard algorithms: AES-256-GCM, Argon2id, PBKDF2-SHA256, ChaCha20-Poly1305 | ✅ Protected |
@@ -37,7 +37,7 @@ _Version: 2.5.0-PRO | Last Updated: 2026-05-01_
 ### Why Argon2id for Master Password?
 - **Winner**: Password Hashing Competition (2015), recommended by OWASP
 - **Memory-hard**: Uses 128MB RAM — drastically slows down GPU brute-force (which have limited memory)
-- **Tuning**: 4 iterations (balance between security and speed on mobile devices)
+- **Tuning**: 19 iterations (balance between security and speed on mobile devices)
 - **Implementation**: `hash-wasm` (wasm bindings for Argon2id), not `libsodium` (which doesn't have Argon2id natively in WASM)
 
 ### Why AES-GCM?
@@ -55,7 +55,7 @@ _Version: 2.5.0-PRO | Last Updated: 2026-05-01_
 ### Cryptographic Isolation (Defense in Depth)
 - **`cryptoPrimitives.ts`**: Each algorithm is isolated in its own module. No dependencies between them (avoids domino effects)
 - **`streamCrypto.ts`**: Streaming is separate from standard encryption. Uses Argon2id (hash-wasm) for key derivation, not Vault Key directly. Chunk IVs derived via HMAC-SHA256
-- **`backupCrypto.ts`**: Backup key is derived independently (PBKDF2-SHA256, 600k iterations) — doesn't use Vault Key
+- **`backupCrypto.ts`**: Backup key is derived independently (Argon2id, 19 iterations, 128MB memory) — doesn't use Vault Key
 - **`vaultStorage.ts` (updated)**: Manual keys are encrypted with Vault Key before localStorage. If Vault Key is cleared (lock), stored keys become unreadable
 
 ---
@@ -111,7 +111,7 @@ _Version: 2.5.0-PRO | Last Updated: 2026-05-01_
 ### How to Audit CrytoTool Code for Security:
 
 #### `utils/crypto.ts` (Master Key Derivation + Encryption)
-- ✅ Check: Argon2id params (memory: 131072, iterations: 4, parallelism: 4)
+- ✅ Check: Argon2id params (memory: 131072, iterations: 19, parallelism: 4)
 - ✅ Check: `vaultKey` is set/cleared correctly (not remaining in memory after lock)
 - ✅ Check: `encryptString()` / `decryptString()` use AES-GCM with randomly generated IV
 - ✅ Check: `vaultKey` is private — not accessible via XSS
@@ -123,7 +123,7 @@ _Version: 2.5.0-PRO | Last Updated: 2026-05-01_
 - ✅ Check: Uses `cryptoService.encryptString()` / `decryptString()` with Vault Key
 
 #### `utils/backupCrypto.ts` (Backup Encryption)
-- ✅ Check: PBKDF2-SHA256 with 600,000 iterations
+- ✅ Check: Argon2id for backup key derivation (19 iterations, 128MB memory)
 - ✅ Check: Random salt (16 bytes) generated for each backup
 - ✅ Check: Format `[salt][iv][ciphertext+GCM tag]` is respected
 - ✅ Check: Backup keys generated with 130-bit entropy (26 chars)
@@ -180,7 +180,7 @@ _Version: 2.5.0-PRO | Last Updated: 2026-05-01_
 Before releasing a new version, verify:
 
 - [ ] `npm audit` — zero high/critical vulnerabilities
-- [ ] Argon2id params unchanged (memory: 131072, iterations: 4)
+- [ ] Argon2id params unchanged (memory: 131072, iterations: 19)
 - [ ] AES-GCM IV is randomly generated for each encryption (12 bytes)
 - [ ] Vault Key is cleared from memory on lock (`cryptoService.clearKeys()`)
 - [ ] `vaultStorage` saves keys encrypted (check localStorage for `crytotool_vault_keys` — should be `{iv, data}`, not plaintext)

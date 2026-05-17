@@ -15,8 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **MEDIUM**: Increased PBKDF2-SHA256 iterations from 100,000 to 600,000 for backup key derivation (`backupCrypto.ts`)
 
 ### Changed
-- Manual encryption KDF: Argon2id (4 iterations, 128MB memory) instead of single-pass BLAKE2b
-- Streaming encryption KDF: Argon2id (4 iterations, 128MB memory) instead of BLAKE2b
+- Manual encryption KDF: Argon2id (19 iterations, 128MB memory) instead of single-pass BLAKE2b
+- Streaming encryption KDF: Argon2id (19 iterations, 128MB memory) instead of BLAKE2b
 - AES-CTR HKDF: Now uses standard WebCrypto HKDF-SHA256 with IV as salt
 
 ---
@@ -31,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 50+ language support via `utils/i18n.ts`
 - Theme gallery with custom accent color picker
 - Streaming encryption for large files (4MB chunks, AES-GCM per chunk)
-- Encrypted backup system (PBKDF2-SHA256 + AES-256-GCM)
+- Encrypted backup system (Argon2id + AES-256-GCM)
 - Progressive lockout (3+ failed attempts trigger increasing delays)
 - Self-Destruct mechanism (auto-wipe after failed attempts or inactivity)
 - Dead Man Switch (auto-blur, auto-lock, auto-destruct on inactivity)
@@ -60,10 +60,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Vault key exposure risk (moved to private field in EncryptionService)
 
 ### Security
-- Argon2id parameters (master key): 128MB memory, 4 iterations, 4 parallelism
-- Argon2id parameters (passphrase KDF): 128MB memory, 4 iterations (hash-wasm)
+- Argon2id parameters (master key): 128MB memory, 19 iterations, 4 parallelism
+- Argon2id parameters (passphrase KDF): 128MB memory, 19 iterations (hash-wasm)
 - AES-256-GCM for all vault encryption
-- PBKDF2-SHA256 (600k iterations) for backup keys
+- Argon2id (19 iterations, 128MB memory) for backup keys
 - WebCrypto native HKDF-SHA256 for AES-CTR key derivation
 - HMAC-SHA256-based nonce derivation for streaming encryption chunks
 - Zero server communication (100% client-side)

@@ -151,7 +151,7 @@ const key = backupCryptoService.generatePassphrase();
 ---
 
 ### `backupCryptoService.encryptBackup(dataString, passphrase)`
-Encrypts backup data with PBKDF2-SHA256 + AES-256-GCM.
+Encrypts backup data with Argon2id + AES-256-GCM.
 
 ```typescript
 const backup = await backupCryptoService.encryptBackup(

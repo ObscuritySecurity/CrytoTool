@@ -62,10 +62,10 @@ On upgrade to `DB_VERSION = 3`, existing items without `encryptedMeta` are migra
 ### Master Key Derivation
 The vault master key is derived from the person's Master Password using **Argon2id** via the `hash-wasm` library (`utils/crypto.ts:36-54`):
 ```
-Master Password + Random Salt (16 bytes) → Argon2id (4 iterations, 128MB memory, 4-way parallelism) → 32-byte hash → Imported as AES-256-GCM CryptoKey
+Master Password + Random Salt (16 bytes) → Argon2id (19 iterations, 128MB memory, 4-way parallelism) → 32-byte hash → Imported as AES-256-GCM CryptoKey
 ```
 Parameters:
-- Iterations: 4
+- Iterations: 19
 - Memory: 131072 KB (128MB)
 - Parallelism: 4 threads
 - Hash length: 32 bytes (256 bits)
@@ -124,7 +124,7 @@ Triggered via the `EncryptionModal` component (`components/EncryptionModal.tsx`)
 
 #### Manual Encryption Key Derivation (`crypto.ts:75-83`):
 ```
-Person-Generated Passphrase + Random Salt (16 bytes) → Argon2id (hash-wasm, 4 iterations, 128MB memory, 4-way parallel) → 32-byte raw key → Passed to selected primitive
+Person-Generated Passphrase + Random Salt (16 bytes) → Argon2id (hash-wasm, 19 iterations, 128MB memory, 4-way parallel) → 32-byte raw key → Passed to selected primitive
 ```
 The passphrase-based KDF uses `argon2id` from `hash-wasm`, replacing the previous `libsodium.crypto_pwhash()` dependency. This provides proper key stretching against brute-force attacks without requiring WebAssembly loading for libsodium's pwhash module.
 
@@ -188,7 +188,7 @@ Designed for large files on low-RAM devices, implemented in `utils/streamCrypto.
 
 ### Encryption Flow (`streamCrypto.encrypt`):
 1. Generate random 16-byte salt and 12-byte base IV
-2. Derive stream key: `Passphrase + Salt → Argon2id (hash-wasm, 4 iterations, 128MB memory) → AES-256-GCM CryptoKey`
+2. Derive stream key: `Passphrase + Salt → Argon2id (hash-wasm, 19 iterations, 128MB memory) → AES-256-GCM CryptoKey`
 3. Calculate total chunks: `Math.ceil(fileSize / 4MB)`
 4. Build header:
    ```typescript
@@ -212,7 +212,7 @@ Designed for large files on low-RAM devices, implemented in `utils/streamCrypto.
 ### Decryption Flow (`streamCrypto.decrypt`):
 1. Decode header from first `headerSize` bytes
 2. Verify magic: `CRYTO_STREAM`
-3. Derive stream key once using salt from header (Argon2id, 4 iterations, 128MB memory)
+3. Derive stream key once using salt from header (Argon2id, 19 iterations, 128MB memory)
 4. For each chunk:
    - Derive chunk IV via `HMAC-SHA256(chunkIndex keyed with baseIV) → first 12 bytes`
    - Decrypt chunk with AES-GCM
@@ -253,7 +253,7 @@ CrytoTool/
 │   ├── 📄 cryptoPrimitives.ts   # Isolated crypto primitives (aesGcm, aesCtr, chacha20, etc.)
 │   ├── 📄 streamCrypto.ts       # 4MB chunked streaming encryption
 │   ├── 📄 metadataCrypto.ts     # AES-GCM metadata encryption (names, tags, artist, etc.)
-│   ├── 📄 backupCrypto.ts       # Backup key gen, PBKDF2, AES-256-GCM backup encrypt/decrypt
+│   ├── 📄 backupCrypto.ts       # Backup key gen, Argon2id, AES-256-GCM backup encrypt/decrypt
 │   ├── 📄 db.ts                 # IndexedDB wrapper (CRUD, export/import)
 │   ├── 📄 vaultStorage.ts       # localStorage vault key management
 │   ├── 📄 security.ts           # PIN, auto-lock, failed attempt handling
