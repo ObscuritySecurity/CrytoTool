@@ -80,12 +80,14 @@ For full technical details, consult the [Technical Architecture](https://github.
 **file management** 
 -   **file manager:** navigate between files and folders Add files, Add folder, rename, duplicate, select, move, copy, download, encryption, decryption, style,
 
-**gallery music documents**
--   **multiple models:** gallery-view photos, videos, favorites, albums,
+**multiple models**
+-   **gallery music documents and more:** gallery-view photos, videos, favorites, albums,
 -   music-listen songs, albums, artists, playlist,
 -   documents - view standard document formats
--   **Vault Key Storage:** Store generated encryption keys in an encrypted vault, categorized for easy access.
--   **Streaming Encryption:** Handles large files (600 MiB+) in 4 MB chunks with AES-GCM per chunk — safe for low-RAM devices.
+-   
+  vault-store generated encryption keys in an encrypted vault, categorized for easy access.
+
+- encrypted-backup create backup of the entire application or restore the .enc backup
 
 **Deep Customization**
 -   **Theme Gallery & Accent Colors:** Personalize the app's appearance with a rich theme gallery and a custom accent color picker.
