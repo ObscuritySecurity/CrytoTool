@@ -78,7 +78,7 @@ For full technical details, consult the [Technical Architecture](https://github.
 -   **Encrypted Backups:** Create fully encrypted backups of all your data.
 
 **file management** 
--   **file manager:** navigate between files and folders rename, duplicate, select, move, copy, download, encryption, decryption, style,
+-   **file manager:** navigate between files and folders Add files, Add folder, rename, duplicate, select, move, copy, download, encryption, decryption, style,
 
 **Manual & Streaming Encryption**
 -   **Multi-Algorithm Support:** Encrypt files manually with 6 algorithms — AES-GCM, XChaCha20-Poly1305, ChaCha20-Poly1305, AES-CTR + HMAC, Salsa20-Poly1305, and AES-GCM-Stream for large files.
