@@ -78,8 +78,7 @@ For full technical details, consult the [Technical Architecture](https://github.
 -   **Encrypted Backups:** Create fully encrypted backups of all your data.
 
 **file management**
--   **IndexedDB Encryption:** Files are automatically encrypted using AES-256-GCM with keys derived from your Master Password via Argon2id. For more details, see the [Technical Architecture](https://github.com/ObscuritySecurity/CrytoTool/blob/main/architecture.md) (Section 1).
--   **Metadata Encryption:** File names, tags, artist, album, and other sensitive metadata fields are encrypted using AES-256-GCM with the vault key. Metadata is stored as a single encrypted JSON blob alongside each file entry. See [metadataCrypto.ts](https://github.com/ObscuritySecurity/CrytoTool/blob/main/utils/metadataCrypto.ts).
+-   **:** and other sensitive metadata fields are encrypted using AES-256-GCM with the vault key. Metadata is stored as a single encrypted JSON blob alongside each file entry. See [metadataCrypto.ts](https://github.com/ObscuritySecurity/CrytoTool/blob/main/utils/metadataCrypto.ts).
 
 **Manual & Streaming Encryption**
 -   **Multi-Algorithm Support:** Encrypt files manually with 6 algorithms — AES-GCM, XChaCha20-Poly1305, ChaCha20-Poly1305, AES-CTR + HMAC, Salsa20-Poly1305, and AES-GCM-Stream for large files.
