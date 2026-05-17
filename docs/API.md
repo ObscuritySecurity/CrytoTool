@@ -37,10 +37,12 @@ const masterKey: CryptoKey = await cryptoService.deriveMasterKey('MyPassword123!
 **Returns:** `Promise<CryptoKey>` - AES-256-GCM CryptoKey (non-extractable)
 
 **Argon2id Parameters:**
-- Memory: 64MB (65536 KB)
-- Iterations: 10
+- Memory: 128MB (131072 KB)
+- Iterations: 4
 - Parallelism: 4 threads
 - Hash length: 32 bytes
+
+> **Warning**: Increasing the Argon2id `cost` parameters (memory, iterations) will make brute-force attacks harder but will also slow down unlock times, especially on mobile devices. Test thoroughly before changing.
 
 ---
 

@@ -55,7 +55,7 @@ Items are returned from IndexedDB with `encryptedMeta` intact. The UI layer call
 
 ### Schema Migration (`db.ts:61-86`)
 On upgrade to `DB_VERSION = 3`, existing items without `encryptedMeta` are migrated via a cursor:
-- Plaintext `name` is base64-encoded into `encryptedMeta.ciphertext`
+- Plaintext `name` is encrypted with AES-256-GCM into `encryptedMeta.ciphertext`
 - Legacy `tags`, `artist`, `album`, `coverUrl`, `customIcon`, `externalUrl` are removed
 
 ---
