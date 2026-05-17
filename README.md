@@ -77,35 +77,43 @@ For full technical details, consult the [Technical Architecture](https://github.
 -   **Unique Reset Token:** A single-use recovery token that allows you to reset your master password without losing your data.
 -   **Encrypted Backups:** Create fully encrypted backups of all your data.
 
-**file management** 
--   **file manager:** navigate between files and folders Add files, Add folder, rename, duplicate, select, move, copy, download, encryption, decryption, style,
+**File Management**
+-   **File Manager:** Navigate between files and folders. Add files, add folders, rename, duplicate, select, move, copy, download, encrypt, decrypt, and manage file styles.
+-   **Storage Overview:** View the storage space occupied by photos, videos, music, documents, and other file types at a glance.
+-   **Search:** Fast full-text search across all folders and files in the vault.
+-   **Trash:** Deleted files and folders move to trash with restore capability. Permanent deletion requires explicit confirmation.
 
-**multiple models**
--   **gallery music documents and more:** gallery-view photos, videos, favorites, albums,
--   music-listen songs, albums, artists, playlist,
--   documents - view standard document formats
--   
-  vault-store generated encryption keys in an encrypted vault, categorized for easy access.
+**Multiple Models**
+-   **Gallery:** View photos and videos in a dedicated gallery interface. Support for favorites, albums, and grid/list layouts. Optimized for visual browsing with smooth transitions.
+-   **Music Player:** Listen to songs, browse albums, explore artists, and create playlists. Full audio playback controls with queue management.
+-   **Documents Viewer:** Open and view standard document formats directly in the app without external tools.
+-   **Vault:** Store generated encryption keys in an encrypted vault, categorized for easy access. Keys encrypted with Vault Key (AES-256-GCM) before localStorage.
+-   **Encrypted Backup:** Create a backup of the entire application or restore from a `.enc` backup file. Protected by PBKDF2-SHA256 (600k iterations) + AES-256-GCM with unique 26-character passphrase.
+-   **Settings:** Full customization of preferences, security thresholds, themes, fonts, languages, and more.
 
-- encrypted-backup create backup of the entire application or restore the .enc backup
+**Multi-Algorithm Encryption Engine**
+-   **AES-256-GCM:** NIST-standard authenticated encryption with 128-bit authentication tag. Hardware-accelerated on modern CPUs via AES-NI instructions. Ideal for documents, photos, and everyday files. Uses native Web Crypto API with random 12-byte IV per encryption.
+-   **XChaCha20-Poly1305:** Extended 192-bit nonce variant of ChaCha20. Eliminates nonce collision risk even with massive file counts. Recommended for cloud storage and long-term archival where files may be re-encrypted with the same key. Implemented via libsodium (audited C library compiled to WASM).
+-   **ChaCha20-Poly1305:** Mobile-optimized stream cipher designed by Daniel J. Bernstein. Outperforms AES on devices without AES-NI (phones, tablets, ARM devices). 96-bit nonce with Poly1305 MAC for authenticated encryption. Same libsodium backend as XChaCha20.
+-   **AES-CTR + HMAC-SHA256:** Classic counter-mode encryption with separate HMAC integrity verification. Key split via native WebCrypto HKDF-SHA256 into encryption key and MAC key. Provides compatibility with legacy systems that require separate encryption and authentication layers.
+-   **Salsa20-Poly1305:** DJB's original stream cipher, eSTREAM finalist. 256-bit key with 64-bit nonce. Fast software implementation with no hardware dependencies. For enthusiasts and scenarios where Salsa20's specific properties are preferred over ChaCha20.
+-   **AES-GCM-Stream:** Chunked streaming encryption for large files (600 MiB+). Processes data in 4 MB chunks, each encrypted independently with AES-GCM and a unique IV derived via HMAC-SHA256 from a base IV. Prevents memory exhaustion on low-RAM devices. Custom binary format: `[CRYTO_STREAM header][chunk_0][chunk_1]...[chunk_N]`.
 
-- search folders and files
-- trash delete files and folders
-- settings customize your preferences
-- view the storage space occupied by photos, videos, music, documents, and others,
+**Key Derivation & Management**
+-   **Argon2id KDF:** Master password and passphrase-based keys derived using Argon2id (password hashing competition winner). Parameters: 128 MB memory, 4 iterations, 4-way parallelism. Resists GPU and ASIC brute-force attacks. Implemented via hash-wasm (WebAssembly).
+-   **Vault Key Storage:** Generated encryption keys stored in an encrypted vault in localStorage, encrypted with the Vault Key (AES-256-GCM). Keys are categorized (personal, work, etc.) for easy retrieval. Legacy plaintext keys are migrated to encrypted format on next save.
+-   **Per-File Unique Keys:** Each file and folder encrypted with its own unique key. Keys never reused across files, preventing cross-file attacks if one key is compromised.
 
 **Deep Customization**
--   **themes:** choose from over 100 themes across multiple categories
-
--   fonts choose from over 40 fonts in multiple categories
-
--   choose between dark mode or light mode or the system adapts to you
-
--   choose a custom hand-picked accent color with our color picker
-
--   choose from over 10 icon packs for folders and files or upload your own icon you can also add labels
-
--   personalize your experience with over 50 languages, no matter where in the world you are, the app speaks your language
+-   **Theme Gallery:** Choose from over 100 themes across multiple categories. Each theme features distinct color palettes, backgrounds, and visual styles designed with glassmorphism aesthetics (`styles/glass.css`). Includes Dark Glass, Light Glass, Neon, Midnight, Ocean, Forest, and many more.
+-   **Custom Accent Color Picker:** Fine-grained control over the primary accent color. Any valid CSS color (hex, RGB, HSL) can be selected via the built-in color picker. Accent color applied to buttons, highlights, focus rings, and all interactive elements.
+-   **Font Selection:** Choose from over 40 fonts across multiple categories. All fonts self-hosted via Fontsource — loaded locally with zero external CDN requests, preserving privacy.
+-   **Dark Mode / Light Mode / System:** Choose between dark mode, light mode, or let the app automatically adapt to your system preference.
+-   **Icon Packs & Labels:** Choose from over 10 icon packs for folders and files, or upload your own custom icons. Add custom labels to organize and categorize your content visually.
+-   **50+ Language Support:** Full interface translation in over 50 languages including Romanian, English, Spanish, French, German, Italian, Portuguese, Japanese, Chinese, Arabic, Hindi, and more. All translations stored in `utils/i18n.ts`. Uses `t('key')` pattern — no hardcoded strings anywhere in the UI. No matter where in the world you are, the app speaks your language.
+-   **Responsive Design:** Mobile-first layout that adapts from 375px phone screens to 1920px desktop monitors. Touch-optimized controls for mobile, keyboard shortcuts for desktop.
+-   **Layout & View Options:** Multiple file viewing modes — grid view, list view, gallery for images, music player for audio files. Custom folder icons and category assignments (image, video, audio, doc, other).
+-   **Security Settings Granularity:** Configurable thresholds for auto-lock, auto-blur, self-destruct, and progressive lockout. Each parameter independently adjustable. Dead Man Switch monitors activity (mouse, keyboard, touch) and triggers progressive actions based on inactivity duration.
 
 ---
 
