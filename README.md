@@ -65,11 +65,12 @@ For full technical details, consult the [Technical Architecture](https://github.
 **Security**
 -   **Master Password (30+ characters):** Secure your entire vault with a strong master password (minimum 30 characters).
 -   **Progressive Lockout:** The app automatically locks for increasing durations after multiple failed password attempts.
--   **Settings Self-Destruct Password:** A separate, dedicated password with self-destruct capability to protect sensitive settings — if someone fails to guess it the configured number of times, all vault data is permanently wiped.
+-   **Settings Password:** A separate, dedicated password with capability to protect sensitive settings this option is optional
+-   **Self-Destruct:** self-destruction of the database after incorrect attempts of the Master password configurable this option is optional 
 -   **Auto-Lock & Visual Obfuscation:** The app can automatically lock and blur the screen after a period of inactivity.
 -   **Unique Key Per File/Folder:** Each file and folder is encrypted with its own unique encryption key, stored securely in the vault with progressive lockout protection.
 -   **PIN Blacklist:** Common and weak PINs are blocked from use, preventing easy-to-guess combinations.
--   **Encrypted Backup Key:** Backups are protected with a unique, separate encryption key using PBKDF2-SHA256 and AES-256-GCM. For more details, see the [Technical Architecture](https://github.com/ObscuritySecurity/CrytoTool/blob/main/architecture.md) (Section 3).
+-   **Encrypted Backup Key:** Backups are protected with a unique, separate encryption key
 
 **Recovery**
 -   **10 Recovery Codes:** Generate 10 unique, single-use codes for emergency vault access.
