@@ -1,0 +1,39 @@
+changelog:
+  categories:
+    - title: Added
+      labels:
+        - enhancement
+        - feature
+        - i18n
+        - translation
+    - title: Changed
+      labels:
+        - changed
+        - refactor
+        - performance
+        - dependencies
+    - title: Fixed
+      labels:
+        - bug
+        - bugfix
+        - hotfix
+    - title: Security
+      labels:
+        - security
+    - title: Removed
+      labels:
+        - removed
+        - deprecated
+    - title: Documentation
+      labels:
+        - documentation
+        - docs
+    - title: CI / Build
+      labels:
+        - ci
+        - build
+        - test
+        - tests
+    - title: Other Changes
+      labels:
+        - "*"
