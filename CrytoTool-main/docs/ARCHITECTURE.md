@@ -336,3 +336,4 @@ IndexedDB: "CrytoToolVault" (Version 3)
 | `isTrashed` | boolean (optional) | Whether the item is in the trash |
 | `tags` | Tag[] (optional) | Person-assigned tags |
 | `customIcon` | string (optional) | Custom icon for the item |
+
