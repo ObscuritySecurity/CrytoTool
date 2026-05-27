@@ -18,7 +18,7 @@ jobs:
           VERSION="${GITHUB_REF_NAME#v}"
           awk -v ver="$VERSION" '
             $0 ~ "^## \\[" ver "\\]" { flag=1; next }
-            $0 ~ "^##" && flag { exit }
+            flag && $0 ~ "^## " { exit }
             flag { print }
           ' docs/CHANGELOG.md > release_body.md
 
@@ -26,6 +26,6 @@ jobs:
         with:
           body_path: release_body.md
           generate_release_notes: true
-          update: true
+
           make_latest: ${{ !contains(github.ref_name, 'beta') && !contains(github.ref_name, 'alpha') && !contains(github.ref_name, 'rc') }}
           prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') || contains(github.ref_name, 'rc') }}
