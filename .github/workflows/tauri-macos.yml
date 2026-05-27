@@ -48,9 +48,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: app-v__VERSION__
-          releaseName: 'CrytoTool v__VERSION__'
-          releaseBody: 'CrytoTool Vault - Secure Password Manager'
+          tagName: ${{ github.ref_name }}
+          releaseName: 'CrytoTool ${{ github.ref_name }}'
+          releaseBody: 'CrytoTool ${{ github.ref_name }}'
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
