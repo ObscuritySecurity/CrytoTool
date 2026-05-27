@@ -83,8 +83,8 @@ For full technical details, consult the [Technical Architecture](https://github.
 -   **Encrypted Backup Key:** Backups are protected with a unique, separate encryption key
 
 **Recovery**
--   **10 Recovery Codes:** Generate 10 unique, single-use codes for emergency vault access.
--   **Unique Reset Token:** A single-use recovery token that allows you to reset your master password without losing your data.
+-   **10 Recovery Codes:** Generate 10 unique, single-use codes for emergency vault access
+-   
 -   **Encrypted Backups:** Create fully encrypted backups of all your data.
 
 **File Management**
