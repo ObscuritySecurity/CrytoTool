@@ -1,0 +1,39 @@
+changelog:
+  categories:
+    - title: 🚨 Security
+      labels:
+        - security
+    - title: 🚀 Features
+      labels:
+        - enhancement
+        - feature
+    - title: 🐛 Bug Fixes
+      labels:
+        - bug
+        - bugfix
+    - title: ⚡ Performance
+      labels:
+        - performance
+    - title: 🔧 Refactoring
+      labels:
+        - refactor
+    - title: 📖 Documentation
+      labels:
+        - documentation
+        - docs
+    - title: 🌐 i18n / Translations
+      labels:
+        - i18n
+        - translation
+    - title: 🏗️ CI / Build
+      labels:
+        - ci
+        - build
+        - dependencies
+    - title: 🧪 Tests
+      labels:
+        - test
+        - tests
+    - title: Other Changes
+      labels:
+        - "*"
