@@ -1,5 +1,5 @@
 # CrytoTool Release Guide
-_Version: 2.5.0-PRO | Last Updated: 2026-05-01_
+_Version: 2.5.0-beta | Last Updated: 2026-05-27_
 
 This document describes how to create and publish new releases of CrytoTool for web, desktop (Tauri), and mobile (Capacitor).
 
@@ -20,7 +20,7 @@ MAJOR.MINOR.PATCH-SUFFIX
 ```
 
 ### Current Version
-- **Version**: `2.5.0-PRO`
+- **Version**: `2.5.0-beta`
 - **Location**: `package.json` (line with `"version"`)
 
 ### When to Bump Version

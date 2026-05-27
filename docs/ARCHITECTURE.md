@@ -1,5 +1,5 @@
 # CrytoTool Architecture Overview
-_Version: 2.5.0-PRO | Last Updated: 2026-05-27_
+_Version: 2.5.0-beta | Last Updated: 2026-05-27_
 
 ## Table of Contents
 1. [Database Encryption (IndexedDB)](#1-database-encryption-indexeddb)

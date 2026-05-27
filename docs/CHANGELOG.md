@@ -5,6 +5,109 @@ All notable changes to CrytoTool will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0-beta] - 2026-05-27
+
+### First Official Beta Release
+
+CrytoTool is a four-in-one, client-side encrypted file manager, gallery, music player, and document viewer. Zero tracking, zero ads, zero data collection. Fully compliant with [Protocol-3305](https://github.com/ObscuritySecurity/protocol-3305).
+
+### Encryption System — 4 Layers
+
+- **Layer 1 — Database Encryption (IndexedDB):** Every file stored in IndexedDB is auto-encrypted with AES-256-GCM. Master key derived from the person's Master Password via Argon2id (128MB memory, 19 iterations, 4-way parallelism).
+- **Layer 2 — File & Folder Encryption:** Manual encryption supporting 6 algorithms: AES-256-GCM, XChaCha20-Poly1305, ChaCha20-Poly1305, AES-CTR (256-bit), Salsa20-Poly1305, AES-GCM-Stream.
+- **Layer 3 — Encrypted Backup:** Full vault backups protected with Argon2id + AES-256-GCM and a unique 26-character key.
+- **Layer 4 — Streaming Encryption:** Large files processed in 4MB chunks with per-chunk AES-GCM encryption, safe for low-RAM devices.
+
+### Security Features
+
+- **Master Password (30+ characters)** — vault-wide encryption gate
+- **Settings Password** — separate optional password for sensitive settings
+- **Progressive Lockout** — increasing delays after failed attempts (configurable)
+- **Self-Destruct** — database auto-wipe after configurable failed attempts
+- **Auto-Lock & Visual Obfuscation** — blur + lock after inactivity
+- **Dead Man Switch** — auto-blur, auto-lock, auto-destruct on prolonged inactivity
+- **Unique Key Per File/Folder** — each item encrypted with its own AES-256-GCM key
+- **10 Recovery Codes** — single-use emergency access codes
+- **PIN Blacklist** — common/weak PINs blocked
+- **Encrypted Backup Key** — separate key for backup protection
+
+### Key Management
+
+- **Master Key Derivation:** Argon2id (128MB memory, 19 iterations, 4 parallelism) via hash-wasm
+- **Passphrase KDF:** Argon2id (128MB memory, 19 iterations) for manual file encryption
+- **Backup KDF:** Argon2id + AES-256-GCM with 600,000 PBKDF2-SHA256 iterations
+- **Streaming KDF:** Argon2id (128MB memory, 19 iterations)
+- **AES-CTR Key Derivation:** WebCrypto native HKDF-SHA256
+- **Streaming Nonces:** HMAC-SHA256-based per-chunk derivation (prevents collision)
+
+### File Management
+
+- File manager with add, rename, duplicate, move, copy, download, encrypt, decrypt
+- Folder organization with custom icons and categories
+- Search across all files and folders
+- Trash system with restore capability
+- Storage overview by file type (photos, videos, music, documents)
+
+### Multiple Views
+
+- **Gallery** — photos and videos with favorites and albums
+- **Music** — audio playback with albums, artists, playlists
+- **Documents** — view standard document formats
+- **Vault** — categorized encryption key storage
+
+### Customization
+
+- **100+ themes** across multiple categories
+- **40+ fonts** across multiple categories
+- **10+ icon packs** for folders and files (or upload your own)
+- **Dark / Light / System mode**
+- **Custom accent color** via built-in color picker
+- **Custom labels** for file organization
+
+### Internationalization
+
+- **52 languages** fully translated
+- Interface adapts to locale automatically
+
+### Cryptographic Libraries
+
+- **[Web Crypto API](https://www.w3.org/TR/WebCryptoAPI/)** — AES-256-GCM encryption, random IV generation, CryptoKey management
+- **[hash-wasm](https://github.com/Daninet/hash-wasm)** — Argon2id (128MB memory, 19 iterations)
+- **[libsodium-wrappers](https://github.com/jedisct1/libsodium.js)** — ChaCha20, XChaCha20, Salsa20, BLAKE2b
+- **[NIST SP 800-38D](https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-38d.pdf)** — AES-GCM standard
+
+### Platform Support
+
+- **Desktop:** Windows (MSI, NSIS), Linux (AppImage, deb, rpm), macOS (DMG, APP) — via Tauri
+- **Mobile:** Android (APK), iOS (IPA) — via Capacitor
+- **Web:** Any browser with Web Crypto API support — via Vite
+
+### Architecture
+
+- **Frontend:** React 18 + TypeScript + Vite + Tailwind CSS
+- **Desktop:** Tauri 2 (Rust + WebView)
+- **Mobile:** Capacitor (React Native wrapper)
+- **Storage:** IndexedDB + localStorage (100% client-side, zero server)
+- **Build:** TypeScript strict mode, `npx tsc --noEmit` for type-checking
+
+### Compliance
+
+- ✅ **Protocol-3305** — full compliance (Art. 0–8)
+- ✅ **Zero Knowledge** — server has zero access to content
+- ✅ **Zero Tracking** — no analytics, no telemetry, no data collection
+- ✅ **Open Source** — AGPL-3.0, publicly auditable
+- ✅ **Security by Default** — highest settings enabled out of the box
+- ✅ **Privacy by Design** — privacy integrated from day one
+
+### Known Limitations (Beta)
+
+- No professional third-party security audit yet (planned for future)
+- iOS build requires macOS + Apple Developer account
+- Some edge cases in streaming encryption for files >4GB
+- Backup restore not yet tested across all platform combinations
+
+---
+
 ## [2.5.0-PRO] - 2026-05-05
 
 ### Security
