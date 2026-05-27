@@ -15,6 +15,37 @@ _Version: 2.5.0-PRO | Last Updated: 2026-05-10_
 
 ---
 
+## 1. Database Encryption (IndexedDB)
+
+### Master Key Derivation
+The vault master key is derived from the person's Master Password using **Argon2id** via the `hash-wasm` library (`utils/crypto.ts:36-54`):
+```
+Master Password + Random Salt (16 bytes) → Argon2id (4 iterations, 128MB memory, 4-way parallelism) → 32-byte hash → Imported as AES-256-GCM CryptoKey
+```
+Parameters:
+- Iterations: 4
+- Memory: 131072 KB (128MB)
+- Parallelism: 4 threads
+- Hash length: 32 bytes (256 bits)
+- Output: Raw binary, imported as `CryptoKey` for AES-GCM operations
+
+The derived key is stored **only in memory** (`cryptoService.vaultKey`) and never written to localStorage to minimize leakage risk.
+
+### Automatic Encryption on File Add
+When a file is added via `db.addItem()` (`utils/db.ts:65-83`):
+1. Check if `item.fileData` exists and `!item.isEncrypted`
+2. Call `cryptoService.encrypt(item.fileData)` which:
+   - Generates a random 12-byte IV
+   - Encrypts the file blob using AES-GCM with the in-memory vault key
+   - Returns `{ ciphertext: Uint8Array, iv: Uint8Array, salt: empty Uint8Array, algorithm: 'AES-GCM' }`
+3. Store in IndexedDB:
+   - `fileData`: Blob containing the ciphertext
+   - `iv`: Base64-encoded IV
+   - `algorithm`: 'AES-GCM'
+   - `isEncrypted`: true
+
+---
+
 ## 2. Metadata Encryption
 Implemented in `utils/metadataCrypto.ts`. All sensitive metadata fields (file names, tags, artist, album, coverUrl, customIcon, externalUrl) are encrypted with AES-256-GCM using the in-memory vault key before being stored in IndexedDB.
 
@@ -57,36 +88,6 @@ Items are returned from IndexedDB with `encryptedMeta` intact. The UI layer call
 On upgrade to `DB_VERSION = 3`, existing items without `encryptedMeta` are migrated via a cursor:
 - Plaintext `name` is base64-encoded into `encryptedMeta.ciphertext`
 - Legacy `tags`, `artist`, `album`, `coverUrl`, `customIcon`, `externalUrl` are removed
-
----
-### Master Key Derivation
-The vault master key is derived from the person's Master Password using **Argon2id** via the `hash-wasm` library (`utils/crypto.ts:36-54`):
-```
-Master Password + Random Salt (16 bytes) → Argon2id (4 iterations, 128MB memory, 4-way parallelism) → 32-byte hash → Imported as AES-256-GCM CryptoKey
-```
-Parameters:
-- Iterations: 4
-- Memory: 131072 KB (128MB)
-- Parallelism: 4 threads
-- Hash length: 32 bytes (256 bits)
-- Output: Raw binary, imported as `CryptoKey` for AES-GCM operations
-
-The derived key is stored **only in memory** (`cryptoService.vaultKey`) and never written to localStorage to minimize leakage risk.
-
-### Automatic Encryption on File Add
-When a file is added via `db.addItem()` (`utils/db.ts:65-83`):
-1. Check if `item.fileData` exists and `!item.isEncrypted`
-2. Call `cryptoService.encrypt(item.fileData)` which:
-   - Generates a random 12-byte IV
-   - Encrypts the file blob using AES-GCM with the in-memory vault key
-   - Returns `{ ciphertext: Uint8Array, iv: Uint8Array, salt: empty Uint8Array, algorithm: 'AES-GCM' }`
-3. Store in IndexedDB:
-   - `fileData`: Blob containing the ciphertext
-   - `iv`: Base64-encoded IV
-   - `algorithm`: 'AES-GCM'
-   - `isEncrypted`: true
-
----
 
 ## 3. File & Folder Encryption
 ### Automatic Encryption (Vault Default)
