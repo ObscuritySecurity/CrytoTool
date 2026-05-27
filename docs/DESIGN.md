@@ -1,5 +1,5 @@
 # CrytoTool UI/UX Design Standards
-_Version: 2.5.0-PRO | Last Updated: 2026-05-01_
+_Version: 2.5.0-beta | Last Updated: 2026-05-27_
 
 ## Core Philosophy
 **CrytoTool respects the people behind the screen.** Every design decision must prioritize the human experience: clarity, safety, and zero friction. We design for people, not "users".

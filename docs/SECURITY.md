@@ -1,5 +1,5 @@
 # CrytoTool Security Documentation
-_Version: 2.5.0-PRO | Last Updated: 2026-05-01_
+_Version: 2.5.0-beta | Last Updated: 2026-05-27_
 
 ## Security Philosophy
 **CrytoTool respects the people behind the screen.** Security is not just about code — it's about protecting people's digital lives. Every security decision prioritizes human safety over convenience.

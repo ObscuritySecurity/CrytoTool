@@ -19,7 +19,7 @@ npm run cap      # Build Capacitor mobile app
 ## Key Conventions
 - **Code comments**: English only (for international contributors)
 - **People-first language**: Always use "people" / "persoane" / "oameni". Never "users" / "utilizatori" in any language.
-- **Version**: 2.5.0-PRO
+- **Version**: 2.5.0-beta
 - **No telemetry**: Zero data collection, local-first
 
 ## Critical Files
