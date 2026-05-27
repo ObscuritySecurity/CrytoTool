@@ -15,6 +15,37 @@ _Version: 2.5.0-PRO | Last Updated: 2026-05-10_
 
 ---
 
+## 1. Database Encryption (IndexedDB)
+
+### Master Key Derivation
+The vault master key is derived from the person's Master Password using **Argon2id** via the `hash-wasm` library (`utils/crypto.ts:36-54`):
+```
+Master Password + Random Salt (16 bytes) → Argon2id (4 iterations, 128MB memory, 4-way parallelism) → 32-byte hash → Imported as AES-256-GCM CryptoKey
+```
+Parameters:
+- Iterations: 4
+- Memory: 131072 KB (128MB)
+- Parallelism: 4 threads
+- Hash length: 32 bytes (256 bits)
+- Output: Raw binary, imported as `CryptoKey` for AES-GCM operations
+
+The derived key is stored **only in memory** (`cryptoService.vaultKey`) and never written to localStorage to minimize leakage risk.
+
+### Automatic Encryption on File Add
+When a file is added via `db.addItem()` (`utils/db.ts:65-83`):
+1. Check if `item.fileData` exists and `!item.isEncrypted`
+2. Call `cryptoService.encrypt(item.fileData)` which:
+   - Generates a random 12-byte IV
+   - Encrypts the file blob using AES-GCM with the in-memory vault key
+   - Returns `{ ciphertext: Uint8Array, iv: Uint8Array, salt: empty Uint8Array, algorithm: 'AES-GCM' }`
+3. Store in IndexedDB:
+   - `fileData`: Blob containing the ciphertext
+   - `iv`: Base64-encoded IV
+   - `algorithm`: 'AES-GCM'
+   - `isEncrypted`: true
+
+---
+
 ## 2. Metadata Encryption
 Implemented in `utils/metadataCrypto.ts`. All sensitive metadata fields (file names, tags, artist, album, coverUrl, customIcon, externalUrl) are encrypted with AES-256-GCM using the in-memory vault key before being stored in IndexedDB.
 
@@ -55,38 +86,8 @@ Items are returned from IndexedDB with `encryptedMeta` intact. The UI layer call
 
 ### Schema Migration (`db.ts:61-86`)
 On upgrade to `DB_VERSION = 3`, existing items without `encryptedMeta` are migrated via a cursor:
-- Plaintext `name` is encrypted with AES-256-GCM into `encryptedMeta.ciphertext`
+- Plaintext `name` is base64-encoded into `encryptedMeta.ciphertext`
 - Legacy `tags`, `artist`, `album`, `coverUrl`, `customIcon`, `externalUrl` are removed
-
----
-### Master Key Derivation
-The vault master key is derived from the person's Master Password using **Argon2id** via the `hash-wasm` library (`utils/crypto.ts:36-54`):
-```
-Master Password + Random Salt (16 bytes) → Argon2id (19 iterations, 128MB memory, 4-way parallelism) → 32-byte hash → Imported as AES-256-GCM CryptoKey
-```
-Parameters:
-- Iterations: 19
-- Memory: 131072 KB (128MB)
-- Parallelism: 4 threads
-- Hash length: 32 bytes (256 bits)
-- Output: Raw binary, imported as `CryptoKey` for AES-GCM operations
-
-The derived key is stored **only in memory** (`cryptoService.vaultKey`) and never written to localStorage to minimize leakage risk.
-
-### Automatic Encryption on File Add
-When a file is added via `db.addItem()` (`utils/db.ts:65-83`):
-1. Check if `item.fileData` exists and `!item.isEncrypted`
-2. Call `cryptoService.encrypt(item.fileData)` which:
-   - Generates a random 12-byte IV
-   - Encrypts the file blob using AES-GCM with the in-memory vault key
-   - Returns `{ ciphertext: Uint8Array, iv: Uint8Array, salt: empty Uint8Array, algorithm: 'AES-GCM' }`
-3. Store in IndexedDB:
-   - `fileData`: Blob containing the ciphertext
-   - `iv`: Base64-encoded IV
-   - `algorithm`: 'AES-GCM'
-   - `isEncrypted`: true
-
----
 
 ## 3. File & Folder Encryption
 ### Automatic Encryption (Vault Default)
@@ -124,7 +125,7 @@ Triggered via the `EncryptionModal` component (`components/EncryptionModal.tsx`)
 
 #### Manual Encryption Key Derivation (`crypto.ts:75-83`):
 ```
-Person-Generated Passphrase + Random Salt (16 bytes) → Argon2id (hash-wasm, 19 iterations, 128MB memory, 4-way parallel) → 32-byte raw key → Passed to selected primitive
+Person-Generated Passphrase + Random Salt (16 bytes) → Argon2id (hash-wasm, 4 iterations, 128MB memory, 4-way parallel) → 32-byte raw key → Passed to selected primitive
 ```
 The passphrase-based KDF uses `argon2id` from `hash-wasm`, replacing the previous `libsodium.crypto_pwhash()` dependency. This provides proper key stretching against brute-force attacks without requiring WebAssembly loading for libsodium's pwhash module.
 
@@ -188,7 +189,7 @@ Designed for large files on low-RAM devices, implemented in `utils/streamCrypto.
 
 ### Encryption Flow (`streamCrypto.encrypt`):
 1. Generate random 16-byte salt and 12-byte base IV
-2. Derive stream key: `Passphrase + Salt → Argon2id (hash-wasm, 19 iterations, 128MB memory) → AES-256-GCM CryptoKey`
+2. Derive stream key: `Passphrase + Salt → Argon2id (hash-wasm, 4 iterations, 128MB memory) → AES-256-GCM CryptoKey`
 3. Calculate total chunks: `Math.ceil(fileSize / 4MB)`
 4. Build header:
    ```typescript
@@ -212,7 +213,7 @@ Designed for large files on low-RAM devices, implemented in `utils/streamCrypto.
 ### Decryption Flow (`streamCrypto.decrypt`):
 1. Decode header from first `headerSize` bytes
 2. Verify magic: `CRYTO_STREAM`
-3. Derive stream key once using salt from header (Argon2id, 19 iterations, 128MB memory)
+3. Derive stream key once using salt from header (Argon2id, 4 iterations, 128MB memory)
 4. For each chunk:
    - Derive chunk IV via `HMAC-SHA256(chunkIndex keyed with baseIV) → first 12 bytes`
    - Decrypt chunk with AES-GCM
@@ -253,7 +254,7 @@ CrytoTool/
 │   ├── 📄 cryptoPrimitives.ts   # Isolated crypto primitives (aesGcm, aesCtr, chacha20, etc.)
 │   ├── 📄 streamCrypto.ts       # 4MB chunked streaming encryption
 │   ├── 📄 metadataCrypto.ts     # AES-GCM metadata encryption (names, tags, artist, etc.)
-│   ├── 📄 backupCrypto.ts       # Backup key gen, Argon2id, AES-256-GCM backup encrypt/decrypt
+│   ├── 📄 backupCrypto.ts       # Backup key gen, PBKDF2, AES-256-GCM backup encrypt/decrypt
 │   ├── 📄 db.ts                 # IndexedDB wrapper (CRUD, export/import)
 │   ├── 📄 vaultStorage.ts       # localStorage vault key management
 │   ├── 📄 security.ts           # PIN, auto-lock, failed attempt handling
