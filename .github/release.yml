@@ -1,37 +1,37 @@
 changelog:
   categories:
-    - title: 🚨 Security
-      labels:
-        - security
-    - title: 🚀 Features
+    - title: Added
       labels:
         - enhancement
         - feature
-    - title: 🐛 Bug Fixes
+        - i18n
+        - translation
+    - title: Changed
+      labels:
+        - changed
+        - refactor
+        - performance
+        - dependencies
+    - title: Fixed
       labels:
         - bug
         - bugfix
-    - title: ⚡ Performance
+        - hotfix
+    - title: Security
       labels:
-        - performance
-    - title: 🔧 Refactoring
+        - security
+    - title: Removed
       labels:
-        - refactor
-    - title: 📖 Documentation
+        - removed
+        - deprecated
+    - title: Documentation
       labels:
         - documentation
         - docs
-    - title: 🌐 i18n / Translations
-      labels:
-        - i18n
-        - translation
-    - title: 🏗️ CI / Build
+    - title: CI / Build
       labels:
         - ci
         - build
-        - dependencies
-    - title: 🧪 Tests
-      labels:
         - test
         - tests
     - title: Other Changes
