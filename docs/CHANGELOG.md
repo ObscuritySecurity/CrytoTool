@@ -57,8 +57,8 @@ CrytoTool is a four-in-one, client-side encrypted file manager, gallery, music p
 
 ### Customization
 
-- **100+ themes** across multiple categories
-- **40+ fonts** across multiple categories
+- **100 themes** across multiple categories
+- **40+ fonts** across multiple categories (21 imported, 123 defined)
 - **10+ icon packs** for folders and files (or upload your own)
 - **Dark / Light / System mode**
 - **Custom accent color** via built-in color picker
@@ -66,7 +66,7 @@ CrytoTool is a four-in-one, client-side encrypted file manager, gallery, music p
 
 ### Internationalization
 
-- **52 languages** fully translated
+- **51 languages** fully translated
 - Interface adapts to locale automatically
 
 ### Cryptographic Libraries
@@ -108,22 +108,6 @@ CrytoTool is a four-in-one, client-side encrypted file manager, gallery, music p
 
 ---
 
-## [2.5.0-PRO] - 2026-05-05
-
-### Security
-- **CRITICAL**: Fixed streaming encryption nonce collision vulnerability — replaced shared-prefix counter with HMAC-SHA256-based nonce derivation (`streamCrypto.ts`)
-- **HIGH**: Replaced BLAKE2b with Argon2id for passphrase-based key derivation in manual encryption (`crypto.ts`)
-- **HIGH**: Increased master key Argon2id memory from 64MB to 128MB, removed deprecated `memory` parameter (`crypto.ts`)
-- **MEDIUM**: Replaced non-standard HKDF construction with WebCrypto native HKDF for AES-CTR key derivation (`cryptoPrimitives.ts`)
-- **MEDIUM**: Increased PBKDF2-SHA256 iterations from 100,000 to 600,000 for backup key derivation (`backupCrypto.ts`)
-
-### Changed
-- Manual encryption KDF: Argon2id (19 iterations, 128MB memory) instead of single-pass BLAKE2b
-- Streaming encryption KDF: Argon2id (19 iterations, 128MB memory) instead of BLAKE2b
-- AES-CTR HKDF: Now uses standard WebCrypto HKDF-SHA256 with IV as salt
-
----
-
 ## [2.5.0-PRO] - 2026-05-01
 
 ### Added
@@ -141,6 +125,15 @@ CrytoTool is a four-in-one, client-side encrypted file manager, gallery, music p
 - Recovery codes system (10 single-use codes for account recovery)
 - PIN unlock option with secure hashing (SHA-256 + salt)
 - 6 encryption algorithms: AES-GCM, XChaCha20-Poly1305, ChaCha20-Poly1305, AES-CTR, Salsa20-Poly1305, AES-GCM-Stream
+- Post-release security hardening (2026-05-05):
+  - Fixed streaming encryption nonce collision vulnerability — replaced shared-prefix counter with HMAC-SHA256-based nonce derivation
+  - Replaced BLAKE2b with Argon2id for passphrase-based key derivation in manual encryption
+  - Increased master key Argon2id memory from 64MB to 128MB
+  - Replaced non-standard HKDF construction with WebCrypto native HKDF for AES-CTR key derivation
+  - Increased PBKDF2-SHA256 iterations from 100,000 to 600,000 for backup key derivation
+  - Manual encryption KDF: Argon2id (19 iterations, 128MB memory) instead of single-pass BLAKE2b
+  - Streaming encryption KDF: Argon2id (19 iterations, 128MB memory) instead of BLAKE2b
+  - AES-CTR HKDF: Now uses standard WebCrypto HKDF-SHA256 with IV as salt
 - Gallery view for images, Music view for audio files
 - Trash system with restore capability
 - Search across all files and folders

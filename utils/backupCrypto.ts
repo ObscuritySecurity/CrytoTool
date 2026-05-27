@@ -7,7 +7,7 @@ import { argon2id } from 'hash-wasm';
  * It is isolated to facilitate security auditing.
  * 
  * Algorithms used:
- * - Key Derivation: Argon2id (19 iterations, 64MB memory, 4 parallelism)
+ * - Key Derivation: Argon2id (19 iterations, 128MB memory, 4 parallelism)
  * - Encryption: AES-256-GCM (Authenticated Encryption)
  * - Passphrase Entropy: 26 cryptographically generated Base32-like characters (130 bits)
  * 

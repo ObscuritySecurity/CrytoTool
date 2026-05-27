@@ -1,5 +1,5 @@
 # CrytoTool Development Guide
-_Version: 2.5.0-PRO | Last Updated: 2026-05-01_
+_Version: 2.5.0-beta | Last Updated: 2026-05-27_
 
 This guide helps developers set up their environment and understand the development workflow for CrytoTool.
 

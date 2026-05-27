@@ -1,5 +1,5 @@
 # CrytoTool API Documentation
-_Version: 2.5.0-PRO | Last Updated: 2026-05-01_
+_Version: 2.5.0-beta | Last Updated: 2026-05-27_
 
 This document describes the public APIs available in CrytoTool for developers who want to understand, extend, or integrate with the crypto services.
 

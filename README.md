@@ -3,13 +3,13 @@
   <h1>CrytoTool</h1>
   <p><strong>All-in-One Privacy.</strong></p>
   <br>
-  <a href="https://github.com/ObscuritySecurity/CrytoTool/releases"><img src="https://img.shields.io/badge/2.5.0--beta-neon_green?style=flat" alt="Version" /></a> <a href="https://github.com/ObscuritySecurity/CrytoTool/blob/main/LICENSE"><img src="https://img.shields.io/github/license/ObscuritySecurity/CrytoTool?style=flat" alt="License" /></a> <a href="https://github.com/ObscuritySecurity/CrytoTool/commits/main"><img src="https://img.shields.io/github/last-commit/ObscuritySecurity/CrytoTool?style=flat" alt="Last Commit" /></a>
+  <a href="https://github.com/ObscuritySecurity/CrytoTool/releases"><img src="https://img.shields.io/badge/2.5.0-beta-neon_green?style=flat" alt="Version" /></a> <a href="https://github.com/ObscuritySecurity/CrytoTool/blob/main/LICENSE"><img src="https://img.shields.io/github/license/ObscuritySecurity/CrytoTool?style=flat" alt="License" /></a> <a href="https://github.com/ObscuritySecurity/CrytoTool/commits/main"><img src="https://img.shields.io/github/last-commit/ObscuritySecurity/CrytoTool?style=flat" alt="Last Commit" /></a>
   <br>
   <a href="https://github.com/ObscuritySecurity/CrytoTool/actions/workflows/tauri-linux.yml"><img src="https://img.shields.io/github/actions/workflow/status/ObscuritySecurity/CrytoTool/tauri-linux.yml?style=flat&label=Linux" alt="Linux" /></a> <a href="https://github.com/ObscuritySecurity/CrytoTool/actions/workflows/tauri-windows.yml"><img src="https://img.shields.io/github/actions/workflow/status/ObscuritySecurity/CrytoTool/tauri-windows.yml?style=flat&label=Windows" alt="Windows" /></a> <a href="https://github.com/ObscuritySecurity/CrytoTool/actions/workflows/tauri-macos.yml"><img src="https://img.shields.io/github/actions/workflow/status/ObscuritySecurity/CrytoTool/tauri-macos.yml?style=flat&label=macOS" alt="macOS" /></a> <a href="https://github.com/ObscuritySecurity/CrytoTool/actions/workflows/tauri-android.yml"><img src="https://img.shields.io/github/actions/workflow/status/ObscuritySecurity/CrytoTool/tauri-android.yml?style=flat&label=Android" alt="Android" /></a>
   <br>
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white" alt="TypeScript" /></a> <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB" alt="React" /></a> <a href="https://vitejs.dev/"><img src="https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white" alt="Vite" /></a> <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" /></a> <a href="https://tauri.app/"><img src="https://img.shields.io/badge/Tauri-24C8D8?style=flat&logo=tauri&logoColor=white" alt="Tauri" /></a>
   <br>
-  <a href="https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-38d.pdf"><img src="https://img.shields.io/badge/AES--256--GCM-FF6F00?style=flat&logo=letsencrypt&logoColor=white" alt="AES-256-GCM" /></a> <a href="https://github.com/P-H-C/phc-winner-argon2"><img src="https://img.shields.io/badge/Argon2id-9C27B0?style=flat&logo=password&logoColor=white" alt="Argon2id" /></a> <a href="https://github.com/ObscuritySecurity/CrytoTool/blob/main/utils/i18n.ts"><img src="https://img.shields.io/badge/52_Languages-4CAF50?style=flat&logo=translate&logoColor=white" alt="52 Languages" /></a>
+  <a href="https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-38d.pdf"><img src="https://img.shields.io/badge/AES--256--GCM-FF6F00?style=flat&logo=letsencrypt&logoColor=white" alt="AES-256-GCM" /></a> <a href="https://github.com/P-H-C/phc-winner-argon2"><img src="https://img.shields.io/badge/Argon2id-9C27B0?style=flat&logo=password&logoColor=white" alt="Argon2id" /></a> <a href="https://github.com/ObscuritySecurity/CrytoTool/blob/main/utils/i18n.ts"><img src="https://img.shields.io/badge/51_Languages-4CAF50?style=flat&logo=translate&logoColor=white" alt="52 Languages" /></a>
   </p>
 </div>  
 
@@ -57,7 +57,7 @@ CrytoTool uses a 100% client-side architecture with 4 layers of encryption:
 | **3. Encrypted Backup** | Creates secure backups of all data | Argon2id + AES-256-GCM, unique 26-char key |
 | **4. Streaming Encryption** | Handles large files on any device | 4MB chunks, AES-GCM per chunk, safe for low-RAM devices |
 
-For full technical details, consult the [Technical Architecture](https://github.com/ObscuritySecurity/CrytoTool/blob/main/architecture.md).
+For full technical details, consult the [Technical Architecture](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/ARCHITECTURE.md).
 
 ---
 
@@ -102,7 +102,7 @@ For full technical details, consult the [Technical Architecture](https://github.
 -   **Settings:** Customize all preferences and security options
 
 **Deep Customization**
--   **Themes:** 100+ themes across multiple categories
+-   **Themes:** 100 themes across multiple categories
 -   **Fonts:** 40+ fonts across multiple categories
 -   **Dark / Light / System mode**
 -   **Custom accent color** via built-in color picker

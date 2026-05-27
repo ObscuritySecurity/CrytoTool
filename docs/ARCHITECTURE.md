@@ -18,12 +18,12 @@ _Version: 2.5.0-beta | Last Updated: 2026-05-27_
 ## 1. Database Encryption (IndexedDB)
 
 ### Master Key Derivation
-The vault master key is derived from the person's Master Password using **Argon2id** via the `hash-wasm` library (`utils/crypto.ts:36-54`):
+The vault master key is derived from the person's Master Password using **Argon2id** via the `hash-wasm` library (`utils/crypto.ts:26-44`):
 ```
-Master Password + Random Salt (16 bytes) → Argon2id (4 iterations, 128MB memory, 4-way parallelism) → 32-byte hash → Imported as AES-256-GCM CryptoKey
+Master Password + Random Salt (16 bytes) → Argon2id (19 iterations, 128MB memory, 4-way parallelism) → 32-byte hash → Imported as AES-256-GCM CryptoKey
 ```
 Parameters:
-- Iterations: 4
+- Iterations: 19
 - Memory: 131072 KB (128MB)
 - Parallelism: 4 threads
 - Hash length: 32 bytes (256 bits)
@@ -145,7 +145,7 @@ Implemented in `utils/backupCrypto.ts` and `components/views/BackupView.tsx`. Ba
 ### Backup Creation Flow (`BackupView.tsx:30-74`):
 1. **Generate Backup Key**: 26-character alphanumeric key (130 bits entropy) via `backupCryptoService.generatePassphrase()`
    - Character set: `ABCDEFGHJKLMNPQRSTUVWXYZ23456789` (excludes ambiguous characters)
-   - Format: 6 groups of 4 characters separated by dashes (e.g., `X9F2-KLP0-ABCD-EFGH-IJKL-MNOP-QRST-UVWX`)
+   - Format: 26 characters with dashes every 4th character (e.g., `X9F2-KLP0-ABCD-EFGH-IJKL-MNOP-QR`)
 
 2. **Collect Data**:
    - IndexedDB dump: `db.exportDatabase()` (all file entries, converted to Base64)
@@ -162,7 +162,7 @@ Implemented in `utils/backupCrypto.ts` and `components/views/BackupView.tsx`. Ba
 
 3. **Encrypt Backup** (`backupCryptoService.encryptBackup`):
    - Generate random 16-byte salt
-    - Derive AES-256 key: `Passphrase + Salt → PBKDF2-SHA256 (600,000 iterations) → AES-256-GCM CryptoKey`
+    - Derive AES-256 key: `Passphrase + Salt → Argon2id (19 iterations, 128MB memory) → AES-256-GCM CryptoKey`
    - Generate random 12-byte IV
    - Encrypt JSON string with AES-GCM (includes 16-byte GCM authentication tag)
 
@@ -231,10 +231,8 @@ CrytoTool/
 ├── 📄 vite.config.ts            # Vite build config
 ├── 📄 tailwind.config.js        # Tailwind CSS config
 ├── 📄 tsconfig.json             # TypeScript config
-├── 📄 capacitor.config.json     # Capacitor mobile config
 ├── 📄 postcss.config.js         # PostCSS config
 ├── 📄 AGENTS.md                 # Agent instructions
-├── 📄 CLAUDE.md                 # Claude agent instructions
 ├── 📄 README.md                 # Project readme
 │
 ├── 📁 src-tauri/                # Tauri desktop backend (Rust)

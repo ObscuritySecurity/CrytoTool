@@ -2,11 +2,11 @@
 /**
  * VAULT STORAGE SERVICE
  *
- * Stochează și gestionează cheile de criptare manuale în Vault.
- * Toate cheile sunt criptate cu Vault Key (AES-256-GCM) înainte de a fi salvate în localStorage.
+ * Stores and manages manual encryption keys in the Vault.
+ * All keys are encrypted with Vault Key (AES-256-GCM) before being saved to localStorage.
  *
- * Format stocat în localStorage: crytotool_vault_keys
- * Structură criptată: { iv: base64, data: base64 } unde 'data' este JSON-ul criptat al cheilor
+ * localStorage key: crytotool_vault_keys
+ * Encrypted structure: { iv: base64, data: base64 } where 'data' is the encrypted JSON of keys
  */
 
 import { cryptoService } from './crypto';

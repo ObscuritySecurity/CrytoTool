@@ -104,7 +104,7 @@ class VaultDB {
         });
         item = metadataCrypto.stripFromItem(item) as DBItem;
       } catch {
-        // vault key unavailable — lasă în clar
+        // vault key unavailable — store unencrypted
       }
     }
     
@@ -142,7 +142,7 @@ class VaultDB {
         });
         item = metadataCrypto.stripFromItem(item) as DBItem;
       } catch {
-        // vault key unavailable — lasă în clar
+        // vault key unavailable — store unencrypted
       }
     }
 
