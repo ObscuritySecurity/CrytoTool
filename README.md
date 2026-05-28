@@ -44,7 +44,7 @@ CrytoTool is open source so anyone can audit the code, report issues, suggest im
 
 If you find something, [report it](https://github.com/ObscuritySecurity/CrytoTool/issues). If you can fix something, [open a pull request](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/CONTRIBUTING.md). Security is not a product — it's a process, and we build it together.
 
-**Audit Status:** The CrytoTool codebase has not yet undergone a professional third-party security audit. Professional audits are expensive, and as a community-driven project we don't have the budget for one yet. We hope to fund a full audit in the future. Until then, the code is open for anyone to review — and we encourage you to do so.
+**Audit Status:** The CrytoTool codebase has not yet undergone a professional third-party security audit. Professional audits are expensive, and as a community-driven project we don't have the budget for one yet. We hope to fund a full audit in the future. Until then, the code is open for anyone to review — and we encourage you to do so. If you find a vulnerability, please [report it privately](https://github.com/ObscuritySecurity/CrytoTool/security/advisories/new).
 
 ### Architecture Overview
 
