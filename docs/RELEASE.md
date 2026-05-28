@@ -13,7 +13,7 @@ CrytoTool follows [Semantic Versioning](https://semver.org/):
 MAJOR.MINOR.PATCH-SUFFIX
   2    .  5  .  0  -beta
 │       │      │      │
-│       │      │      └─ Suffix: PRO, BETA, ALPHA, RC1, etc.
+│       │      │      └─ Suffix: BETA, ALPHA, RC1, etc.
 │       │      └──────── Patch: Bug fixes, small changes
 │       └───────────── Minor: New features, backward-compatible
 └───────────────────── Major: Breaking changes
@@ -171,7 +171,7 @@ git push origin v2.5.1
 ### 2. Create Release on GitHub
 1. Go to https://github.com/ObscuritySecurity/CrytoTool/releases/new
 2. Choose tag: `v2.5.1`
-3. Release title: `CrytoTool v2.5.1-PRO`
+3. Release title: `CrytoTool v2.5.0-beta`
 4. Description: Copy from `CHANGELOG.md` for this version
 
 ### 3. Attach Assets
@@ -191,7 +191,7 @@ Upload the following:
 ## Release Notes Template
 
 ```markdown
-## CrytoTool v2.5.1-PRO
+## CrytoTool v2.5.0-beta
 
 ### 🔒 Security
 - [Security-related changes]
@@ -301,8 +301,7 @@ For critical security fixes:
 
 | Version | Date | Highlights |
 |---------|------|-----------|
-| 2.5.0-PRO | 2026-05-01 | Complete documentation, glassmorphism UI, 50+ languages |
-| 2.0.0 | 2026-03-15 | Initial release, IndexedDB encryption, Argon2id |
+| 2.5.0-beta | 2026-05-27 | Current release — see CHANGELOG.md |
 
 ---
 
