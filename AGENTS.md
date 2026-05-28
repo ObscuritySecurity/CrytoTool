@@ -21,6 +21,7 @@ npm run cap      # Build Capacitor mobile app
 - **People-first language**: Always use "people" / "persoane" / "oameni". Never "users" / "utilizatori" in any language.
 - **Version**: 2.5.0-beta
 - **No telemetry**: Zero data collection, local-first
+- **Crypto is off-limits**: Never modify `utils/crypto.ts`, `utils/cryptoPrimitives.ts`, `utils/streamCrypto.ts`, `utils/backupCrypto.ts`, `utils/metadataCrypto.ts`, or any encryption logic. Only the project architect handles cryptographic code.
 
 ## Critical Files
 - `App.tsx` - Main state, auth flow, recovery codes logic
