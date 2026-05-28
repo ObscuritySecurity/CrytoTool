@@ -46,6 +46,8 @@ If you find something, [report it](https://github.com/ObscuritySecurity/CrytoToo
 
 **Audit Status:** The CrytoTool codebase has not yet undergone a professional third-party security audit. Professional audits are expensive, and as a community-driven project we don't have the budget for one yet. We hope to fund a full audit in the future. Until then, the code is open for anyone to review — and we encourage you to do so. If you find a vulnerability, please [report it privately](https://github.com/ObscuritySecurity/CrytoTool/security/advisories/new).
 
+> **AI-Assisted Workflow:** This project is architected by [wtshex1](https://github.com/wtshex1) — a specialist in cybersecurity, digital privacy design, and artificial intelligence — who defines the architecture, security model, and product vision. [Scuris](https://github.com/Scuris) is the autonomous AI agent that implements features, documentation, and fixes under that direction. Every commit is reviewed before merging into `main`, ensuring human oversight at every step.
+
 ### Architecture Overview
 
 CrytoTool uses a 100% client-side architecture with 4 layers of encryption:
