@@ -38,8 +38,6 @@ By submitting a pull request, you agree that your contribution is licensed under
 - Use functional React components with hooks
 
 ### Security Requirements
-- All cryptographic code must use Web Crypto API or audited libraries (`hash-wasm`, `libsodium-wrappers`)
-- Vault Key must never be written to disk (only in memory)
 - **Cryptographic code is restricted to the project architect and approved external security auditors.** Contributors must never modify `utils/crypto.ts`, `utils/cryptoPrimitives.ts`, `utils/streamCrypto.ts`, `utils/backupCrypto.ts`, `utils/metadataCrypto.ts`, or any encryption-related logic. Report vulnerabilities via [GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories) — do not open public issues or PRs for crypto flaws.
 
 ### UI/UX Requirements
