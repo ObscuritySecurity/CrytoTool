@@ -181,7 +181,7 @@ CrytoTool's cryptographic code is **strictly governed** to ensure the safety of 
 
 - **Only the project architect or approved external security auditors** may modify, add, or remove encryption algorithms, key derivation functions, or cryptographic primitives.
 - **Contributors must not submit PRs** that touch `utils/crypto.ts`, `utils/cryptoPrimitives.ts`, `utils/streamCrypto.ts`, `utils/backupCrypto.ts`, `utils/metadataCrypto.ts`, or any file containing encryption logic.
-- **Vulnerability reporting**: If you discover a cryptographic flaw, report it via [GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories) — do not open a public issue or PR.
+- **Vulnerability reporting**: If you discover a cryptographic flaw, report it via the [Security Vulnerability template](https://github.com/ObscuritySecurity/CrytoTool/issues/new?template=security_vulnerability.md) or [GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories) for critical vulnerabilities.
 - **Rationale**: Encryption is the foundation of trust. A single mistake in key derivation or algorithm implementation can compromise all people's data. Restricting crypto changes to the architect and approved auditors minimizes this risk.
 
 ---
@@ -214,4 +214,4 @@ Before releasing a new version, verify:
 ---
 
 ## Reporting Security Issues
-If you discover a vulnerability, report it through [GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories) or open an Issue. We respect the people who help us become more secure.
+If you discover a vulnerability, report it through the [Security Vulnerability template](https://github.com/ObscuritySecurity/CrytoTool/issues/new?template=security_vulnerability.md) or [GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories) for critical issues. We respect the people who help us become more secure.
