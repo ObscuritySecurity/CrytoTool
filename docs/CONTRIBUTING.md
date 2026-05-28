@@ -52,8 +52,8 @@ By submitting a pull request, you agree that your contribution is licensed under
 type(scope): brief description
 
 Examples:
-feat(security): add Argon2id memory parameter to UI
-fix(crypto): correct IV generation for AES-GCM
+feat(ui): add glassmorphism hover effects to file cards
+fix(docs): correct broken link in README
 docs(readme): update documentation links
 style(ui): apply glassmorphism to new modal
 ```
