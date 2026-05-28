@@ -18,4 +18,4 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed cryptographic parameters, ke
 
 ## Reporting Security Issues
 
-Report vulnerabilities via **[GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories)** (preferred) or open a standard issue. For cryptographic flaws, contact the project architect directly. We respect everyone who helps keep people's data safe.
+Report vulnerabilities via **[GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories)** 
