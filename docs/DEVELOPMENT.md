@@ -247,7 +247,7 @@ const version = import.meta.env.VITE_APP_VERSION;
 3. **Encrypt before localStorage** - Use `encryptString()` / `decryptString()`
 4. **Validate inputs** - Especially file names, sizes
 5. **Test CSP** - Ensure no inline scripts in production
-6. **Cryptographic code is restricted** — Only the project architect and approved external security auditors may modify `utils/crypto.ts`, `utils/cryptoPrimitives.ts`, `utils/streamCrypto.ts`, `utils/backupCrypto.ts`, `utils/metadataCrypto.ts`, or any encryption logic. Contributors must not touch crypto code. Report vulnerabilities via the [Security Vulnerability template](https://github.com/ObscuritySecurity/CrytoTool/issues/new?template=security_vulnerability.md) (public) or [GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories) (private for critical issues).
+6. **Cryptographic code is restricted** — Only the project architect and approved external security auditors may modify `utils/crypto.ts`, `utils/cryptoPrimitives.ts`, `utils/streamCrypto.ts`, `utils/backupCrypto.ts`, `utils/metadataCrypto.ts`, or any encryption logic. Contributors must not touch crypto code. Report vulnerabilities via [GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories).
 
 ---
 
@@ -263,7 +263,7 @@ const version = import.meta.env.VITE_APP_VERSION;
 ## Getting Help
 
 - **GitHub Issues**: https://github.com/ObscuritySecurity/CrytoTool/issues
-- **Security Issues**: [Security Vulnerability template](https://github.com/ObscuritySecurity/CrytoTool/issues/new?template=security_vulnerability.md) (public) or [GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories) (private)
+- **Security Issues**: https://github.com/ObscuritySecurity/CrytoTool/security/advisories
 - **Documentation**: See `README.md` for all doc links
 
 ---

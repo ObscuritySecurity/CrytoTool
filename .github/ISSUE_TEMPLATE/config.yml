@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Report security vulnerability (private)
+  - name: Security vulnerability report
     url: https://github.com/ObscuritySecurity/CrytoTool/security/advisories/new
-    about: For critical vulnerabilities — use GitHub Security Advisories for private disclosure
+    about: Report a security vulnerability via GitHub Advisories (do NOT open a public issue)
