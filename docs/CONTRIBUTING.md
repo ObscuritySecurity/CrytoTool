@@ -38,14 +38,12 @@ By submitting a pull request, you agree that your contribution is licensed under
 - Use functional React components with hooks
 
 ### Security Requirements
-- All cryptographic code must use Web Crypto API or audited libraries (`hash-wasm`, `libsodium-wrappers`)
-- Vault Key must never be written to disk (only in memory)
-- New crypto features require update to `SECURITY.md` and `architecture.md`
+- **Cryptographic code is restricted to the project architect and approved external security auditors.** Contributors must never modify `utils/crypto.ts`, `utils/cryptoPrimitives.ts`, `utils/streamCrypto.ts`, `utils/backupCrypto.ts`, `utils/metadataCrypto.ts`, or any encryption-related logic. Report vulnerabilities via [GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories) — do not open public issues or PRs for crypto flaws.
 
 ### UI/UX Requirements
 - Follow glassmorphism design (`styles/glass.css`)
 - Use `t('key')` for all text (never hardcode strings)
-- Support all 50+ languages (update `utils/i18n.ts`)
+- Support all 50+ languages — update English source strings in `utils/i18n.ts` (other languages are translated by the community)
 - Responsive design: mobile-first, test at 375px and 1920px (test via browser DevTools at 375px)
 - Animations via Framer Motion with presets from `DESIGN.md`
 
@@ -54,8 +52,8 @@ By submitting a pull request, you agree that your contribution is licensed under
 type(scope): brief description
 
 Examples:
-feat(security): add Argon2id memory parameter to UI
-fix(crypto): correct IV generation for AES-GCM
+feat(ui): add glassmorphism hover effects to file cards
+fix(docs): correct broken link in README
 docs(readme): update documentation links
 style(ui): apply glassmorphism to new modal
 ```
@@ -81,6 +79,7 @@ Before submitting your PR, ensure:
 - [ ] Build passes (`npm run build`)
 - [ ] Uses "people"/"persoane" terminology
 - [ ] No hardcoded strings (use `t('key')`)
+- [ ] **PR does not modify cryptographic code, key derivation, or encryption algorithms**
 - [ ] Updates documentation if adding features
 - [ ] Follows glassmorphism design
 - [ ] Works on mobile and desktop viewports

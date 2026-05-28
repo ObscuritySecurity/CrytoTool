@@ -39,6 +39,7 @@ CrytoTool follows [Protocol-3305](https://github.com/ObscuritySecurity/protocol-
 
 ## Checklist
 
+- [ ] **PR does NOT modify cryptographic code, key derivation, or encryption algorithms**
 - [ ] Tested on target platform(s)
 - [ ] `npx tsc --noEmit` passes
 - [ ] No telemetry / tracking added

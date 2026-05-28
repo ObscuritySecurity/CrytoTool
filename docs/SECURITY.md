@@ -175,7 +175,18 @@ _Version: 2.5.0-beta | Last Updated: 2026-05-27_
 
 ---
 
-## 7. Checklist for Security Review
+## 7. Cryptographic Code Governance
+
+CrytoTool's cryptographic code is **strictly governed** to ensure the safety of people's data:
+
+- **Only the project architect or approved external security auditors** may modify, add, or remove encryption algorithms, key derivation functions, or cryptographic primitives.
+- **Contributors must not submit PRs** that touch `utils/crypto.ts`, `utils/cryptoPrimitives.ts`, `utils/streamCrypto.ts`, `utils/backupCrypto.ts`, `utils/metadataCrypto.ts`, or any file containing encryption logic.
+- **Vulnerability reporting**: If you discover a cryptographic flaw, report it via [GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories) — do not open a public issue or PR.
+- **Rationale**: Encryption is the foundation of trust. A single mistake in key derivation or algorithm implementation can compromise all people's data. Restricting crypto changes to the architect and approved auditors minimizes this risk.
+
+---
+
+## 8. Checklist for Security Review
 
 Before releasing a new version, verify:
 
