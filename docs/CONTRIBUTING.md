@@ -40,7 +40,7 @@ By submitting a pull request, you agree that your contribution is licensed under
 ### Security Requirements
 - All cryptographic code must use Web Crypto API or audited libraries (`hash-wasm`, `libsodium-wrappers`)
 - Vault Key must never be written to disk (only in memory)
-- **Cryptographic code is strictly off-limits to contributors.** Only the project architect may modify encryption logic, add new algorithms, or change existing ones. Contributors may report vulnerabilities or security concerns via [GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories) — they must not submit PRs that touch cryptographic code, key derivation, or encryption algorithms.
+- **Cryptographic code is restricted to the project architect and approved external security auditors.** Contributors must never modify `utils/crypto.ts`, `utils/cryptoPrimitives.ts`, `utils/streamCrypto.ts`, `utils/backupCrypto.ts`, `utils/metadataCrypto.ts`, or any encryption-related logic. Report vulnerabilities via [GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories) — do not open public issues or PRs for crypto flaws.
 
 ### UI/UX Requirements
 - Follow glassmorphism design (`styles/glass.css`)
