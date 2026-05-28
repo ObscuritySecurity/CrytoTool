@@ -1,7 +1,7 @@
 # CrytoTool Release Guide
 _Version: 2.5.0-beta | Last Updated: 2026-05-27_
 
-This document describes how to create and publish new releases of CrytoTool for web, desktop (Tauri), and mobile (Capacitor).
+This document describes how to create and publish new releases of CrytoTool for web, desktop (Tauri), and mobile (Tauri v2).
 
 ---
 
@@ -52,7 +52,7 @@ MAJOR.MINOR.PATCH-SUFFIX
 6. [ ] Create GitHub Release
 7. [ ] Tag the release
 8. [ ] Build desktop apps (Tauri)
-9. [ ] Build mobile apps (Capacitor)
+9. [ ] Build mobile apps (Tauri v2)
 10. [ ] Attach assets to GitHub Release
 
 ---
@@ -117,43 +117,27 @@ Configure in `src-tauri/tauri.conf.json`:
 
 ---
 
-### Mobile Release (Capacitor)
+### Mobile Release (Tauri v2)
 
-#### Android
+Tauri v2 has built-in mobile support for Android and iOS:
+
 ```bash
-# Build web assets
-npm run build
+# Add Android/iOS platform support
+npm run tauri android init
+npm run tauri ios init
 
-# Sync to Android
-npx cap sync android
+# Build for Android
+npm run tauri android build
 
-# Open in Android Studio
-npx cap open android
+# Build for iOS (macOS only)
+npm run tauri ios build
 ```
 
-**In Android Studio:**
-1. Build → Generate Signed Bundle / APK
-2. Choose release build variant
-3. Sign with upload key
-4. Output: `app-release.apk` or `.aab` (for Play Store)
+**Output:**
+- **Android**: `src-tauri/gen/android/app/build/outputs/apk/`
+- **iOS**: `src-tauri/gen/ios/`
 
-#### iOS (macOS only)
-```bash
-# Build web assets
-npm run build
-
-# Sync to iOS
-npx cap sync ios
-
-# Open in Xcode
-npx cap open ios
-```
-
-**In Xcode:**
-1. Select "Any iOS Device (arm64)" as target
-2. Product → Archive
-3. Distribute App → App Store Connect (or Ad Hoc for testing)
-4. Sign with Apple Developer certificate
+See [Tauri v2 Mobile Guide](https://v2.tauri.app/start/mobile/) for full setup instructions.
 
 ---
 

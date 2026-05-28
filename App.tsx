@@ -15,7 +15,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (!showSplash) {
-      // StatusBar removed - Capacitor no longer used
+      // StatusBar handled internally
     }
   }, [showSplash]);
   

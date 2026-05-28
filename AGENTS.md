@@ -5,13 +5,13 @@
 npm run dev      # Start dev server
 npm run build    # TypeScript check + Vite build
 npm run tauri    # Build Tauri desktop app
-npm run cap      # Build Capacitor mobile app
+npm run tauri    # Build Tauri app (desktop + mobile)
 ```
 
 ## Architecture
 - **Type**: React + TypeScript + Vite + Tailwind CSS
 - **Desktop**: Tauri (Rust backend)
-- **Mobile**: Capacitor (React Native wrapper)
+- **Mobile**: Tauri v2 (native Android/iOS)
 - **Encryption**: Argon2id + AES-256-GCM (client-side only)
 - **Storage**: IndexedDB + localStorage (no server)
 - **i18n**: 50+ languages, all UI text in i18nContext
