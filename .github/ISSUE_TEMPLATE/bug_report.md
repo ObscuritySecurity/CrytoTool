@@ -25,7 +25,7 @@ If applicable, add screenshots or a screen recording to help explain the problem
 **Environment (please complete the following):**
 - Platform: [e.g. Desktop / Android / iOS / Web]
 - OS: [e.g. Windows 11, Ubuntu 24.04, Android 14]
-- Version: [e.g. 2.5.0-PRO]
+- Version: [e.g. 2.5.0-beta]
 - Browser (if applicable): [e.g. Chrome 125, Firefox 128]
 - Installation method: [e.g. Tauri desktop, Capacitor APK, npm run dev]
 

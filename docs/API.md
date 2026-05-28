@@ -38,7 +38,7 @@ const masterKey: CryptoKey = await cryptoService.deriveMasterKey('MyPassword123!
 
 **Argon2id Parameters:**
 - Memory: 128MB (131072 KB)
-- Iterations: 4
+- Iterations: 19
 - Parallelism: 4 threads
 - Hash length: 32 bytes
 

@@ -638,7 +638,7 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                 <div className="pt-2 text-center space-y-2">
                     <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface border border-border">
                         <span className="w-2 h-2 rounded-full bg-neon-green animate-pulse"></span>
-                        <span className="text-[10px] font-mono text-muted">v2.5.0-PRO</span>
+                        <span className="text-[10px] font-mono text-muted">v2.5.0-beta</span>
                     </div>
                 </div>
                 </div>
@@ -988,7 +988,7 @@ export const AboutView: React.FC<{
               </h1>
               <p className="text-xs text-zinc-500 font-medium mb-4">Privacy-First File Vault</p>
               <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-900/80 border border-zinc-800">
-                  <span className="text-neon-green text-[10px] font-black uppercase tracking-widest">v2.5.0-PRO</span>
+                  <span className="text-neon-green text-[10px] font-black uppercase tracking-widest">v2.5.0-beta</span>
                   <span className="text-zinc-600 text-[8px]">•</span>
                   <span className="text-zinc-500 text-[10px]">Build 2026.04.07</span>
               </div>

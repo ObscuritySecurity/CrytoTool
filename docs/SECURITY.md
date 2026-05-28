@@ -17,7 +17,7 @@ _Version: 2.5.0-beta | Last Updated: 2026-05-27_
 | **Browser localStorage Access** | Manual encryption keys are now encrypted with Vault Key (AES-256-GCM) before storage | ✅ Protected (from commit 0201163) |
 | **Algorithm Collision** | Standard algorithms: AES-256-GCM, Argon2id, PBKDF2-SHA256, ChaCha20-Poly1305 | ✅ Protected |
 | **Multi-person Access on Same Device** | Auto-lock after inactivity, Progressive Lockout, Self-Destruct option | ✅ Protected |
-| **Password Loss** | 10 unique recovery codes, reset token via email | ✅ Protected |
+| **Password Loss** | 10 unique recovery codes | ✅ Protected |
 | **Supply Chain Attacks (compromised npm packages)** | Regular `npm audit`, minimal dependencies (`hash-wasm`, `libsodium-wrappers`) | ⚠️ Monitored |
 
 ### Extreme Cases (Remaining Risks)
@@ -129,7 +129,7 @@ _Version: 2.5.0-beta | Last Updated: 2026-05-27_
 - ✅ Check: Backup keys generated with 130-bit entropy (26 chars)
 
 #### `utils/security.ts` (PIN + Lockout)
-- ✅ Check: PIN hash uses SHA-256 with fixed salt
+- ✅ Check: PIN hash uses PBKDF2-SHA256 with random salt
 - ✅ Check: `verifyPin()` uses constant-time comparison (`diff |= ...`)
 - ✅ Check: PIN hash is encrypted with Vault Key before localStorage
 

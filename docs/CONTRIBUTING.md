@@ -61,12 +61,6 @@ style(ui): apply glassmorphism to new modal
 ```
 Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 
-## Code Quality Tools (Recommended)
-```bash
-npm run lint       # Check code style
-npm run format     # Auto-format code
-```
-
 ## Development Setup
 ```bash
 git clone https://github.com/ObscuritySecurity/CrytoTool.git
@@ -78,10 +72,9 @@ npm run dev
 ## Testing
 ```bash
 npm run build  # Must pass with no TypeScript errors
-npm run test   # Unit tests (if available)
 npm run tauri  # Desktop build test (mandatory for src-tauri/ changes)
 ```
-Unit tests for crypto primitives are planned. See issue #XXX for progress.
+Unit tests for crypto primitives are planned.
 
 ## Review Checklist
 Before submitting your PR, ensure:

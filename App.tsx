@@ -46,7 +46,7 @@ const App: React.FC = () => {
   };
 
   // --- VAULT SETTINGS (NEW) ---
-  // Vault is disabled by default for new users
+  // Vault is disabled by default for new people
   const [vaultEnabled, setVaultEnabled] = useState(() => {
     const saved = localStorage.getItem('crytotool_vault_enabled');
     return saved !== null ? saved === 'true' : false;
