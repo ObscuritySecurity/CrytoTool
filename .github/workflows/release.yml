@@ -1,39 +1,30 @@
-changelog:
-  categories:
-    - title: Added
-      labels:
-        - enhancement
-        - feature
-        - i18n
-        - translation
-    - title: Changed
-      labels:
-        - changed
-        - refactor
-        - performance
-        - dependencies
-    - title: Fixed
-      labels:
-        - bug
-        - bugfix
-        - hotfix
-    - title: Security
-      labels:
-        - security
-    - title: Removed
-      labels:
-        - removed
-        - deprecated
-    - title: Documentation
-      labels:
-        - documentation
-        - docs
-    - title: CI / Build
-      labels:
-        - ci
-        - build
-        - test
-        - tests
-    - title: Other Changes
-      labels:
-        - "*"
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract changelog for this version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          awk -v ver="$VERSION" '
+            $0 ~ "^## \\[" ver "\\]" { flag=1; next }
+            flag && $0 ~ "^## " { exit }
+            flag { print }
+          ' docs/CHANGELOG.md > release_body.md
+
+      - uses: softprops/action-gh-release@v3
+        with:
+          body_path: release_body.md
+          update: true
+          make_latest: ${{ !contains(github.ref_name, 'beta') && !contains(github.ref_name, 'alpha') && !contains(github.ref_name, 'rc') }}
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') || contains(github.ref_name, 'rc') }}
