@@ -120,7 +120,7 @@ npm run cap         # Build Capacitor mobile app
    npm run build  # Must pass with no errors
    ```
 
-5. **Update documentation** - `architecture.md`, `SECURITY.md`, or `API.md`
+5. **Update documentation** - `ARCHITECTURE.md`, `SECURITY.md`, or `API.md`
 
 6. **Commit**
    ```bash
@@ -145,7 +145,7 @@ npm run tauri
 
 **Requirements:**
 - Rust installed (https://rustup.rs/)
-- System dependencies for Tauri (see https://tauri.app/v1/guides/getting-started/prerequisites)
+- System dependencies for Tauri (see https://v2.tauri.app/start/prerequisites/)
 
 **First run:**
 ```bash
@@ -213,7 +213,7 @@ npm run build
 
 Create `.env` file (not committed):
 ```env
-VITE_APP_VERSION=2.5.0-PRO
+VITE_APP_VERSION=2.5.0-beta
 VITE_BUILD_DATE=2026-05-01
 ```
 

@@ -11,7 +11,7 @@ CrytoTool follows [Semantic Versioning](https://semver.org/):
 
 ```
 MAJOR.MINOR.PATCH-SUFFIX
-  2    .  5  .  0  -PRO
+  2    .  5  .  0  -beta
 │       │      │      │
 │       │      │      └─ Suffix: PRO, BETA, ALPHA, RC1, etc.
 │       │      └──────── Patch: Bug fixes, small changes
@@ -46,7 +46,7 @@ MAJOR.MINOR.PATCH-SUFFIX
 ### Release Steps
 1. [ ] Create release branch `release/vX.Y.Z`
 2. [ ] Update version in `package.json`
-3. [ ] Update version in all docs (`SECURITY.md`, `DESIGN.md`, `architecture.md`, etc.)
+3. [ ] Update version in all docs (`SECURITY.md`, `DESIGN.md`, `ARCHITECTURE.md`, etc.)
 4. [ ] Build and test all platforms
 5. [ ] Commit and push release branch
 6. [ ] Create GitHub Release

@@ -1,6 +1,6 @@
 {
   "productName": "CrytoTool",
-  "version": "2.5.0",
+  "version": "2.5.0-beta",
   "identifier": "com.crytotool.vault",
   "build": {
     "beforeDevCommand": "npm run dev",

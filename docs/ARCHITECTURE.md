@@ -156,7 +156,7 @@ Implemented in `utils/backupCrypto.ts` and `components/views/BackupView.tsx`. Ba
        "localStorage": { ... },
        "db": [ ... ],
        "timestamp": 1714523200000,
-       "version": "2.5.0"
+       "version": "2.5.0-beta"
      }
      ```
 
@@ -177,7 +177,7 @@ Implemented in `utils/backupCrypto.ts` and `components/views/BackupView.tsx`. Ba
 1. Upload `.enc` backup file
 2. Enter 26-character backup key
 3. Extract salt (16 bytes) + IV (12 bytes) + ciphertext
-4. Derive key with PBKDF2-SHA256 (600k iterations)
+4. Derive key with Argon2id (19 iterations, 128MB memory)
 5. Decrypt with AES-GCM → Parse JSON
 6. Restore localStorage entries and import IndexedDB data via `db.importDatabase()`
 7. Reload the application
@@ -292,9 +292,11 @@ CrytoTool/
 │   └── 📄 glass.css             # Glassmorphism UI styles
 │
 └── 📁 .github/workflows/        # CI/CD pipelines
-    ├── 📄 build.yml
-    ├── 📄 security.yml
-    └── 📄 opencode.yml
+    ├── 📄 tauri-macos.yml
+    ├── 📄 tauri-windows.yml
+    ├── 📄 tauri-linux.yml
+    ├── 📄 tauri-android.yml
+    └── 📄 release.yml
 ```
 
 ### IndexedDB Data Hierarchy

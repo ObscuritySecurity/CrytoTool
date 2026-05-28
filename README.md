@@ -9,7 +9,7 @@
   <br>
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white" alt="TypeScript" /></a> <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB" alt="React" /></a> <a href="https://vitejs.dev/"><img src="https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white" alt="Vite" /></a> <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" /></a> <a href="https://tauri.app/"><img src="https://img.shields.io/badge/Tauri-24C8D8?style=flat&logo=tauri&logoColor=white" alt="Tauri" /></a>
   <br>
-  <a href="https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-38d.pdf"><img src="https://img.shields.io/badge/AES--256--GCM-FF6F00?style=flat&logo=letsencrypt&logoColor=white" alt="AES-256-GCM" /></a> <a href="https://github.com/P-H-C/phc-winner-argon2"><img src="https://img.shields.io/badge/Argon2id-9C27B0?style=flat&logo=password&logoColor=white" alt="Argon2id" /></a> <a href="https://github.com/ObscuritySecurity/CrytoTool/blob/main/utils/i18n.ts"><img src="https://img.shields.io/badge/51_Languages-4CAF50?style=flat&logo=translate&logoColor=white" alt="52 Languages" /></a>
+  <a href="https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-38d.pdf"><img src="https://img.shields.io/badge/AES--256--GCM-FF6F00?style=flat&logo=letsencrypt&logoColor=white" alt="AES-256-GCM" /></a> <a href="https://github.com/P-H-C/phc-winner-argon2"><img src="https://img.shields.io/badge/Argon2id-9C27B0?style=flat&logo=password&logoColor=white" alt="Argon2id" /></a> <a href="https://github.com/ObscuritySecurity/CrytoTool/blob/main/utils/i18n.ts"><img src="https://img.shields.io/badge/51_Languages-4CAF50?style=flat&logo=translate&logoColor=white" alt="51 Languages" /></a>
   </p>
 </div>  
 
@@ -45,6 +45,8 @@ CrytoTool is open source so anyone can audit the code, report issues, suggest im
 If you find something, [report it](https://github.com/ObscuritySecurity/CrytoTool/issues). If you can fix something, [open a pull request](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/CONTRIBUTING.md). Security is not a product — it's a process, and we build it together.
 
 **Audit Status:** The CrytoTool codebase has not yet undergone a professional third-party security audit. Professional audits are expensive, and as a community-driven project we don't have the budget for one yet. We hope to fund a full audit in the future. Until then, the code is open for anyone to review — and we encourage you to do so. If you find a vulnerability, please [report it privately](https://github.com/ObscuritySecurity/CrytoTool/security/advisories/new).
+
+> **AI-Assisted Workflow:** This project is architected by [wtshex1](https://github.com/wtshex1) — a specialist in cybersecurity, digital privacy design, and artificial intelligence — who defines the architecture, security model, and product vision. [Scuris](https://github.com/Scuris) is the autonomous AI agent that implements features, documentation, and fixes under that direction. Every commit is reviewed before merging into `main`, ensuring human oversight at every step.
 
 ### Architecture Overview
 
@@ -120,7 +122,7 @@ Explore these guides to understand our project's principles, technical design, a
 -   [Contributing Guide](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/CONTRIBUTING.md) Instructions on how to contribute to the project.
 -   [License](https://github.com/ObscuritySecurity/CrytoTool/blob/main/LICENSE)  AGPL-3.0 license under which this software is provided.
 -   [Security Documentation](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/SECURITY.md) Threat model, attack surface, and audit guidelines.
--   [Technical Architecture](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/architecture.md) A deep dive into the technical design and encryption model.
+-   [Technical Architecture](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/ARCHITECTURE.md) A deep dive into the technical design and encryption model.
 -   [UI/UX Design Standards](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/DESIGN.md) Design rules, terminology (people not users), visual language, accessibility, and i18n standards.
 -   [API Documentation](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/API.md) Public APIs for crypto services, database, and utilities.
 -   [Development Guide](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/DEVELOPMENT.md) Setup, workflows, and coding standards for developers.

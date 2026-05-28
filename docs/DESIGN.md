@@ -250,7 +250,7 @@ Use `animate-pulse` with `bg-zinc-800` for loading states:
 ---
 
 ## Resources
-- **Technical Architecture**: [architecture.md](https://github.com/ObscuritySecurity/CrytoTool/blob/main/architecture.md)
+- **Technical Architecture**: [ARCHITECTURE.md](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/ARCHITECTURE.md)
 - **i18n Keys**: [utils/i18n.ts](https://github.com/ObscuritySecurity/CrytoTool/blob/main/utils/i18n.ts)
 - **Theme Config**: [utils/themes.ts](https://github.com/ObscuritySecurity/CrytoTool/blob/main/utils/themes.ts)
 - **Glass CSS**: [styles/glass.css](https://github.com/ObscuritySecurity/CrytoTool/blob/main/styles/glass.css)
