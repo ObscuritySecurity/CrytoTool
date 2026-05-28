@@ -43,7 +43,7 @@ By submitting a pull request, you agree that your contribution is licensed under
 ### UI/UX Requirements
 - Follow glassmorphism design (`styles/glass.css`)
 - Use `t('key')` for all text (never hardcode strings)
-- Support all 50+ languages (update `utils/i18n.ts`)
+- Support all 50+ languages — update English source strings in `utils/i18n.ts` (other languages are translated by the community)
 - Responsive design: mobile-first, test at 375px and 1920px (test via browser DevTools at 375px)
 - Animations via Framer Motion with presets from `DESIGN.md`
 
