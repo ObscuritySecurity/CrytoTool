@@ -55,7 +55,7 @@ CrytoTool uses a 100% client-side architecture with 4 layers of encryption:
 | Layer | What it does | Key detail |
 |-------|----------------|------------|
 | **1. Database Encryption** | Auto-encrypts every file in IndexedDB | AES-256-GCM, keys from Master Password via Argon2id |
-| **2. File & Folder Encryption** | Manual encryption with 6 algorithms | AES-GCM, XChaCha20-Poly1305, ChaCha20-Poly1305, AES-CTR, Salsa20-Poly1305, AES-GCM-Stream |
+| **2. Manual Encryption** | Manual encryption with 6 algorithms | AES-GCM, XChaCha20-Poly1305, ChaCha20-Poly1305, AES-CTR, Salsa20-Poly1305, AES-GCM-Stream |
 | **3. Encrypted Backup** | Creates secure backups of all data | Argon2id + AES-256-GCM, unique 26-char key |
 | **4. Streaming Encryption** | Handles large files on any device | 4MB chunks, AES-GCM per chunk, safe for low-RAM devices |
 
