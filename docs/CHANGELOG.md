@@ -11,11 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 CrytoTool is a four-in-one, client-side encrypted file manager, gallery, music player, and document viewer. Zero tracking, zero ads, zero data collection. Fully compliant with [Protocol-3305](https://github.com/ObscuritySecurity/protocol-3305).
 
-### Encryption System — 3 Layers
+### Encryption System — 4 Layers
 
 - **Layer 1 — Database Encryption (IndexedDB):** Every file stored in IndexedDB is auto-encrypted with AES-256-GCM. Master key derived from the person's Master Password via Argon2id (128MB memory, 19 iterations, 4-way parallelism).
-- **Layer 2 — Encrypted Backup:** Full vault backups protected with Argon2id + AES-256-GCM and a unique 26-character key.
-- **Layer 3 — Streaming Encryption:** Large files processed in 4MB chunks with per-chunk AES-GCM encryption, safe for low-RAM devices.
+- **Layer 2 — File & Folder Encryption:** Manual encryption supporting 6 algorithms: AES-256-GCM, XChaCha20-Poly1305, ChaCha20-Poly1305, AES-CTR (256-bit), Salsa20-Poly1305, AES-GCM-Stream.
+- **Layer 3 — Encrypted Backup:** Full vault backups protected with Argon2id + AES-256-GCM and a unique 26-character key.
+- **Layer 4 — Streaming Encryption:** Large files processed in 4MB chunks with per-chunk AES-GCM encryption, safe for low-RAM devices.
 
 ### Security Features
 
