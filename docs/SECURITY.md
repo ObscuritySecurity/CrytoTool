@@ -10,8 +10,8 @@ CrytoTool is built for **people**, not users. Specifically:
 | Audience | Why They Need It |
 |----------|------------------|
 | **Ordinary People** | File manager, gallery, music player, document viewer — all encrypted by default with multiple security layers, plus optional layers you can enable. Everything works locally, no setup needed. |
-| **Journalists** | You need to protect sources, drafts, and research material. Your device could be searched at a border or seized. |
-| **Activists** | Your phone contains contact lists, meeting notes, evidence. A locked device is not enough — encryption must be verifiable. |
+| **Journalists** | You investigate, write, and publish. Your device could be searched at a border. You need to protect sources, drafts, and research material from seizure. |
+| **Activists** | You organize, document, and speak out. No law protects you the way it protects journalists. Your device may be confiscated for forensic analysis, and you face detention without procedural safeguards. Encryption must hold against extended physical access. |
 | **Power Users** | You want multiple algorithms, streaming encryption, encrypted metadata, self-destruct, Dead Man Switch. Full control. |
 
 CrytoTool asks for **30+ characters once** (Master Password setup), then only your **6-digit PIN** for daily access. The rest is optional — turn features on as you need them.
@@ -49,11 +49,12 @@ CrytoTool asks for **30+ characters once** (Master Password setup), then only yo
 
 ### 📰 Journalists
 
-**Typical threats:**
-- Border search / device seizure
-- Targeted phishing or malware
-- Physical coercion to unlock
-- Subpoena to cloud provider (irrelevant — no cloud)
+**Typical context:**
+- Journalism is legally protected in many countries — but devices can still be searched at borders
+- Device seizure is usually short-term (hours, not days)
+- Targeted phishing and surveillance from state or corporate actors
+- Sources and contacts are the primary asset to protect
+- Subpoena to cloud provider is a risk (irrelevant here — no cloud)
 
 **How CrytoTool protects you:**
 | Setting | What It Does | Default |
@@ -78,11 +79,12 @@ CrytoTool asks for **30+ characters once** (Master Password setup), then only yo
 
 ### ✊ Activists
 
-**Typical threats:**
-- Device confiscation with forensic extraction (Cellebrite, GrayKey)
-- Extended detention with device access
-- Targeted surveillance
-- Physical threats to compel unlock
+**Typical context:**
+- No legal shield — same laws used against you
+- Device confiscated for forensic extraction (Cellebrite, GrayKey) — adversary has it for days or weeks
+- Extended detention where device access is compelled
+- Physical threats or coercion to unlock
+- State-level surveillance resources may be deployed
 
 **How CrytoTool protects you:**
 | Setting | What It Does | Default |
