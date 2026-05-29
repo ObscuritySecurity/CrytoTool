@@ -27,14 +27,11 @@ If applicable, add screenshots or a screen recording to help explain the problem
 - OS: [e.g. Windows 11, Ubuntu 24.04, Android 14]
 - Version: [e.g. 2.5.0-beta]
 - Browser (if applicable): [e.g. Chrome 125, Firefox 128]
-- Installation method: [e.g. Tauri desktop, Capacitor APK, npm run dev]
+- Installation method: [e.g. Tauri desktop, Tauri APK, npm run dev]
 
-**Vault backup available?**
-- [ ] Yes, I have a backup of my vault
-- [ ] No
 
 **Additional context**
-Add any other context about the problem here, such as error messages from the browser console or app logs.
+Add any other context about the problem here, such as error messages from the browser console logs
 
 **Security concern?**
 If this bug involves a cryptographic issue (key derivation, encryption, decryption), please mark below so we prioritize accordingly:
