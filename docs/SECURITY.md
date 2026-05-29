@@ -37,6 +37,7 @@ CrytoTool asks for **30+ characters once** (Master Password setup), then only yo
 | Visual Obfuscation | Blurs content when vault is locked | On |
 | AES-256-GCM | Default encryption for all stored files | On |
 | Trash | Deleted files go to trash before permanent erase | On |
+| Settings Password | Separate password for sensitive options (optional) | Off |
 
 **What you should do:**
 1. Choose a Master Password you can remember (30+ characters — a sentence works)
@@ -62,6 +63,7 @@ CrytoTool asks for **30+ characters once** (Master Password setup), then only yo
 | Dead Man Switch | Auto-lock + blur + destruct after prolonged inactivity | Off (you enable) |
 | 10 Recovery Codes | Emergency access if you forget password | On (save them) |
 | Encrypted Metadata | File names, tags, album names encrypted | On |
+| Settings Password | Separate password protects settings from modification if device is accessed | Off (enable) |
 | No Network Requests | Zero data leaves your device (100% client-side) | By design |
 
 **What you should do:**
@@ -89,6 +91,7 @@ CrytoTool asks for **30+ characters once** (Master Password setup), then only yo
 | Vault Key in RAM only | On lock or timeout, key is destroyed | On |
 | No biometric fallback | PIN-only — biometrics can be forced | Off (optional) |
 | Encrypted Backup Key | Separate 26-char passphrase for backups | On |
+| Settings Password | Extra password for settings — prevents reconfiguration if device is compromised | Off (enable) |
 | PIN Blacklist | Blocks most common 6-digit PINs | On |
 | Timing-safe PIN check | Prevents side-channel attacks | On |
 
@@ -125,6 +128,7 @@ CrytoTool asks for **30+ characters once** (Master Password setup), then only yo
 | Encrypted metadata | File name, tags, artist, album, cover art URL — all encrypted |
 | Custom icon per folder | No hints about folder contents |
 | Storage overview | See file types without decrypting |
+| Settings Password | Independent password for sensitive settings — defense-in-depth | Off (optional) |
 | 100 themes + 40+ fonts | Obfuscate UI — no visual cues about app purpose |
 
 For implementation details, see [ARCHITECTURE.md](ARCHITECTURE.md).
