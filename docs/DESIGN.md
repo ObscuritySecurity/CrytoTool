@@ -218,7 +218,7 @@ Before submitting a PR that changes UI/UX:
 - [ ] Animations use Framer Motion with provided presets
 - [ ] All text uses `t('key')` (no hardcoded strings)
 - [ ] A11y: keyboard navigable, screen-reader friendly
-- [ ] i18n: updated ALL 50+ languages (or clearly marked as needing translation)
+- [ ] i18n: English source strings updated in `utils/i18n.ts` (community handles translations)
 - [ ] Theming: works with dark/light/system modes
 - [ ] Performance: no layout shifts, smooth animations (60fps)
 - [ ] Screenshots attached for visual changes
