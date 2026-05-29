@@ -4,12 +4,9 @@ _Version: 2.5.0-beta | Last Updated: 2026-05-27_
 ## Table of Contents
 1. [Database Encryption (IndexedDB)](#1-database-encryption-indexeddb)
 2. [Metadata Encryption](#2-metadata-encryption)
-3. [File & Folder Encryption](#3-file--folder-encryption)
-   - [Automatic Encryption (Vault Default)](#automatic-encryption-vault-default)
-   - [Manual Encryption](#manual-encryption)
-4. [Encrypted Backup System](#4-encrypted-backup-system)
-5. [Streaming Encryption](#5-streaming-encryption)
-6. [Project Directory Structure](#6-project-directory-structure)
+3. [Encrypted Backup System](#4-encrypted-backup-system)
+4. [Streaming Encryption](#5-streaming-encryption)
+5. [Project Directory Structure](#6-project-directory-structure)
    - [Source Code Tree](#source-code-tree)
    - [IndexedDB Data Hierarchy](#indexeddb-data-hierarchy)
 
@@ -89,7 +86,7 @@ On upgrade to `DB_VERSION = 3`, existing items without `encryptedMeta` are migra
 - Plaintext `name` is base64-encoded into `encryptedMeta.ciphertext`
 - Legacy `tags`, `artist`, `album`, `coverUrl`, `customIcon`, `externalUrl` are removed
 
-## 3. File & Folder Encryption
+
 ### Automatic Encryption (Vault Default)
 - **Trigger**: Any file added via the Dashboard, Upload, or New Folder action
 - **Algorithm**: AES-256-GCM (industry standard)
