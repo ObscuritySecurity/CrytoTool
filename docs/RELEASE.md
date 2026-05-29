@@ -38,7 +38,7 @@ MAJOR.MINOR.PATCH-SUFFIX
 - [ ] Version bumped in `package.json`
 - [ ] `CHANGELOG.md` updated with new version section
 - [ ] Security review completed (especially for crypto changes)
-- [ ] Translations updated for all 50+ languages
+- [ ] English source strings updated (other languages translated by community)
 - [ ] No console errors or warnings
 - [ ] Tested on mobile (375px) and desktop (1920px)
 - [ ] CSP meta tag present in `index.html`

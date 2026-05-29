@@ -113,7 +113,7 @@ npm run tauri       # Also builds Tauri mobile (Android/iOS) when configured
    - New modals → `components/FeatureModal.tsx`
    - New crypto → add to `utils/crypto.ts` or `utils/cryptoPrimitives.ts`
 
-3. **Update i18n** - Add keys to ALL 50+ languages in `utils/i18n.ts`
+3. **Update i18n** - Add English source strings in `utils/i18n.ts` (other languages are translated by the community)
 
 4. **Test build**
    ```bash
