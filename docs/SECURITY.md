@@ -152,4 +152,4 @@ For implementation details, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 Report vulnerabilities via **[GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories)**
 
-Only the project architect and approved external security auditors handle cryptographic code. Vulnerability reports are confidential and responded to within 72 hours.
+We prioritize security — vulnerability remediation and response will be as fast as possible. Only the project architect and approved external security auditors handle cryptographic code. Vulnerability reports are confidential and responded to within 72 hours.
