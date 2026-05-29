@@ -4,12 +4,9 @@ _Version: 2.5.0-beta | Last Updated: 2026-05-27_
 ## Table of Contents
 1. [Database Encryption (IndexedDB)](#1-database-encryption-indexeddb)
 2. [Metadata Encryption](#2-metadata-encryption)
-3. [File & Folder Encryption](#3-file--folder-encryption)
-   - [Automatic Encryption (Vault Default)](#automatic-encryption-vault-default)
-   - [Manual Encryption](#manual-encryption)
-4. [Encrypted Backup System](#4-encrypted-backup-system)
-5. [Streaming Encryption](#5-streaming-encryption)
-6. [Project Directory Structure](#6-project-directory-structure)
+3. [Encrypted Backup System](#3-encrypted-backup-system)
+4. [Streaming Encryption](#4-streaming-encryption)
+5. [Project Directory Structure](#5-project-directory-structure)
    - [Source Code Tree](#source-code-tree)
    - [IndexedDB Data Hierarchy](#indexeddb-data-hierarchy)
 
@@ -89,57 +86,7 @@ On upgrade to `DB_VERSION = 3`, existing items without `encryptedMeta` are migra
 - Plaintext `name` is base64-encoded into `encryptedMeta.ciphertext`
 - Legacy `tags`, `artist`, `album`, `coverUrl`, `customIcon`, `externalUrl` are removed
 
-## 3. File & Folder Encryption
-### Automatic Encryption (Vault Default)
-- **Trigger**: Any file added via the Dashboard, Upload, or New Folder action
-- **Algorithm**: AES-256-GCM (industry standard)
-- **Key**: In-memory Vault Key (derived from Master Password via Argon2id)
-- **Storage**: IndexedDB with `isEncrypted: true` flag
-- **No intervention required**: Key management is automatic
-
-### Manual Encryption
-Triggered via the `EncryptionModal` component (`components/EncryptionModal.tsx`) for files already in the vault.
-
-#### Workflow (`EncryptionModal.tsx:200-269`):
-1. **Algorithm Selection**: Choose from 6 supported algorithms:
-   | Algorithm | Description | Use Case |
-   |------------|-------------|----------|
-   | AES-GCM-Stream | 4MB chunked streaming | Large files, low-RAM devices |
-   | AES-GCM | NIST-recommended standard | General purpose, documents, photos |
-   | XChaCha20-Poly1305 | Extended 192-bit nonce | Cloud storage, long-term archival |
-   | ChaCha20-Poly1305 | Mobile-optimized | Fast encryption on phones/tablets |
-   | AES-CTR + HMAC | Classic AES with integrity check | Legacy compatibility |
-   | Salsa20-Poly1305 | DJB's original stream cipher | Enthusiast choice, eSTREAM finalist |
-
-2. **Key Generation**: A 32-byte random key is generated via `window.crypto.getRandomValues()`, formatted as uppercase hex with dashes (e.g., `A1B2-C3D4-E5F6-...`)
-
-3. **Decrypt (if needed)**: If the file was previously encrypted with the default Vault Key, it is first decrypted using the in-memory vault key
-
-4. **Encrypt with selected algorithm**:
-   - For AES-GCM-Stream: `streamCrypto.encrypt(rawData, generatedKey)`
-   - For other algorithms: `cryptoService.encryptWithPassphrase(rawData, generatedKey, algorithm)`
-
-5. **Store in IndexedDB**: Update the file entry with `ciphertext`, `iv` (base64), `salt` (base64, for key derivation), `algorithm`, `isEncrypted: true`
-
-6. **Optional Vault Storage**: Save the generated key to `vaultStorage` with a selected category for easy reuse. **Security note**: All keys in `vaultStorage` are now encrypted with the Vault Key (AES-256-GCM) before being stored in localStorage (`utils/vaultStorage.ts`). The encrypted format is: `{ iv: base64, data: base64 }` where `data` is the encrypted JSON of all vault key entries.
-
-#### Manual Encryption Key Derivation (`crypto.ts:75-83`):
-```
-Person-Generated Passphrase + Random Salt (16 bytes) → Argon2id (hash-wasm, 4 iterations, 128MB memory, 4-way parallel) → 32-byte raw key → Passed to selected primitive
-```
-The passphrase-based KDF uses `argon2id` from `hash-wasm`, replacing the previous `libsodium.crypto_pwhash()` dependency. This provides proper key stretching against brute-force attacks without requiring WebAssembly loading for libsodium's pwhash module.
-
-#### Vault Key Storage Encryption (`utils/crypto.ts:232-266`, `utils/vaultStorage.ts`):
-```
-JSON.stringify(vaultKeyEntries) → TextEncoder → AES-GCM (Vault Key, random IV) → Base64 encode → localStorage
-```
-- On read: localStorage → Base64 decode (iv + data) → AES-GCM decrypt (Vault Key) → JSON.parse
-- The Vault Key is never stored; it is derived from Master Password via Argon2id and kept only in memory
-- Legacy plaintext keys (older versions) are handled: returned as-is and migrated to encrypted format on next save
-
----
-
-## 4. Encrypted Backup System
+## 3. Encrypted Backup System
 Implemented in `utils/backupCrypto.ts` and `components/views/BackupView.tsx`. Backups are fully client-side and never sent to a server.
 
 ### Backup Creation Flow (`BackupView.tsx:30-74`):
@@ -184,7 +131,7 @@ Implemented in `utils/backupCrypto.ts` and `components/views/BackupView.tsx`. Ba
 
 ---
 
-## 5. Streaming Encryption
+## 4. Streaming Encryption
 Designed for large files on low-RAM devices, implemented in `utils/streamCrypto.ts`. Processes files in 4MB chunks to avoid loading the entire file into memory.
 
 ### Encryption Flow (`streamCrypto.encrypt`):
@@ -221,7 +168,7 @@ Designed for large files on low-RAM devices, implemented in `utils/streamCrypto.
 
 ---
 
-## 6. Project Directory Structure
+## 5. Project Directory Structure
 
 ### Source Code Tree
 ```
