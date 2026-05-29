@@ -9,7 +9,7 @@ CrytoTool is built for **people**, not users. Specifically:
 
 | Audience | Why They Need It |
 |----------|------------------|
-| **Ordinary People** | You want your photos, documents, and files private — from anyone who borrows your device. Everything works locally. |
+| **Ordinary People** | CrytoTool offers security by default with multiple built-in layers, plus optional layers you can enable as needed. Everything works locally. |
 | **Journalists** | You need to protect sources, drafts, and research material. Your device could be searched at a border or seized. |
 | **Activists** | Your phone contains contact lists, meeting notes, evidence. A locked device is not enough — encryption must be verifiable. |
 | **Power Users** | You want multiple algorithms, streaming encryption, encrypted metadata, self-destruct, Dead Man Switch. Full control. |
