@@ -21,7 +21,7 @@
 ## Protocol-3305 alignment
 
 CrytoTool follows [Protocol-3305](https://github.com/ObscuritySecurity/protocol-3305).  
-✓ = compliant, (explain), X = violation (blocking).
+✓ = compliant, X = violation (blocking).
 
 | Art. | Principle | Status | Notes |
 | ---- | --------- | ------ | ----- |
