@@ -19,7 +19,7 @@ This guide helps developers set up their environment and understand the developm
 ### For Mobile Development (Optional)
 - **Android Studio** + Android SDK (for Android)
 - **Xcode** (for iOS, macOS only)
-- **Capacitor CLI**: `npm install -g @capacitor/cli`
+- **Tauri v2 mobile prerequisites**: `cargo install tauri-cli`
 
 ---
 
@@ -92,7 +92,7 @@ CrytoTool/
 npm run dev          # Start Vite dev server
 npm run build        # TypeScript check + Vite build
 npm run tauri       # Build Tauri desktop app
-npm run cap         # Build Capacitor mobile app
+npm run tauri       # Also builds Tauri mobile (Android/iOS) when configured
 ```
 
 ### Code Style
@@ -152,22 +152,13 @@ npm run tauri
 npm run tauri dev    # Development with hot reload
 ```
 
-### Mobile (Capacitor)
+### Mobile (Tauri v2)
 
-#### Android
-```bash
-npm run build
-npx cap add android
-npx cap sync
-npx cap open android   # Opens Android Studio
-```
+Tauri v2 includes native mobile build support:
 
-#### iOS (macOS only)
 ```bash
-npm run build
-npx cap add ios
-npx cap sync
-npx cap open ios     # Opens Xcode
+npm run tauri android build   # Build for Android
+npm run tauri ios build       # Build for iOS (macOS only)
 ```
 
 ---
@@ -247,7 +238,7 @@ const version = import.meta.env.VITE_APP_VERSION;
 3. **Encrypt before localStorage** - Use `encryptString()` / `decryptString()`
 4. **Validate inputs** - Especially file names, sizes
 5. **Test CSP** - Ensure no inline scripts in production
-6. **Cryptographic code is restricted** — Only the project architect and approved external security auditors may modify `utils/crypto.ts`, `utils/cryptoPrimitives.ts`, `utils/streamCrypto.ts`, `utils/backupCrypto.ts`, `utils/metadataCrypto.ts`, or any encryption logic. Contributors must not touch crypto code. Report vulnerabilities via [GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories).
+6. **Cryptographic code is restricted** — Only the project architect and approved external security auditors may modify `utils/crypto.ts`, `utils/cryptoPrimitives.ts`, `utils/streamCrypto.ts`, `utils/backupCrypto.ts`, `utils/metadataCrypto.ts`, or any encryption logic. Contributors must not touch crypto code. Report vulnerabilities via [GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories). We prioritize security — vulnerability remediation and response will be as fast as possible.
 
 ---
 
@@ -263,7 +254,7 @@ const version = import.meta.env.VITE_APP_VERSION;
 ## Getting Help
 
 - **GitHub Issues**: https://github.com/ObscuritySecurity/CrytoTool/issues
-- **Security Issues**: https://github.com/ObscuritySecurity/CrytoTool/security/advisories
+- **Security Issues**: https://github.com/ObscuritySecurity/CrytoTool/security/advisories — We prioritize security, vulnerability response is as fast as possible.
 - **Documentation**: See `README.md` for all doc links
 
 ---
@@ -276,9 +267,7 @@ const version = import.meta.env.VITE_APP_VERSION;
 | Check types | `npx tsc --noEmit` |
 | Build for web | `npm run build` |
 | Build desktop | `npm run tauri` |
-| Build mobile | `npm run cap` |
-| Add Android | `npx cap add android` |
-| Add iOS | `npx cap add ios` |
-| Sync Capacitor | `npx cap sync` |
+| Build mobile Android | `npm run tauri android build` |
+| Build mobile iOS | `npm run tauri ios build` |
 
 **Remember: We build software that respects people. Code accordingly.**

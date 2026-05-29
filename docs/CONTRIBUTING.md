@@ -9,7 +9,7 @@ By submitting a pull request, you agree that your contribution is licensed under
 ### Reporting Issues
 - Use [GitHub Issues](https://github.com/ObscuritySecurity/CrytoTool/issues) to report bugs
 - Include: steps to reproduce, expected behavior, actual behavior, screenshots if UI-related
-- For security vulnerabilities, please use [GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories) instead of public issues
+- For security vulnerabilities, please use [GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories) instead of public issues. We prioritize security — vulnerability remediation and response will be as fast as possible.
 
 ### Suggesting Features
 - Open an issue with label `enhancement`
@@ -38,7 +38,7 @@ By submitting a pull request, you agree that your contribution is licensed under
 - Use functional React components with hooks
 
 ### Security Requirements
-- **Cryptographic code is restricted to the project architect and approved external security auditors.** Contributors must never modify `utils/crypto.ts`, `utils/cryptoPrimitives.ts`, `utils/streamCrypto.ts`, `utils/backupCrypto.ts`, `utils/metadataCrypto.ts`, or any encryption-related logic. Report vulnerabilities via [GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories) — do not open public issues or PRs for crypto flaws.
+- **Cryptographic code is restricted to the project architect and approved external security auditors.** Contributors must never modify `utils/crypto.ts`, `utils/cryptoPrimitives.ts`, `utils/streamCrypto.ts`, `utils/backupCrypto.ts`, `utils/metadataCrypto.ts`, or any encryption-related logic. Report vulnerabilities via [GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories) — do not open public issues or PRs for crypto flaws. We prioritize security — vulnerability remediation and response will be as fast as possible.
 
 ### UI/UX Requirements
 - Follow glassmorphism design (`styles/glass.css`)

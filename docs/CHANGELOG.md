@@ -79,7 +79,7 @@ CrytoTool is a four-in-one, client-side encrypted file manager, gallery, music p
 ### Platform Support
 
 - **Desktop:** Windows (MSI, NSIS), Linux (AppImage, deb, rpm), macOS (DMG, APP) — via Tauri
-- **Mobile:** Android (APK), iOS (IPA) — via Capacitor
+- **Mobile:** Android (APK), iOS (IPA) — via Tauri v2
 - **Web:** Any browser with Web Crypto API support — via Vite
 
 ### stack 
