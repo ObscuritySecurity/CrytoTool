@@ -4,9 +4,11 @@ _Version: 2.5.0-beta | Last Updated: 2026-05-27_
 ## Table of Contents
 1. [Database Encryption (IndexedDB)](#1-database-encryption-indexeddb)
 2. [Metadata Encryption](#2-metadata-encryption)
-3. [Encrypted Backup System](#4-encrypted-backup-system)
-4. [Streaming Encryption](#5-streaming-encryption)
-5. [Project Directory Structure](#6-project-directory-structure)
+3. [Automatic Encryption (Vault Default)](#automatic-encryption-vault-default)
+4. [Manual Encryption](#manual-encryption)
+5. [Encrypted Backup System](#4-encrypted-backup-system)
+6. [Streaming Encryption](#5-streaming-encryption)
+7. [Project Directory Structure](#6-project-directory-structure)
    - [Source Code Tree](#source-code-tree)
    - [IndexedDB Data Hierarchy](#indexeddb-data-hierarchy)
 
