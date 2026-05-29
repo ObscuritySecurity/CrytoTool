@@ -21,19 +21,19 @@
 ## Protocol-3305 alignment
 
 CrytoTool follows [Protocol-3305](https://github.com/ObscuritySecurity/protocol-3305).  
-🟢 = compliant, 🟡 = affected (explain), 🔴 = violation (blocking).
+✓ = compliant, (explain), X = violation (blocking).
 
 | Art. | Principle | Status | Notes |
 | ---- | --------- | ------ | ----- |
-| 0 | Ethical Monetization | 🟢 🟡 🔴 | |
-| 1 | Privacy by Design | 🟢 🟡 🔴 | |
-| 2 | Security by Default | 🟢 🟡 🔴 | |
-| 3 | Zero Trust | 🟢 🟡 🔴 | |
-| 4 | Zero Knowledge | 🟢 🟡 🔴 | |
-| 5 | Zero Personal Data Collection | 🟢 🟡 🔴 | |
-| 6 | Zero Activity Logs | 🟢 🟡 🔴 | |
-| 7 | Open Source | 🟢 🟡 🔴 | |
-| 8 | Zero Non-Essential Permissions | 🟢 🟡 🔴 | |
+| 0 | Ethical Monetization |  | |
+| 1 | Privacy by Design | | |
+| 2 | Security by Default |  | |
+| 3 | Zero Trust |  | |
+| 4 | Zero Knowledge |  | |
+| 5 | Zero Personal Data Collection |  | |
+| 6 | Zero Activity Logs |  | |
+| 7 | Open Source |  | |
+| 8 | Zero Non-Essential Permissions |  | |
 
 ---
 
@@ -41,6 +41,5 @@ CrytoTool follows [Protocol-3305](https://github.com/ObscuritySecurity/protocol-
 
 - [ ] **PR does NOT modify cryptographic code, key derivation, or encryption algorithms**
 - [ ] Tested on target platform(s)
-- [ ] `npx tsc --noEmit` passes
-- [ ] No telemetry / tracking added
-- [ ] Docs updated (if applicable)
+- [ ] `npx tsc --noEmit` passed 
+- [ ] Docs updated 
