@@ -9,7 +9,7 @@ CrytoTool is built for **people**, not users. Specifically:
 
 | Audience | Why They Need It |
 |----------|------------------|
-| **Ordinary People** | You want your photos, documents, and files private — from your phone carrier, cloud provider, or anyone who borrows your device. You don't need to be a technician. |
+| **Oameni obișnuiți** | Doriți ca fotografiile, documentele și fișierele dvs. să fie private — de la operatorul dvs. de telefonie, furnizorul de cloud sau oricine vă împrumută dispozitivul. Nu e nevoie să fii tehnician. |
 | **Journalists** | You need to protect sources, drafts, and research material. Your device could be searched at a border or seized. |
 | **Activists** | Your phone contains contact lists, meeting notes, evidence. A locked device is not enough — encryption must be verifiable. |
 | **Power Users** | You want multiple algorithms, streaming encryption, encrypted metadata, self-destruct, Dead Man Switch. Full control. |
