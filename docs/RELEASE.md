@@ -274,10 +274,9 @@ For critical security fixes:
 ## Important Notes
 
 1. **Never commit secrets** - No keys, passwords, or certificates in the repo
-2. **Test thoroughly** - Especially crypto changes (can cause data loss)
-3. **Backup before release** - Ensure people can restore from previous backups
-4. **Sign releases** - Code signing increases trust (especially on Windows/macOS)
-5. **Document breaking changes** - Clearly in release notes
+2. **Backup before release** - Ensure people can restore from previous backups
+3. **Sign releases** - Code signing increases trust (especially on Windows/macOS)
+4. **Document breaking changes** - Clearly in release notes
 
 ---
 
