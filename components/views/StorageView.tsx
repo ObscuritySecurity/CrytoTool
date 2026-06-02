@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ImageIcon, Video, FileAudio, FileText } from 'lucide-react';
 import { AppTheme } from '../../types';
-import { useI18n } from '../../utils/i18nContext';
+import { useI18n } from '../../utils/i18n/i18nContext';
 
 // Helper to format bytes (could be moved to utils)
 const formatBytes = (bytes: number, decimals = 2) => {

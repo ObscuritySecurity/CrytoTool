@@ -2,7 +2,7 @@
 import React from 'react';
 import { Plus, FolderPlus, Database, Search, Trash2, Settings } from 'lucide-react';
 import { ViewState } from '../types';
-import { useI18n } from '../utils/i18nContext';
+import { useI18n } from '../utils/i18n/i18nContext';
 
 interface TopActionsProps {
   activeTab: string;

@@ -11,7 +11,7 @@ import { db, DBItem } from '../utils/db';
 import { cryptoService } from '../utils/crypto';
 import { metadataCrypto } from '../utils/metadataCrypto';
 import { FileSystemItem, ViewState, AppTheme, ThemeConfig, ThemeCategory } from '../types';
-import { useI18n } from '../utils/i18nContext';
+import { useI18n } from '../utils/i18n/i18nContext';
 import { FullPlayer } from './FullPlayer';
 
 // Import Shared Components

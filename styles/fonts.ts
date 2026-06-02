@@ -2,7 +2,6 @@
 import { FontConfig, FontCategory } from '../types';
 
 export const FONT_LIST: FontConfig[] = [
-    // --- MODERN / SANS (40) ---
     { id: 'inter', name: 'Inter', family: '"Inter", sans-serif', category: 'Modern' },
     { id: 'roboto', name: 'Roboto', family: '"Roboto", sans-serif', category: 'Modern' },
     { id: 'poppins', name: 'Poppins', family: '"Poppins", sans-serif', category: 'Modern' },
@@ -44,7 +43,6 @@ export const FONT_LIST: FontConfig[] = [
     { id: 'cuprum', name: 'Cuprum', family: '"Cuprum", sans-serif', category: 'Modern' },
     { id: 'francoisone', name: 'Francois One', family: '"Francois One", sans-serif', category: 'Modern' },
 
-    // --- TECH / MONO (26) ---
     { id: 'jetbrains', name: 'JetBrains', family: '"JetBrains Mono", monospace', category: 'Tech' },
     { id: 'orbitron', name: 'Orbitron', family: '"Orbitron", sans-serif', category: 'Tech' },
     { id: 'roboto-mono', name: 'Roboto Mono', family: '"Roboto Mono", monospace', category: 'Tech' },
@@ -72,7 +70,6 @@ export const FONT_LIST: FontConfig[] = [
     { id: 'jura', name: 'Jura', family: '"Jura", sans-serif', category: 'Tech' },
     { id: 'syncopate', name: 'Syncopate', family: '"Syncopate", sans-serif', category: 'Tech' },
 
-    // --- SERIF (20) ---
     { id: 'playfair', name: 'Playfair', family: '"Playfair Display", serif', category: 'Serif' },
     { id: 'lora', name: 'Lora', family: '"Lora", serif', category: 'Serif' },
     { id: 'merriweather', name: 'Merriweather', family: '"Merriweather", serif', category: 'Serif' },
@@ -94,7 +91,6 @@ export const FONT_LIST: FontConfig[] = [
     { id: 'oldstandard', name: 'Old Standard', family: '"Old Standard TT", serif', category: 'Serif' },
     { id: 'prata', name: 'Prata', family: '"Prata", serif', category: 'Serif' },
 
-    // --- DISPLAY / RETRO (21) ---
     { id: 'oswald', name: 'Oswald', family: '"Oswald", sans-serif', category: 'Display' },
     { id: 'righteous', name: 'Righteous', family: '"Righteous", cursive', category: 'Display' },
     { id: 'bungee', name: 'Bungee', family: '"Bungee", cursive', category: 'Display' },
@@ -117,7 +113,6 @@ export const FONT_LIST: FontConfig[] = [
     { id: 'fasterone', name: 'Faster One', family: '"Faster One", cursive', category: 'Display' },
     { id: 'knewave', name: 'Knewave', family: '"Knewave", cursive', category: 'Display' },
 
-    // --- HANDWRITING (15) ---
     { id: 'dancing', name: 'Dancing', family: '"Dancing Script", cursive', category: 'Handwriting' },
     { id: 'pacific', name: 'Pacifico', family: '"Pacifico", cursive', category: 'Handwriting' },
     { id: 'caveat', name: 'Caveat', family: '"Caveat", cursive', category: 'Handwriting' },
@@ -134,7 +129,6 @@ export const FONT_LIST: FontConfig[] = [
     { id: 'kaushan', name: 'Kaushan', family: '"Kaushan Script", cursive', category: 'Handwriting' },
     { id: 'marck', name: 'Marck', family: '"Marck Script", cursive', category: 'Handwriting' },
 
-    // --- SYSTEM (1) ---
     { id: 'system', name: 'System Default', family: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif', category: 'System' }
 ];
 
