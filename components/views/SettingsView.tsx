@@ -61,7 +61,7 @@ interface SettingsViewProps {
 
 export const SettingsView: React.FC<SettingsViewProps> = (props) => {
     const { t, language, setLanguage, languageOptions } = useI18n();
-    const [region, setRegion] = useState('București');
+    const [region, setRegion] = useState('Bucharest');
     const [isLangOpen, setIsLangOpen] = useState(false);
     const [isRegionOpen, setIsRegionOpen] = useState(false);
 
@@ -201,7 +201,7 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                   <button
                     onClick={props.clearManualAccent}
                     className="px-4 py-3 rounded-xl border border-border text-[10px] font-black uppercase tracking-widest text-muted hover:text-white hover:border-red-500/50 hover:bg-red-500/10 transition-all shrink-0"
-                    title="Resetează la accentul temei"
+                    title="Reset to theme accent"
                   >
                     {t('reset')}
                   </button>
@@ -606,7 +606,7 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                             </div>
                         ) : (
                             <p className="text-[10px] text-zinc-500 text-center py-2">
-                                Apasă "Regenerare" pentru a crea coduri noi
+                                Press "Regenerate" to create new codes
                             </p>
                         )}
                     </div>
@@ -1010,7 +1010,7 @@ export const AboutView: React.FC<{
           <div className="flex justify-center mb-8">
               <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-red-600 via-yellow-500 to-blue-600 text-white text-xs font-bold shadow-lg">
                   <span className="text-lg">🇷🇴</span>
-                  <span>Made in România</span>
+                  <span>Made in Romania</span>
               </div>
           </div>
 
@@ -1021,43 +1021,43 @@ export const AboutView: React.FC<{
                       <div className="w-8 h-8 rounded-lg bg-neon-green/10 flex items-center justify-center">
                           <Target size={16} className="text-neon-green" />
                       </div>
-                      <h4 className="text-xs font-black uppercase tracking-[0.2em] text-neon-green">Misiunea Noastră</h4>
-                  </div>
-                  <p className="text-sm text-zinc-300 leading-relaxed">
-                      Credem că privacy-ul este un drept fundamental. CrytoTool este construit cu o singură misiune: să îți protejeze datele fără compromisuri, fără tracking, fără colectare de date.
-                  </p>
+                       <h4 className="text-xs font-black uppercase tracking-[0.2em] text-neon-green">Our Mission</h4>
+                   </div>
+                   <p className="text-sm text-zinc-300 leading-relaxed">
+                       We believe privacy is a fundamental right. CrytoTool is built with a single mission: to protect your data without compromise — no tracking, no data collection.
+                   </p>
               </section>
 
               {/* Features Grid */}
               <section>
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-4">Caracteristici Principale</h4>
+                   <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-4">Main Features</h4>
                   <div className="grid grid-cols-2 gap-3">
                       <div className="p-4 bg-zinc-900/60 border border-zinc-800/50 rounded-xl hover:border-neon-green/30 transition-colors">
                           <Lock size={20} className="text-neon-green mb-2" />
                           <div className="text-white font-bold text-xs mb-1">End-to-End Encryption</div>
-                          <div className="text-[10px] text-zinc-500">6 algoritmi moderni</div>
+                           <div className="text-[10px] text-zinc-500">6 modern algorithms</div>
                       </div>
                       <div className="p-4 bg-zinc-900/60 border border-zinc-800/50 rounded-xl hover:border-neon-green/30 transition-colors">
                           <EyeOff size={20} className="text-neon-green mb-2" />
                           <div className="text-white font-bold text-xs mb-1">Zero Data Collection</div>
-                          <div className="text-[10px] text-zinc-500">100% local & privat</div>
+                           <div className="text-[10px] text-zinc-500">100% local & private</div>
                       </div>
                       <div className="p-4 bg-zinc-900/60 border border-zinc-800/50 rounded-xl hover:border-neon-green/30 transition-colors">
                           <Globe size={20} className="text-neon-green mb-2" />
                           <div className="text-white font-bold text-xs mb-1">25+ Languages</div>
-                          <div className="text-[10px] text-zinc-500">Suport multilingv</div>
+                           <div className="text-[10px] text-zinc-500">Multilingual support</div>
                       </div>
                       <div className="p-4 bg-zinc-900/60 border border-zinc-800/50 rounded-xl hover:border-neon-green/30 transition-colors">
                           <Github size={20} className="text-neon-green mb-2" />
                           <div className="text-white font-bold text-xs mb-1">Open Source</div>
-                          <div className="text-[10px] text-zinc-500">Transparent & verificabil</div>
+                           <div className="text-[10px] text-zinc-500">Transparent & verifiable</div>
                       </div>
                   </div>
               </section>
 
               {/* Tech Stack */}
               <section>
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-4">Tehnologii</h4>
+                   <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-4">Technologies</h4>
                   <div className="flex flex-wrap gap-2">
                       {['React 18', 'TypeScript', 'Framer Motion', 'Web Crypto API', 'IndexedDB', 'Tailwind CSS'].map((tech) => (
                           <span key={tech} className="px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-full text-[10px] text-zinc-400 font-medium">
@@ -1076,7 +1076,7 @@ export const AboutView: React.FC<{
                           </div>
                           <div>
                               <h5 className="text-sm font-bold text-white">ObscuritySecurity</h5>
-                              <p className="text-[10px] text-zinc-500">Fondator & Dezvoltator</p>
+                               <p className="text-[10px] text-zinc-500">Founder & Developer</p>
                           </div>
                       </div>
                       <button className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-white hover:text-neon-green hover:border-neon-green transition-all">
@@ -1088,7 +1088,7 @@ export const AboutView: React.FC<{
               {/* Footer */}
               <div className="pt-6 text-center">
                   <p className="text-[9px] text-zinc-700">
-                      Open Source - Contribuții binevenite pe GitHub
+                      Open Source - Contributions welcome on GitHub
                   </p>
               </div>
           </div>

@@ -63,7 +63,7 @@ export const CustomColorPicker: React.FC<{
               <div className="w-6 h-6 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: color }}></div>
               <span className="text-xs font-bold text-primary font-mono uppercase">{color}</span>
             </div>
-            <div className="text-[10px] font-black uppercase tracking-widest text-muted group-hover:text-primary transition-colors">{t('change') || 'Schimbă'}</div>
+            <div className="text-[10px] font-black uppercase tracking-widest text-muted group-hover:text-primary transition-colors">{t('change') || 'Change'}</div>
           </>
         )}
       </div>
@@ -90,7 +90,7 @@ export const CustomColorPicker: React.FC<{
                <div className="p-6 space-y-6">
                   <div>
                     <div className="flex justify-between mb-3">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-muted">{t('chooseShade') || 'Alege Nuanța'}</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-muted">{t('chooseShade') || 'Choose Shade'}</span>
                       <span className="text-[10px] font-mono font-bold text-primary">{hue}°</span>
                     </div>
                     <div className="h-6 rounded-full w-full relative overflow-hidden ring-2 ring-border">

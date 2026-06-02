@@ -140,7 +140,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ items, onNavigate, the
         {filteredItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-muted">
             <Image size={48} className="mb-2 opacity-20" />
-            <p className="text-xs">{t('noMediaFound') || 'Niciun fișier media găsit.'}</p>
+            <p className="text-xs">{t('noMediaFound') || 'No media files found.'}</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3 p-3">
@@ -160,7 +160,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ items, onNavigate, the
                 ) : decryptingIds.has(item.id) ? (
                   <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900/80">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-neon-green mb-2"></div>
-                    <p className="text-[10px] text-zinc-400 font-bold text-center px-2">Se decriptează...</p>
+                    <p className="text-[10px] text-zinc-400 font-bold text-center px-2">Decrypting...</p>
                   </div>
                 ) : item.isEncrypted && item.salt ? (
                   <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900/80">

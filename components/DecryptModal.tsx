@@ -58,7 +58,7 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
       setShowPinModal(false);
       setPinError(null);
     } else {
-      setPinError('Nicio cheie găsită pentru acest fișier în Vault.');
+      setPinError('No key found for this file in Vault.');
       setShowPinModal(false);
     }
   };
@@ -222,10 +222,10 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
                           </div>
                           <div className="text-left">
                             <p className={`text-[9px] md:text-xs font-bold ${autoFillFromVault && vaultKeyFound ? 'text-white' : 'text-zinc-400'}`}>
-                              {autoFillFromVault && vaultKeyFound ? 'Cheie completată din Vault' : 'Autocompletează din Vault'}
+                              {autoFillFromVault && vaultKeyFound ? 'Key auto-filled from Vault' : 'Auto-fill from Vault'}
                             </p>
                             <p className="text-[7px] md:text-[9px] text-zinc-600">
-                              {autoFillFromVault && vaultKeyFound ? 'Cheia a fost găsită' : 'Introdu PIN-ul pentru a completa'}
+                              {autoFillFromVault && vaultKeyFound ? 'Key found' : 'Enter PIN to auto-fill'}
                             </p>
                           </div>
                         </div>
@@ -243,8 +243,8 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
                         <Shield size={16} />
                       </div>
                       <div className="text-left">
-                        <p className="text-xs font-bold text-zinc-500">Autocompletează din Vault</p>
-                        <p className="text-[9px] text-zinc-700">Setează un PIN în Setări → Vault pentru a activa</p>
+                        <p className="text-xs font-bold text-zinc-500">Auto-fill from Vault</p>
+                        <p className="text-[9px] text-zinc-700">Set a PIN in Settings → Vault to enable</p>
                       </div>
                     </div>
                   )}

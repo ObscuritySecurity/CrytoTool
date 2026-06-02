@@ -46,7 +46,7 @@ export const MusicView: React.FC<MusicViewProps> = ({ items, onPlay, currentSong
         {[
           { id: 'songs', label: 'Piese' },
           { id: 'albums', label: 'Albume' },
-          { id: 'artists', label: 'Artiști' },
+          { id: 'artists', label: 'Artists' },
           { id: 'playlists', label: 'Playlist' }
         ].map(tab => (
           <button 

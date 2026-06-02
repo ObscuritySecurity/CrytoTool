@@ -135,7 +135,7 @@ export const FileActionMenu: React.FC<FileActionMenuProps> = ({ isOpen, onClose,
                 <div className="rounded-2xl glass-card border border-border overflow-hidden">
                     <ListBtn icon={<Edit />} label="Rename" onClick={() => handleAction('rename')} />
                     <ListBtn icon={<Copy />} label="Duplicate" onClick={() => handleAction('duplicate')} />
-                    <ListBtn icon={<Square />} label="Selectează" onClick={() => handleAction('select')} />
+                    <ListBtn icon={<Square />} label="Select" onClick={() => handleAction('select')} />
                     <ListBtn icon={<Move />} label="Move" onClick={() => handleAction('move')} />
                     <ListBtn icon={<Archive />} label="Copy" onClick={() => handleAction('copy')} />
                     <ListBtn icon={<Download />} label="Download" onClick={() => handleAction('download')} />

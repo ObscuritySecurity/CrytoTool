@@ -33,7 +33,7 @@ export const TrashView: React.FC<TrashViewProps> = ({ trashItems, onRestore, onD
           <h2 className="text-xl font-bold tracking-wide text-primary">{t('trash')}</h2>
         </div>
         <div className="bg-red-500/10 border border-red-500/20 px-3 py-1 rounded-full">
-           <span className="text-[10px] font-black uppercase tracking-widest text-red-500">{trashItems.length} {t('trashFiles') || 'Fișiere'}</span>
+           <span className="text-[10px] font-black uppercase tracking-widest text-red-500">{trashItems.length} {t('trashFiles') || 'Files'}</span>
         </div>
       </div>
 
@@ -41,14 +41,14 @@ export const TrashView: React.FC<TrashViewProps> = ({ trashItems, onRestore, onD
         {trashItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-muted opacity-50 pb-20">
             <Trash2 size={64} className="mb-4" />
-            <p className="text-sm font-medium">{t('trashIsEmpty') || 'Coșul este gol.'}</p>
+            <p className="text-sm font-medium">{t('trashIsEmpty') || 'The trash is empty.'}</p>
           </div>
         ) : (
           <div className="flex flex-col gap-4">
             <div className="bg-surface/50 border border-white/10 p-4 rounded-xl flex items-start gap-3 mb-2">
                 <AlertTriangle size={18} className="text-yellow-500 shrink-0 mt-0.5" />
                 <p className="text-xs text-muted leading-relaxed">
-                    {t('trashWarning') || 'Fișierele din coș sunt șterse automat după 30 de zile. Acțiunile de aici sunt definitive.'}
+                    {t('trashWarning') || 'Files in trash are automatically deleted after 30 days. Actions here are permanent.'}
                 </p>
             </div>
             
@@ -65,14 +65,14 @@ export const TrashView: React.FC<TrashViewProps> = ({ trashItems, onRestore, onD
                     <button 
                         onClick={() => onRestore(item.id)}
                         className="p-3 rounded-full bg-neon-green text-black hover:scale-110 transition-transform shadow-neon"
-                        title={t('restoreItem') || "Restaurează"}
+                        title={t('restoreItem') || "Restore"}
                     >
                         <RotateCcw size={20} />
                     </button>
                     <button 
                         onClick={() => onDeleteForever(item.id)}
                         className="p-3 rounded-full bg-red-500 text-white hover:scale-110 transition-transform shadow-[0_0_15px_rgba(239,68,68,0.4)]"
-                        title={t('deleteForever') || "Șterge Definitiv"}
+                        title={t('deleteForever') || "Delete Forever"}
                     >
                         <Trash2 size={20} />
                     </button>
