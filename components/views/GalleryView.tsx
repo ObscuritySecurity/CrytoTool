@@ -156,6 +156,12 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ items, onNavigate, the
                     <Lock size={32} className="text-neon-green mb-2" />
                     <p className="text-[10px] text-zinc-400 font-bold text-center px-2">Click pentru a decripta</p>
                   </div>
+                ) : item.url ? (
+                  item.category === 'video' ? (
+                    <video src={item.url} className="w-full h-full object-cover" muted />
+                  ) : (
+                    <img src={item.url} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt={item.name} />
+                  )
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-muted">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-neon-green"></div>
