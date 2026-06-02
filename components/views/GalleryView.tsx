@@ -86,12 +86,6 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ items, onNavigate, the
                       <div className="flex flex-col items-center gap-4">
                         <Lock size={64} className="text-neon-green" />
                         <p className="text-white text-lg font-bold">Fișier criptat</p>
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); onDecrypt(lightboxItem); }}
-                          className="px-6 py-3 bg-neon-green text-black font-bold rounded-xl"
-                        >
-                          Click pentru a decripta
-                        </button>
                       </div>
                     ) : lightboxItem.category === 'video' ? (
                         <video 
