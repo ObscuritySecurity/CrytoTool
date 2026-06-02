@@ -721,7 +721,7 @@ export const ThemesGalleryView: React.FC<{
       <div className="flex-1 overflow-y-auto px-5 py-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {displayThemes.map(theme => {
-                  const isActive = selectedThemeId === theme.id || (selectedThemeId === null && 
+                  const isActive = selectedThemeId === theme.id || (selectedThemeId === null && localStorage.getItem('theme_accent') === theme.accent && 
                                    getComputedStyle(document.documentElement).getPropertyValue('--bg-main').trim() === theme.bgMain);
                   const isLight = theme.textMain === '#09090b';
                   

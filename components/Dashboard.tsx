@@ -314,14 +314,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
           const iv = cryptoService.base64ToArrayBuffer(item.iv);
           const decryptedData = await cryptoService.decrypt(encryptedData, iv);
           
-          const ext = item.name.split('.').pop()?.toLowerCase() || '';
+          const sourceName = (item as any).decryptedName || item.name;
+          const ext = sourceName.split('.').pop()?.toLowerCase() || '';
           const mimeType = ext === 'gif' ? 'image/gif' :
                            ext === 'png' ? 'image/png' :
                            ext === 'webp' ? 'image/webp' :
+                           ext === 'jpg' || ext === 'jpeg' || ext === 'jfif' ? 'image/jpeg' :
+                           ext === 'svg' ? 'image/svg+xml' :
+                           ext === 'avif' ? 'image/avif' :
+                           ext === 'bmp' ? 'image/bmp' :
+                           ext === 'ico' ? 'image/x-icon' :
                            item.category === 'image' ? 'image/jpeg' :
                            ext === 'mp3' ? 'audio/mpeg' :
+                           ext === 'wav' ? 'audio/wav' :
+                           ext === 'ogg' ? 'audio/ogg' :
+                           ext === 'flac' ? 'audio/flac' :
                            item.category === 'audio' ? 'audio/mpeg' :
+                           ext === 'mp4' ? 'video/mp4' :
                            ext === 'webm' ? 'video/webm' :
+                           ext === 'mkv' ? 'video/x-matroska' :
                            item.category === 'video' ? 'video/mp4' : 'application/octet-stream';
 
            const arrayBuffer = decryptedData.buffer.slice(decryptedData.byteOffset, decryptedData.byteOffset + decryptedData.byteLength) as ArrayBuffer;
@@ -346,6 +357,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
     const b = parseInt(accentColor.slice(5, 7), 16);
     root.style.setProperty('--accent-rgb', `${r}, ${g}, ${b}`);
     localStorage.setItem('theme_accent', accentColor);
+    const savedConfig = localStorage.getItem('app_theme_config');
+    if (savedConfig) {
+      try {
+        const config = JSON.parse(savedConfig);
+        config['--accent-color'] = accentColor;
+        localStorage.setItem('app_theme_config', JSON.stringify(config));
+      } catch (e) {
+        // ignore parse errors
+      }
+    }
   }, [accentColor]);
 
   useEffect(() => {
@@ -476,6 +497,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     const manualAccent = localStorage.getItem('app_accent_manual');
     if (!manualAccent) {
       setAccentColor(theme.accent);
+      localStorage.setItem('theme_accent', theme.accent);
     }
   };
 
