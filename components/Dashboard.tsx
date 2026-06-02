@@ -346,6 +346,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
     const b = parseInt(accentColor.slice(5, 7), 16);
     root.style.setProperty('--accent-rgb', `${r}, ${g}, ${b}`);
     localStorage.setItem('theme_accent', accentColor);
+    const savedConfig = localStorage.getItem('app_theme_config');
+    if (savedConfig) {
+      try {
+        const config = JSON.parse(savedConfig);
+        config['--accent-color'] = accentColor;
+        localStorage.setItem('app_theme_config', JSON.stringify(config));
+      } catch (e) {
+        // ignore parse errors
+      }
+    }
   }, [accentColor]);
 
   useEffect(() => {
@@ -476,6 +486,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     const manualAccent = localStorage.getItem('app_accent_manual');
     if (!manualAccent) {
       setAccentColor(theme.accent);
+      localStorage.setItem('theme_accent', theme.accent);
     }
   };
 
