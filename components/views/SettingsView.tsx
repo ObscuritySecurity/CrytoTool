@@ -21,7 +21,8 @@ interface SettingsViewProps {
   appTheme: AppTheme;
   setAppTheme: (t: AppTheme) => void;
   accentColor: string;
-  setAccentColor: (c: string) => void;
+  setManualAccent: (c: string) => void;
+  clearManualAccent: () => void;
   applyFullTheme: (theme: ThemeConfig) => void;
   autoBlurSettings: { value: number; setValue: (val: number) => void; };
   autoLockSettings: { value: number; setValue: (val: number) => void; };
@@ -193,7 +194,18 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                     <PaintBucket size={14} className="text-muted" />
                     <span className="text-[10px] font-black uppercase tracking-widest text-muted">{t('accentManual')}</span>
                 </div>
-                <CustomColorPicker color={props.accentColor} onChange={props.setAccentColor} />
+                <div className="flex items-center gap-2">
+                  <div className="flex-1">
+                    <CustomColorPicker color={props.accentColor} onChange={props.setManualAccent} />
+                  </div>
+                  <button
+                    onClick={props.clearManualAccent}
+                    className="px-4 py-3 rounded-xl border border-border text-[10px] font-black uppercase tracking-widest text-muted hover:text-white hover:border-red-500/50 hover:bg-red-500/10 transition-all shrink-0"
+                    title="Resetează la accentul temei"
+                  >
+                    {t('reset')}
+                  </button>
+                </div>
                 </div>
             </section>
 
@@ -709,7 +721,7 @@ export const ThemesGalleryView: React.FC<{
       <div className="flex-1 overflow-y-auto px-5 py-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {displayThemes.map(theme => {
-                  const isActive = selectedThemeId === theme.id || (selectedThemeId === null && localStorage.getItem('theme_accent') === theme.accent && 
+                  const isActive = selectedThemeId === theme.id || (selectedThemeId === null && 
                                    getComputedStyle(document.documentElement).getPropertyValue('--bg-main').trim() === theme.bgMain);
                   const isLight = theme.textMain === '#09090b';
                   

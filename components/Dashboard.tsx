@@ -137,7 +137,27 @@ export const Dashboard: React.FC<DashboardProps> = ({
     }
     return mode;
   };
-  const [accentColor, setAccentColor] = useState(localStorage.getItem('theme_accent') || '#39ff14');
+  const [accentColor, setAccentColor] = useState(() => {
+    return localStorage.getItem('app_accent_manual') || localStorage.getItem('theme_accent') || '#39ff14';
+  });
+  const setManualAccent = (color: string) => {
+    setAccentColor(color);
+    localStorage.setItem('app_accent_manual', color);
+  };
+  const clearManualAccent = () => {
+    localStorage.removeItem('app_accent_manual');
+    const config = localStorage.getItem('app_theme_config');
+    if (config) {
+      try {
+        const c = JSON.parse(config);
+        if (c['--accent-color']) {
+          setAccentColor(c['--accent-color']);
+          return;
+        }
+      } catch {}
+    }
+    setAccentColor('#39ff14');
+  };
   const [activeThemeCategory, setActiveThemeCategory] = useState<ThemeCategory>('Neon');
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [activeItem, setActiveItem] = useState<FileSystemItem | null>(null); 
@@ -206,7 +226,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
             root.style.setProperty(key, value);
           }
         });
-        if (config['--accent-color']) {
+        const manualAccent = localStorage.getItem('app_accent_manual');
+        if (manualAccent) {
+          setAccentColor(manualAccent);
+        } else if (config['--accent-color']) {
           setAccentColor(config['--accent-color']);
         }
       } catch (e) {
@@ -442,8 +465,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
     root.style.setProperty('--border-color', theme.border);
     root.style.setProperty('--text-main', theme.textMain);
     root.style.setProperty('--text-muted', theme.textMuted);
-    setAccentColor(theme.accent);
-    localStorage.setItem('theme_accent', theme.accent);
     localStorage.setItem('app_theme_config', JSON.stringify({
         '--bg-main': theme.bgMain, '--bg-card': theme.bgCard, '--bg-surface': theme.bgSurface,
         '--border-color': theme.border, '--text-main': theme.textMain, '--text-muted': theme.textMuted,
@@ -451,6 +472,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
     }));
     // Remove app_theme_mode so it doesn't interfere on reload
     localStorage.removeItem('app_theme_mode');
+    // Only set accent to theme's color if no manual override
+    const manualAccent = localStorage.getItem('app_accent_manual');
+    if (!manualAccent) {
+      setAccentColor(theme.accent);
+    }
   };
 
   const items = useMemo(() => allItems.filter(i => !i.isTrashed), [allItems]);
@@ -1036,7 +1062,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
               appTheme={appTheme} 
               setAppTheme={setAppTheme} 
               accentColor={accentColor} 
-              setAccentColor={setAccentColor} 
+              setManualAccent={setManualAccent} 
+              clearManualAccent={clearManualAccent} 
               autoBlurSettings={autoBlurSettings} 
               autoLockSettings={autoLockSettings} 
               progressiveLockSettings={progressiveLockSettings}

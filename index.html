@@ -14,6 +14,11 @@
       // Load saved theme immediately to prevent flash
       (function() {
         const savedTheme = JSON.parse(localStorage.getItem('app_theme_config') || '{}');
+        // Manual accent override wins over theme config
+        const manualAccent = localStorage.getItem('app_accent_manual');
+        if (manualAccent) {
+          savedTheme['--accent-color'] = manualAccent;
+        }
         const savedFont = 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
         
         const root = document.documentElement;
