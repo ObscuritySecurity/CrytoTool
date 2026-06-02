@@ -195,21 +195,13 @@ const App: React.FC = () => {
       if (!saved) return;
       try {
         const parsed = JSON.parse(saved);
-        if (parsed.iv && parsed.data) {
-          const decrypted = await cryptoService.decryptString(parsed.data, parsed.iv);
-          setRecoveryCodes(JSON.parse(decrypted));
-        } else {
-          setRecoveryCodes(parsed); // Legacy plaintext
-        }
+        setRecoveryCodes(parsed);
       } catch {
         setRecoveryCodes([]);
       }
     };
-    
-    if (isAuthenticated) {
-      loadRecoveryCodes();
-    }
-  }, [isAuthenticated]);
+    loadRecoveryCodes();
+  }, []);
 
   const generateRecoveryCodes = (): string[] => {
     const codes: string[] = [];
@@ -228,15 +220,7 @@ const App: React.FC = () => {
   };
 
   const saveRecoveryCodes = async (codes: string[]) => {
-    try {
-      const jsonString = JSON.stringify(codes);
-      const encrypted = await cryptoService.encryptString(jsonString);
-      const stored = JSON.stringify({ iv: encrypted.iv, data: encrypted.ciphertext });
-      localStorage.setItem('crytotool_recovery_codes', stored);
-    } catch {
-      // Vault Key not available, save plaintext (fallback)
-      localStorage.setItem('crytotool_recovery_codes', JSON.stringify(codes));
-    }
+    localStorage.setItem('crytotool_recovery_codes', JSON.stringify(codes));
   };
 
   const regenerateRecoveryCodes = () => {

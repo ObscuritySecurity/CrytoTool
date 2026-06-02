@@ -265,7 +265,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
         </form>
 
         {/* Recovery Mode Button */}
-        {!isSetup && !isLocked && recoverySettings && recoverySettings.codes.length > 0 && (
+        {!isSetup && recoverySettings && recoverySettings.codes.length > 0 && (
           <div className="mt-4 pt-4 border-t border-white/10">
             <button
               type="button"
