@@ -8,23 +8,26 @@ import { cryptoService } from './utils/crypto';
 import { db } from './utils/db';
 import { I18nProvider } from './locales/i18nContext';
 import { hashPin } from './utils/security';
+import { argon2id } from 'hash-wasm';
 
 const RECOVERY_PEPPER = 'CrytoTool_Vault_Recovery_v2.5.0_beta';
 const RECOVERY_SALT = new TextEncoder().encode('CrytoTool_Recovery_Salt_2026');
-const RECOVERY_ITERATIONS = 600000;
 
 async function deriveRecoveryKey(): Promise<CryptoKey> {
-  const keyMaterial = await window.crypto.subtle.importKey(
+  const hash = await argon2id({
+    password: RECOVERY_PEPPER,
+    salt: RECOVERY_SALT,
+    iterations: 19,
+    memorySize: 131072,
+    parallelism: 4,
+    hashLength: 32,
+    outputType: 'binary',
+  }) as Uint8Array;
+
+  return await window.crypto.subtle.importKey(
     'raw',
-    new TextEncoder().encode(RECOVERY_PEPPER),
-    'PBKDF2',
-    false,
-    ['deriveKey']
-  );
-  return window.crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt: RECOVERY_SALT, iterations: RECOVERY_ITERATIONS, hash: 'SHA-256' },
-    keyMaterial,
-    { name: 'AES-GCM', length: 256 },
+    hash as BufferSource,
+    { name: 'AES-GCM' },
     false,
     ['encrypt', 'decrypt']
   );
