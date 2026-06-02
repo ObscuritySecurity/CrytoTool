@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Folder, FolderOpen, ArrowLeft, ArrowRight, Copy, Move, Check } from 'lucide-react';
 import { FileSystemItem } from '../types';
-import { useI18n } from '../utils/i18nContext';
+import { useI18n } from '../utils/i18n/i18nContext';
 import { db, DBItem } from '../utils/db';
 
 interface CopyMoveModalProps {

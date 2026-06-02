@@ -5,7 +5,7 @@ import { X, Shield, Zap, Cpu, Lock, Key, Copy, Check, ArrowRight, ArrowLeft, Loa
 import { FileSystemItem } from '../types';
 import { cryptoService, CryptoAlgorithm } from '../utils/crypto';
 import { db, DBItem } from '../utils/db';
-import { useI18n } from '../utils/i18nContext';
+import { useI18n } from '../utils/i18n/i18nContext';
 
 interface EncryptionModalProps {
   isOpen: boolean;

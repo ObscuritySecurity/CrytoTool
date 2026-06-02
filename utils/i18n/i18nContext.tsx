@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
-import { translations as enFallback } from './i18n/en';
-import { LANGUAGES, TranslationKey, loadTranslations, getLanguageOptions } from './i18n';
+import { translations as enFallback } from './en';
+import { LANGUAGES, TranslationKey, loadTranslations, getLanguageOptions } from './index';
 
 interface I18nContextType {
   language: string;

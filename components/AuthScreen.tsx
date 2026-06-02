@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Key, Loader2, ShieldCheck, Timer, ShieldAlert } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cryptoService } from '../utils/crypto';
-import { useI18n } from '../utils/i18nContext';
+import { useI18n } from '../utils/i18n/i18nContext';
 
 interface AuthScreenProps {
   onUnlock: (vaultKey: CryptoKey) => void;

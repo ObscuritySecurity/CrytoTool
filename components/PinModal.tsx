@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Delete, Lock, ShieldAlert, CheckCircle, X } from 'lucide-react';
 import { validatePin, getBackoffTime, verifyPin } from '../utils/security';
-import { useI18n } from '../utils/i18nContext';
+import { useI18n } from '../utils/i18n/i18nContext';
 
 interface PinModalProps {
   mode: 'setup' | 'unlock' | 'disable';

@@ -11,10 +11,10 @@ import {
 import { AppTheme, ThemeConfig, ThemeCategory, FontCategory, FontConfig } from '../../types';
 import { CustomColorPicker } from '../CustomColorPicker';
 import { CustomSelect } from '../CustomSelect';
-import { THEME_COLLECTIONS, CATEGORY_KEYS, getAllThemes } from '../../utils/themes';
-import { FONT_LIST, FONT_CATEGORIES, getFontsByCategory } from '../../utils/fonts';
+import { THEME_COLLECTIONS, CATEGORY_KEYS, getAllThemes } from '../../styles/themes';
+import { FONT_LIST, FONT_CATEGORIES, getFontsByCategory } from '../../styles/fonts';
 import { LANGUAGES } from '../../utils/i18n';
-import { useI18n } from '../../utils/i18nContext';
+import { useI18n } from '../../utils/i18n/i18nContext';
 
 interface SettingsViewProps {
   onBack: () => void;
