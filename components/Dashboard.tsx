@@ -299,7 +299,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const decryptOnDemand = async (item: FileSystemItem): Promise<string | null> => {
     if (decryptedUrls[item.id]) return decryptedUrls[item.id];
-    if (!item.rawBlob || !item.isEncrypted || !item.iv) return item.url || null;
+    if (!item.rawBlob || !item.isEncrypted || !item.iv) {
+      if (item.rawBlob && !item.isEncrypted) {
+        const blob = item.rawBlob instanceof Blob ? item.rawBlob : new Blob([item.rawBlob]);
+        const ext = item.name.split('.').pop()?.toLowerCase() || '';
+        const mimeType = ext === 'gif' ? 'image/gif' :
+                         ext === 'png' ? 'image/png' :
+                         ext === 'webp' ? 'image/webp' :
+                         item.category === 'image' ? 'image/jpeg' :
+                         ext === 'mp3' ? 'audio/mpeg' :
+                         item.category === 'audio' ? 'audio/mpeg' :
+                         ext === 'webm' ? 'video/webm' :
+                         item.category === 'video' ? 'video/mp4' : 'application/octet-stream';
+        const url = URL.createObjectURL(blob);
+        setDecryptedUrls(prev => ({ ...prev, [item.id]: url }));
+        return url;
+      }
+      return item.url || null;
+    }
 
     try {
       if (item.salt) {
@@ -462,6 +479,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
       }));
       
       setAllItems([...systemItems, ...loadedItems]);
+
+      // Pre-create blob URLs for non-encrypted imported files so they display immediately in the gallery
+      const initialUrls: Record<string, string> = {};
+      loadedItems.forEach(item => {
+        if (item.rawBlob && !item.isEncrypted && !item.url && !decryptedUrls[item.id]) {
+          const blob = item.rawBlob instanceof Blob ? item.rawBlob : new Blob([item.rawBlob]);
+          initialUrls[item.id] = URL.createObjectURL(blob);
+        }
+      });
+      if (Object.keys(initialUrls).length > 0) {
+        setDecryptedUrls(prev => ({ ...prev, ...initialUrls }));
+      }
     } catch (e) {
       console.error("Failed to load items from DB", e);
     }
