@@ -330,5 +330,6 @@ export const translations: Translations = {
     generatedVariants: 'المتغيرات التي تم إنشاؤها',
     folder: 'المجلد',
     select: 'حدد',
-    deleteFile: 'حذف ملف'
+    deleteFile: 'حذف ملف',
+    documentsComingSoon: 'Document editing and viewing will come soon.',
 }

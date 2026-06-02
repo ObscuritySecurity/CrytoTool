@@ -342,5 +342,6 @@ export const translations: Translations = {
     permanentlyDelete: 'Permanently Delete',
     financiar: 'Financial',
     socialmedia: 'Social Media',
-    documente: 'Documents'
+    documente: 'Documents',
+    documentsComingSoon: 'Document editing and viewing will come soon.',
 }

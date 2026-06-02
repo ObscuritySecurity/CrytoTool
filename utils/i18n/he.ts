@@ -330,5 +330,6 @@ export const translations: Translations = {
     generatedVariants: 'גרסאות שנוצרו',
     folder: 'FOLDER',
     select: 'בחר',
-    deleteFile: 'מחק קובץ'
+    deleteFile: 'מחק קובץ',
+    documentsComingSoon: 'Document editing and viewing will come soon.',
 }
