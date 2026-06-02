@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { LANGUAGES, TranslationKey, translations, getLanguageOptions } from './i18n';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
+import { translations as enFallback } from './i18n/en';
+import { LANGUAGES, TranslationKey, loadTranslations, getLanguageOptions } from './i18n';
 
 interface I18nContextType {
   language: string;
@@ -7,6 +8,7 @@ interface I18nContextType {
   t: (key: TranslationKey) => string;
   languages: typeof LANGUAGES;
   languageOptions: ReturnType<typeof getLanguageOptions>;
+  loading: boolean;
 }
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
@@ -19,28 +21,51 @@ export const I18nProvider: React.FC<I18nProviderProps> = ({ children }) => {
   const [language, setLanguageState] = useState<string>(() => {
     return localStorage.getItem('app_language') || 'en';
   });
+  const { current: fallback } = useRef(enFallback);
+  const [currentTranslations, setCurrentTranslations] = useState(fallback);
+  const [loading, setLoading] = useState(false);
+
+  const loadLang = useCallback(async (code: string) => {
+    setLoading(true);
+    try {
+      const t = await loadTranslations(code);
+      setCurrentTranslations(t);
+    } catch {
+      setCurrentTranslations(fallback);
+    } finally {
+      setLoading(false);
+    }
+  }, [fallback]);
+
+  useEffect(() => {
+    if (language !== 'en') {
+      loadLang(language);
+    } else {
+      setCurrentTranslations(fallback);
+    }
+  }, [language, loadLang, fallback]);
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
 
   const setLanguage = (lang: string) => {
     setLanguageState(lang);
     localStorage.setItem('app_language', lang);
   };
 
-  const t = (key: TranslationKey): string => {
-    const langTranslations = translations[language] || translations['en'];
-    return langTranslations[key] || translations['en'][key] || key;
-  };
-
-  useEffect(() => {
-    document.documentElement.lang = language;
-  }, [language]);
+  const t = useCallback((key: TranslationKey): string => {
+    return currentTranslations[key] || fallback[key] || key;
+  }, [currentTranslations, fallback]);
 
   return (
-    <I18nContext.Provider value={{ 
-      language, 
-      setLanguage, 
-      t, 
+    <I18nContext.Provider value={{
+      language,
+      setLanguage,
+      t,
       languages: LANGUAGES,
-      languageOptions: getLanguageOptions()
+      languageOptions: getLanguageOptions(),
+      loading,
     }}>
       {children}
     </I18nContext.Provider>

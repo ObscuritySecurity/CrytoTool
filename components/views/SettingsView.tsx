@@ -13,7 +13,7 @@ import { CustomColorPicker } from '../CustomColorPicker';
 import { CustomSelect } from '../CustomSelect';
 import { THEME_COLLECTIONS, CATEGORY_KEYS, getAllThemes } from '../../utils/themes';
 import { FONT_LIST, FONT_CATEGORIES, getFontsByCategory } from '../../utils/fonts';
-import { LANGUAGES, getLanguageOptions, getTranslation, TranslationKey } from '../../utils/i18n';
+import { LANGUAGES } from '../../utils/i18n';
 import { useI18n } from '../../utils/i18nContext';
 
 interface SettingsViewProps {

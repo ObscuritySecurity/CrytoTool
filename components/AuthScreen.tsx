@@ -4,7 +4,6 @@ import { Eye, EyeOff, Key, Loader2, ShieldCheck, Timer, ShieldAlert } from 'luci
 import { motion } from 'framer-motion';
 import { cryptoService } from '../utils/crypto';
 import { useI18n } from '../utils/i18nContext';
-import { TranslationKey } from '../utils/i18n';
 
 interface AuthScreenProps {
   onUnlock: (vaultKey: CryptoKey) => void;
