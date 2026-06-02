@@ -330,5 +330,6 @@ export const translations: Translations = {
     generatedVariants: 'Sortutako aldaerak',
     folder: 'CARPETA',
     select: 'Hautatu',
-    deleteFile: 'Ezabatu fitxategia'
+    deleteFile: 'Ezabatu fitxategia',
+    documentsComingSoon: 'Document editing and viewing will come soon.',
 }

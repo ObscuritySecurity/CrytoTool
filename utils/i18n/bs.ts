@@ -330,5 +330,6 @@ export const translations: Translations = {
     generatedVariants: 'Generirane varijante',
     folder: 'FOLDER',
     select: 'Odaberite',
-    deleteFile: 'Izbriši datoteku'
+    deleteFile: 'Izbriši datoteku',
+    documentsComingSoon: 'Document editing and viewing will come soon.',
 }

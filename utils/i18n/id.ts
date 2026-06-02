@@ -330,5 +330,6 @@ export const translations: Translations = {
     generatedVariants: 'Varian yang Dihasilkan',
     folder: 'FOLDER',
     select: 'Pilih',
-    deleteFile: 'Hapus File'
+    deleteFile: 'Hapus File',
+    documentsComingSoon: 'Document editing and viewing will come soon.',
 }

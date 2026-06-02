@@ -330,5 +330,6 @@ export const translations: Translations = {
     generatedVariants: '생성된 변형',
     folder: '폴더',
     select: '선택',
-    deleteFile: '파일 삭제'
+    deleteFile: '파일 삭제',
+    documentsComingSoon: 'Document editing and viewing will come soon.',
 }

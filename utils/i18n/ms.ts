@@ -330,5 +330,6 @@ export const translations: Translations = {
     generatedVariants: 'Varian Dijana',
     folder: 'FOLDER',
     select: 'Pilih',
-    deleteFile: 'Padam Fail'
+    deleteFile: 'Padam Fail',
+    documentsComingSoon: 'Document editing and viewing will come soon.',
 }

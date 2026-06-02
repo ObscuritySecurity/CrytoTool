@@ -330,5 +330,6 @@ export const translations: Translations = {
     generatedVariants: 'Generované varianty',
     folder: 'SLOŽKA',
     select: 'Vybrat',
-    deleteFile: 'Smazat soubor'
+    deleteFile: 'Smazat soubor',
+    documentsComingSoon: 'Document editing and viewing will come soon.',
 }

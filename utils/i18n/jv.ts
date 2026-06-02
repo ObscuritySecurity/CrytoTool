@@ -330,5 +330,6 @@ export const translations: Translations = {
     generatedVariants: 'Varian Dihasilake',
     folder: 'FOLDER',
     select: 'Pilih',
-    deleteFile: 'Busak File'
+    deleteFile: 'Busak File',
+    documentsComingSoon: 'Document editing and viewing will come soon.',
 }

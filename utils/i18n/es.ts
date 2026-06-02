@@ -330,5 +330,6 @@ export const translations: Translations = {
     generatedVariants: 'Variantes generadas',
     folder: 'CARPETA',
     select: 'Seleccionar',
-    deleteFile: 'Eliminar archivo'
+    deleteFile: 'Eliminar archivo',
+    documentsComingSoon: 'Document editing and viewing will come soon.',
 }
