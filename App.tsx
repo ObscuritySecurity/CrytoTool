@@ -9,6 +9,46 @@ import { db } from './utils/db';
 import { I18nProvider } from './locales/i18nContext';
 import { hashPin } from './utils/security';
 
+const RECOVERY_PEPPER = 'CrytoTool_Vault_Recovery_v2.5.0_beta';
+const RECOVERY_SALT = new TextEncoder().encode('CrytoTool_Recovery_Salt_2026');
+const RECOVERY_ITERATIONS = 600000;
+
+async function deriveRecoveryKey(): Promise<CryptoKey> {
+  const keyMaterial = await window.crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(RECOVERY_PEPPER),
+    'PBKDF2',
+    false,
+    ['deriveKey']
+  );
+  return window.crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: RECOVERY_SALT, iterations: RECOVERY_ITERATIONS, hash: 'SHA-256' },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
+
+async function encryptRecoveryCodes(plaintext: string): Promise<{ iv: string; data: string }> {
+  const key = await deriveRecoveryKey();
+  const iv = window.crypto.getRandomValues(new Uint8Array(12));
+  const encoded = new TextEncoder().encode(plaintext);
+  const ciphertext = await window.crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
+  return {
+    iv: btoa(String.fromCharCode(...iv)),
+    data: btoa(String.fromCharCode(...new Uint8Array(ciphertext)))
+  };
+}
+
+async function decryptRecoveryCodes(data: string, iv: string): Promise<string> {
+  const key = await deriveRecoveryKey();
+  const ciphertext = Uint8Array.from(atob(data), c => c.charCodeAt(0));
+  const ivBytes = Uint8Array.from(atob(iv), c => c.charCodeAt(0));
+  const decrypted = await window.crypto.subtle.decrypt({ name: 'AES-GCM', iv: ivBytes }, key, ciphertext);
+  return new TextDecoder().decode(decrypted);
+}
+
 const App: React.FC = () => {
   const [showSplash, setShowSplash] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -195,7 +235,13 @@ const App: React.FC = () => {
       if (!saved) return;
       try {
         const parsed = JSON.parse(saved);
-        setRecoveryCodes(parsed);
+        if (parsed.iv && parsed.data) {
+          const decrypted = await decryptRecoveryCodes(parsed.data, parsed.iv);
+          setRecoveryCodes(JSON.parse(decrypted));
+        } else if (Array.isArray(parsed)) {
+          // Legacy plaintext — re-encrypt on next save
+          setRecoveryCodes(parsed);
+        }
       } catch {
         setRecoveryCodes([]);
       }
@@ -220,7 +266,9 @@ const App: React.FC = () => {
   };
 
   const saveRecoveryCodes = async (codes: string[]) => {
-    localStorage.setItem('crytotool_recovery_codes', JSON.stringify(codes));
+    const jsonString = JSON.stringify(codes);
+    const encrypted = await encryptRecoveryCodes(jsonString);
+    localStorage.setItem('crytotool_recovery_codes', JSON.stringify({ iv: encrypted.iv, data: encrypted.data }));
   };
 
   const regenerateRecoveryCodes = () => {
