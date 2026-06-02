@@ -4,7 +4,7 @@ import { X, Lock, Eye, EyeOff, Loader2, AlertTriangle, Shield, Key, Check } from
 import { FileSystemItem } from '../types';
 import { cryptoService } from '../utils/crypto';
 import { vaultStorage } from '../utils/vaultStorage';
-import { useI18n } from '../utils/i18n/i18nContext';
+import { useI18n } from '../locales/i18nContext';
 import { PinModal } from './PinModal';
 import { verifyPin } from '../utils/security';
 

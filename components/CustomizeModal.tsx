@@ -15,7 +15,7 @@ import { FileSystemItem } from '../types';
 import { Tag } from '../utils/db';
 import { FileItem } from './FileItem';
 import { CustomColorPicker } from './CustomColorPicker';
-import { useI18n } from '../utils/i18n/i18nContext';
+import { useI18n } from '../locales/i18nContext';
 
 // --- CONFIG & UTILS ---
 

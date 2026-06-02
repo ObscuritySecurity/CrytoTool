@@ -6,7 +6,7 @@ import {
   MoreVertical, Search, Lock, CreditCard, FileKey, 
   Globe, StickyNote, X, ChevronRight, Hash, Copy, Check, Trash2, Eye, EyeOff
 } from 'lucide-react';
-import { useI18n } from '../../utils/i18n/i18nContext';
+import { useI18n } from '../../locales/i18nContext';
 import { vaultStorage, VaultKeyEntry } from '../../utils/vaultStorage';
 
 interface VaultViewProps {

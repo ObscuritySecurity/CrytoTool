@@ -7,7 +7,7 @@ import {
   MoreHorizontal, Eye, Archive, FolderInput, Move, Square
 } from 'lucide-react';
 import { FileSystemItem } from '../types';
-import { useI18n } from '../utils/i18n/i18nContext';
+import { useI18n } from '../locales/i18nContext';
 
 interface FileActionMenuProps {
   isOpen: boolean;

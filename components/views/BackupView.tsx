@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { backupCryptoService } from '../../utils/backupCrypto';
 import { db } from '../../utils/db';
-import { useI18n } from '../../utils/i18n/i18nContext';
+import { useI18n } from '../../locales/i18nContext';
 import { AppTheme } from '../../types';
 
 interface BackupViewProps {
