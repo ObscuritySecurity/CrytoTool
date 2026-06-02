@@ -1,4 +1,5 @@
 
+import { argon2id } from 'hash-wasm';
 import { cryptoService } from './crypto';
 
 // Security baseline helpers
@@ -15,7 +16,6 @@ export const validatePin = (pin: string): { valid: boolean; error?: string } => 
   if (!/^\d+$/.test(pin)) return { valid: false, error: 'PIN must contain only digits.' };
   if (COMMON_PINS.includes(pin)) return { valid: false, error: 'This PIN is too common. Choose another one.' };
   
-  // Check simple sequences (e.g., 123456)
   const isSequential = '0123456789012345'.includes(pin) || '9876543210987654'.includes(pin);
   if (isSequential) return { valid: false, error: 'Simple sequences are not allowed.' };
 
@@ -24,13 +24,11 @@ export const validatePin = (pin: string): { valid: boolean; error?: string } => 
 
 export const getBackoffTime = (failedAttempts: number): number => {
   if (failedAttempts < 3) return 0;
-  if (failedAttempts === 3) return 30; // 30 seconds
-  if (failedAttempts === 4) return 60; // 1 minute
-  if (failedAttempts >= 5) return 300; // 5 minutes
+  if (failedAttempts === 3) return 30;
+  if (failedAttempts === 4) return 60;
+  if (failedAttempts >= 5) return 300;
   return 0;
 };
-
-const PIN_PBKDF2_ITERATIONS = 100000;
 
 function bytesToHex(bytes: Uint8Array): string {
   return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
@@ -40,7 +38,20 @@ function hexToBytes(hex: string): Uint8Array {
   return new Uint8Array(hex.match(/.{2}/g)!.map(byte => parseInt(byte, 16)));
 }
 
-async function derivePinHash(pin: string, salt: Uint8Array): Promise<string> {
+async function derivePinHashArgon2id(pin: string, salt: Uint8Array): Promise<string> {
+  const hash = await argon2id({
+    password: pin,
+    salt,
+    iterations: 19,
+    memorySize: 131072,
+    parallelism: 4,
+    hashLength: 32,
+    outputType: 'binary',
+  }) as Uint8Array;
+  return bytesToHex(hash);
+}
+
+async function derivePinHashLegacy(pin: string, salt: Uint8Array): Promise<string> {
   const encoder = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
@@ -49,18 +60,11 @@ async function derivePinHash(pin: string, salt: Uint8Array): Promise<string> {
     false,
     ['deriveBits']
   );
-
   const hashBuffer = await crypto.subtle.deriveBits(
-    {
-      name: 'PBKDF2',
-      salt: salt as BufferSource,
-      iterations: PIN_PBKDF2_ITERATIONS,
-      hash: 'SHA-256'
-    },
+    { name: 'PBKDF2', salt: salt as BufferSource, iterations: 100000, hash: 'SHA-256' },
     keyMaterial,
     256
   );
-
   return bytesToHex(new Uint8Array(hashBuffer));
 }
 
@@ -68,27 +72,24 @@ function timingSafeEqual(a: string, b: string): boolean {
   const aBytes = new TextEncoder().encode(a);
   const bBytes = new TextEncoder().encode(b);
   const maxLen = Math.max(aBytes.length, bBytes.length);
-
   let diff = aBytes.length ^ bBytes.length;
-
   for (let i = 0; i < maxLen; i++) {
     diff |= (aBytes[i] || 0) ^ (bBytes[i] || 0);
   }
-
   return diff === 0;
 }
 
 /**
- * Hash PIN with PBKDF2-SHA256 + random salt for secure storage.
- * Returns format: "saltHex:hashHex" encrypted with Vault Key.
+ * Hash PIN with Argon2id + random salt.
+ * Format: "a2:saltHex:hashHex" encrypted with Vault Key.
+ * Uses same Argon2id parameters as the rest of the app.
  */
 export async function hashPin(pin: string): Promise<string> {
   const salt = crypto.getRandomValues(new Uint8Array(16));
-  const hashHex = await derivePinHash(pin, salt);
+  const hashHex = await derivePinHashArgon2id(pin, salt);
   const saltHex = bytesToHex(salt);
-  const combined = `${saltHex}:${hashHex}`;
-  
-  // Encrypt the combined salt+hash with Vault Key before storing
+  const combined = `a2:${saltHex}:${hashHex}`;
+
   try {
     const encrypted = await cryptoService.encryptString(combined);
     return JSON.stringify({ iv: encrypted.iv, data: encrypted.ciphertext });
@@ -98,39 +99,49 @@ export async function hashPin(pin: string): Promise<string> {
 }
 
 /**
- * Verify a PIN by comparing the hash with the stored one.
- * Handles both encrypted and legacy plaintext formats.
- * Uses timing-safe comparison to prevent side-channel attacks.
+ * Verify a PIN against stored value.
+ * Supports both Argon2id (new, prefixed "a2:") and PBKDF2 (legacy) formats.
  */
 export async function verifyPin(pin: string, storedValue: string): Promise<boolean> {
   let storedCombined: string;
-  
-  // Check if stored value is encrypted (new format)
+
   try {
     const parsed = JSON.parse(storedValue);
     if (parsed.iv && parsed.data) {
       storedCombined = await cryptoService.decryptString(parsed.data, parsed.iv);
     } else {
-      storedCombined = storedValue; // Legacy plaintext
+      storedCombined = storedValue;
     }
   } catch {
-    storedCombined = storedValue; // Legacy plaintext
+    storedCombined = storedValue;
   }
-  
-  // Parse salt:hash format
+
   const parts = storedCombined.split(':');
-  if (parts.length !== 2) return false;
-  
-  const [saltHex, storedHashHex] = parts;
-  let salt: Uint8Array;
-  try {
-    salt = hexToBytes(saltHex);
-  } catch {
-    return false; // Legacy format without salt
+  if (parts.length < 2) return false;
+
+  if (parts[0] === 'a2' && parts.length === 3) {
+    const [_, saltHex, storedHashHex] = parts;
+    let salt: Uint8Array;
+    try {
+      salt = hexToBytes(saltHex);
+    } catch {
+      return false;
+    }
+    const newHashHex = await derivePinHashArgon2id(pin, salt);
+    return timingSafeEqual(storedHashHex, newHashHex);
   }
-  
-  const newHashHex = await derivePinHash(pin, salt);
-  
-  // Timing-safe comparison
-  return timingSafeEqual(storedHashHex, newHashHex);
+
+  if (parts.length === 2) {
+    const [saltHex, storedHashHex] = parts;
+    let salt: Uint8Array;
+    try {
+      salt = hexToBytes(saltHex);
+    } catch {
+      return false;
+    }
+    const newHashHex = await derivePinHashLegacy(pin, salt);
+    return timingSafeEqual(storedHashHex, newHashHex);
+  }
+
+  return false;
 }
