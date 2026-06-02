@@ -52,7 +52,7 @@ export const MusicView: React.FC<MusicViewProps> = ({ items, onPlay, currentSong
           <button 
             key={tab.id} 
             onClick={() => setSubTab(tab.id as MusicSubTab)}
-            className={`px-5 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap border ${subTab === tab.id ? 'bg-white text-black border-white' : 'bg-zinc-900/50 text-zinc-400 border-zinc-800 backdrop-blur-md'}`}
+            className={`px-5 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap border ${subTab === tab.id ? 'bg-[var(--accent-color)] text-black border-[var(--accent-color)]' : 'bg-zinc-900/50 text-zinc-400 border-zinc-800 backdrop-blur-md'}`}
           >
             {tab.label}
           </button>
