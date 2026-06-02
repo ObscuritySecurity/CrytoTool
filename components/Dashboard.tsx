@@ -944,7 +944,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                            <Trash2 size={18} className="text-red-500" />
                          </button>
                          <button onClick={() => { setIsSelectionMode(false); setSelectedItems(new Set()); }} className="px-3 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-bold">
-                           Anulează
+                            Cancel
                          </button>
                        </div>
                      </motion.div>

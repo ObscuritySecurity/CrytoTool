@@ -156,7 +156,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({ label, value, option
 
                 {/* Footer */}
                 <div className="p-4 border-t border-border bg-surface/30">
-                    <p className="text-[10px] text-center text-muted">Modificările se aplică instantaneu.</p>
+                    <p className="text-[10px] text-center text-muted">Changes apply instantly.</p>
                 </div>
             </motion.div>
           </div>

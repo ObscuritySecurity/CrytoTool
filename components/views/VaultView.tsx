@@ -150,7 +150,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
                     <h2 className="text-xl font-bold tracking-wide text-white flex items-center gap-2">
                         {activeCategory ? activeCategory.name : (t('keyStorage') || 'Stocare Chei')} 
                     </h2>
-                    {activeCategory && <p className="text-[10px] text-zinc-500 uppercase tracking-widest">{activeCategory.count} {t('entries') || 'Intrări'}</p>}
+                    {activeCategory && <p className="text-[10px] text-zinc-500 uppercase tracking-widest">{activeCategory.count} {t('entries') || 'Entries'}</p>}
                  </div>
              </div>
          </div>
@@ -158,7 +158,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
          <div className="mt-4 relative">
             <input 
                 type="text" 
-                placeholder={activeCategory ? `Caută în ${activeCategory.name}...` : "Caută în seif..."}
+                placeholder={activeCategory ? `Search in ${activeCategory.name}...` : "Search in vault..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl py-3 pl-10 pr-4 text-sm font-bold text-white focus:outline-none focus:border-neon-green transition-all placeholder:text-zinc-600"
@@ -246,7 +246,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
                       <div className="pt-4 border-t border-zinc-800">
                         <button
                           onClick={async () => {
-                            if (confirm('Sigur vrei să ștergi toate cheile din seif?')) {
+                            if (confirm('Are you sure you want to delete all keys from the vault?')) {
                               await vaultStorage.clear();
                               setCategories(prev => prev.map(c => ({ ...c, count: 0 })));
                               setTotalCount(0);
@@ -254,7 +254,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
                           }}
                           className="w-full p-3 rounded-xl bg-red-500/5 border border-red-500/20 text-red-400 text-xs font-bold hover:bg-red-500/10 transition-colors flex items-center justify-center gap-2"
                         >
-                          <Trash2 size={14} /> Șterge toate cheile
+                          <Trash2 size={14} /> Delete all keys
                         </button>
                       </div>
                     )}
@@ -339,8 +339,8 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
                         {items.length === 0 && (
                             <div className="text-center py-16">
                                 <Lock size={32} className="mx-auto text-zinc-800 mb-3" />
-                                <p className="text-zinc-600 text-xs">Nicio cheie în această categorie.</p>
-                                <p className="text-zinc-700 text-[10px] mt-1">Cheile apar aici când salvezi din dialogul de criptare.</p>
+<p className="text-zinc-600 text-xs">No keys in this category.</p>
+                                 <p className="text-zinc-700 text-[10px] mt-1">Keys appear here when saved from the encryption dialog.</p>
                             </div>
                         )}
                     </div>

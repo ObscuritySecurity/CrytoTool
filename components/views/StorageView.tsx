@@ -78,7 +78,7 @@ export const StorageView: React.FC<{
               </div>
             </div>
             <div className="w-full text-center z-10 space-y-2 border-t border-dashed border-border pt-6">
-              <p className="text-xs text-muted uppercase font-black tracking-widest">{t('totalSpaceUsed') || 'Spațiu ocupat total'}</p>
+              <p className="text-xs text-muted uppercase font-black tracking-widest">{t('totalSpaceUsed') || 'Total space used'}</p>
               <p className="text-2xl font-black font-mono text-neon-green">{formatBytes(storageStats.used)}</p>
             </div>
         </div>
@@ -86,7 +86,7 @@ export const StorageView: React.FC<{
             <h4 className={`text-[10px] font-black uppercase tracking-[0.2em] mb-4 flex items-center gap-2 text-muted`}>{t('categoryDetails') || 'Detaliere categorii'}</h4>
             <StorageItem label={t('pictures') || "Poze"} size={storageStats.breakdown.image} total={storageStats.used} color="var(--accent-color)" icon={<ImageIcon size={18} />} />
             <StorageItem label={t('videoLabel') || "Video"} size={storageStats.breakdown.video} total={storageStats.used} color="#a855f7" icon={<Video size={18} />} />
-            <StorageItem label={t('musicLabel') || "Muzică"} size={storageStats.breakdown.audio} total={storageStats.used} color="#eab308" icon={<FileAudio size={18} />} />
+            <StorageItem label={t('musicLabel') || "Music"} size={storageStats.breakdown.audio} total={storageStats.used} color="#eab308" icon={<FileAudio size={18} />} />
             <StorageItem label={t('documentsLabel') || "Documente"} size={storageStats.breakdown.doc} total={storageStats.used} color="#3b82f6" icon={<FileText size={18} />} />
         </div>
       </div>

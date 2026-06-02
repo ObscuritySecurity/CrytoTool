@@ -360,7 +360,7 @@ export const BackupView: React.FC<BackupViewProps> = ({ onBack, theme }) => {
                             <AlertTriangle size={20} className="text-yellow-500" />
                         </div>
                         <div>
-                            <h4 className="text-xs font-black uppercase tracking-widest text-yellow-500 mb-2">{t('attention') || 'ATENȚIE'}</h4>
+                            <h4 className="text-xs font-black uppercase tracking-widest text-yellow-500 mb-2">{t('attention') || 'ATTENTION'}</h4>
                             <p className="text-xs text-yellow-500/80 leading-relaxed font-medium">
                                 {t('restoreWarning')}
                             </p>

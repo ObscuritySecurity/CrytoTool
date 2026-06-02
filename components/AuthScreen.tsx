@@ -272,7 +272,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
               onClick={() => setIsRecoveryMode(true)}
               className="w-full py-2 text-xs text-zinc-500 hover:text-white transition-colors"
             >
-              Ai uitat parola? Folosește un cod de recuperare
+              Forgot password? Use a recovery code
             </button>
           </div>
         )}
@@ -284,11 +284,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
             animate={{ opacity: 1, y: 0 }}
             className="mt-4 p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800"
           >
-            <h3 className="text-sm font-bold text-white mb-3">Resetează cu cod de recuperare</h3>
+            <h3 className="text-sm font-bold text-white mb-3">Reset with Recovery Code</h3>
             
             <div className="space-y-3">
               <div>
-                <label className="text-[10px] text-zinc-500 uppercase tracking-wider">Cod de recuperare</label>
+                <label className="text-[10px] text-zinc-500 uppercase tracking-wider">Recovery Code</label>
                 <input
                   type="text"
                   value={recoveryCode}
@@ -300,23 +300,23 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
               </div>
               
               <div>
-                <label className="text-[10px] text-zinc-500 uppercase tracking-wider">Parolă nouă (min 30 caractere)</label>
+                <label className="text-[10px] text-zinc-500 uppercase tracking-wider">New Password (min 30 chars)</label>
                 <input
                   type="password"
                   value={newRecoveryPassword}
                   onChange={(e) => setNewRecoveryPassword(e.target.value)}
-                  placeholder="Parola nouă..."
+                  placeholder="New password..."
                   className="w-full bg-black border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm mt-1"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] text-zinc-500 uppercase tracking-wider">Confirmă parola</label>
+                <label className="text-[10px] text-zinc-500 uppercase tracking-wider">Confirm Password</label>
                 <input
                   type="password"
                   value={confirmNewPassword}
                   onChange={(e) => setConfirmNewPassword(e.target.value)}
-                  placeholder="Confirmă parola..."
+                  placeholder="Confirm password..."
                   className="w-full bg-black border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm mt-1"
                 />
               </div>
@@ -336,16 +336,16 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
                   }}
                   className="flex-1 py-2 rounded-lg border border-zinc-700 text-zinc-400 text-sm hover:bg-zinc-800"
                 >
-                  Anulează
+                  Cancel
                 </button>
                 <button
                   onClick={async () => {
                     if (newRecoveryPassword.length < 30) {
-                      setError('Parola trebuie să aibă minim 30 caractere');
+                      setError('Password must be at least 30 characters');
                       return;
                     }
                     if (newRecoveryPassword !== confirmNewPassword) {
-                      setError('Parolele nu se potrivesc');
+                      setError('Passwords do not match');
                       return;
                     }
                     if (!recoverySettings?.verify(recoveryCode)) {
@@ -361,14 +361,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
                       // Reset successful, reload page to re-authenticate with new credentials
                       window.location.reload();
                     } else {
-                      setError(result.error || 'Eroare la resetare');
+                      setError(result.error || 'Reset error');
                     }
                   }}
                   disabled={isProcessing || !recoveryCode || !newRecoveryPassword || !confirmNewPassword}
                   className="flex-1 py-2 rounded-lg text-black text-sm font-bold disabled:opacity-50"
                   style={{ backgroundColor: accentColor }}
                 >
-                  Resetează
+                  Reset
                 </button>
               </div>
             </div>
