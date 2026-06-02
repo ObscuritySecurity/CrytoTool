@@ -89,7 +89,7 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
         else { setInactivityUnit('sec'); setInactivityValue(totalSecs); }
     }, []);
 
-    // Handler pentru schimbarea timpului de autodistrugere
+    // Handler for auto-destruct time change
     const handleInactivityChange = (val: number, unit: 'sec' | 'min' | 'hour' | 'day') => {
         setInactivityValue(val);
         setInactivityUnit(unit);
@@ -531,12 +531,12 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                 </div>
 
                 <div className="space-y-4">
-                    <div className="flex justify-between items-center"><label className="text-sm font-bold uppercase tracking-wider text-primary">Auto Blur</label><span className="text-xs font-mono text-neon-green font-bold">{props.autoBlurSettings.value}s</span></div>
+                    <div className="flex justify-between items-center"><label className="text-sm font-bold uppercase tracking-wider text-primary">{t('autoBlur')}</label><span className="text-xs font-mono text-neon-green font-bold">{props.autoBlurSettings.value}s</span></div>
                     <input type="range" min="5" max="60" step="5" value={props.autoBlurSettings.value} onChange={(e) => props.autoBlurSettings.setValue(parseInt(e.target.value))} className="w-full accent-neon-green h-1.5 bg-surface rounded-lg appearance-none cursor-pointer" />
                     <p className="text-[10px] text-muted">{t('autoBlurDesc')}</p>
                 </div>
                 <div className="space-y-4 border-t border-border pt-6">
-                    <div className="flex justify-between items-center"><label className="text-sm font-bold uppercase tracking-wider text-primary">Auto Lock</label><span className="text-xs font-mono text-neon-green font-bold">{props.autoLockSettings.value}s</span></div>
+                    <div className="flex justify-between items-center"><label className="text-sm font-bold uppercase tracking-wider text-primary">{t('autoLock')}</label><span className="text-xs font-mono text-neon-green font-bold">{props.autoLockSettings.value}s</span></div>
                     <input type="range" min="5" max="120" step="5" value={props.autoLockSettings.value} onChange={(e) => props.autoLockSettings.setValue(parseInt(e.target.value))} className="w-full accent-neon-green h-1.5 bg-surface rounded-lg appearance-none cursor-pointer" />
                     <p className="text-[10px] text-muted">{t('autoLockDesc')}</p>
                 </div>
@@ -579,20 +579,20 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                 {/* RECOVERY CODES SECTION */}
                 <div className="border-t border-border pt-6 mt-4">
                     <h4 className="text-[10px] font-black uppercase tracking-widest text-neon-green flex items-center gap-2 mb-4">
-                        <KeyRound size={14} /> Password Recovery
+                        <KeyRound size={14} /> {t('passwordRecovery')}
                     </h4>
                     
                     <div className="p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800 mb-4">
                         <div className="flex items-center justify-between mb-3">
                             <div>
-                                <p className="text-xs font-bold text-white">Recovery Codes</p>
-                                <p className="text-[10px] text-zinc-500">{props.recoverySettings.codes.length}/10 codes available</p>
+                                <p className="text-xs font-bold text-white">{t('recoveryCodes')}</p>
+                                <p className="text-[10px] text-zinc-500">{props.recoverySettings.codes.length}/10 {t('codesAvailable')}</p>
                             </div>
                             <button 
                                 onClick={props.recoverySettings.regenerate}
                                 className="px-3 py-1.5 rounded-lg bg-neon-green/10 border border-neon-green/30 text-neon-green text-[10px] font-bold hover:bg-neon-green/20 transition-colors"
                             >
-                                Regenerate
+                                {t('regenerate')}
                             </button>
                         </div>
 
@@ -606,13 +606,13 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                             </div>
                         ) : (
                             <p className="text-[10px] text-zinc-500 text-center py-2">
-                                Press "Regenerate" to create new codes
+                                {t('pressRegenerate')}
                             </p>
                         )}
                     </div>
 
                     <p className="text-[9px] text-zinc-600 leading-relaxed">
-                        Save these codes in a safe place. Each code can be used only once to reset your Master password without losing data.
+                        {t('recoveryCodesDesc')}
                     </p>
                 </div>
 

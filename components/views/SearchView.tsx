@@ -44,7 +44,7 @@ export const SearchView: React.FC<SearchViewProps> = ({ items, onNavigate, onBac
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder={t('searchFiles') || "Search files..."}
+            placeholder={t('searchFiles')}
             className="w-full glass-button border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm font-bold text-primary focus:outline-none focus:border-neon-green transition-colors"
           />
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
@@ -60,15 +60,15 @@ export const SearchView: React.FC<SearchViewProps> = ({ items, onNavigate, onBac
         {query === '' ? (
           <div className="flex flex-col items-center justify-center h-64 text-muted opacity-50">
             <Search size={48} className="mb-4" />
-            <p className="text-sm font-medium">{t('startTyping') || "Start typing to search."}</p>
+            <p className="text-sm font-medium">{t('startTyping')}</p>
           </div>
         ) : filteredItems.length === 0 ? (
           <div className="text-center text-muted py-8 text-sm">
-            {t('noResultsFor') || "Niciun rezultat pentru"} "{query}"
+            {t('noResultsFor')} "{query}"
           </div>
         ) : (
           <div className="flex flex-col gap-2">
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted mb-2">{t('results') || "Rezultate"} ({filteredItems.length})</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted mb-2">{t('results')} ({filteredItems.length})</p>
             {filteredItems.map(item => (
               <FileItem 
                 key={item.id} 

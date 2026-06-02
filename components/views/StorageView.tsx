@@ -74,20 +74,20 @@ export const StorageView: React.FC<{
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className="text-4xl font-black font-mono tracking-tighter text-primary">{Math.round((storageStats.used / storageStats.limit) * 100)}%</span>
-                <span className="text-[10px] text-muted uppercase font-black tracking-[0.2em] mt-2">{t('used') || 'Utilizat'}</span>
+                <span className="text-[10px] text-muted uppercase font-black tracking-[0.2em] mt-2">{t('used')}</span>
               </div>
             </div>
             <div className="w-full text-center z-10 space-y-2 border-t border-dashed border-border pt-6">
-              <p className="text-xs text-muted uppercase font-black tracking-widest">{t('totalSpaceUsed') || 'Total space used'}</p>
+              <p className="text-xs text-muted uppercase font-black tracking-widest">{t('totalSpaceUsed')}</p>
               <p className="text-2xl font-black font-mono text-neon-green">{formatBytes(storageStats.used)}</p>
             </div>
         </div>
         <div className="space-y-6">
-            <h4 className={`text-[10px] font-black uppercase tracking-[0.2em] mb-4 flex items-center gap-2 text-muted`}>{t('categoryDetails') || 'Detaliere categorii'}</h4>
-            <StorageItem label={t('pictures') || "Poze"} size={storageStats.breakdown.image} total={storageStats.used} color="var(--accent-color)" icon={<ImageIcon size={18} />} />
-            <StorageItem label={t('videoLabel') || "Video"} size={storageStats.breakdown.video} total={storageStats.used} color="#a855f7" icon={<Video size={18} />} />
-            <StorageItem label={t('musicLabel') || "Music"} size={storageStats.breakdown.audio} total={storageStats.used} color="#eab308" icon={<FileAudio size={18} />} />
-            <StorageItem label={t('documentsLabel') || "Documente"} size={storageStats.breakdown.doc} total={storageStats.used} color="#3b82f6" icon={<FileText size={18} />} />
+            <h4 className={`text-[10px] font-black uppercase tracking-[0.2em] mb-4 flex items-center gap-2 text-muted`}>{t('categoryDetails')}</h4>
+            <StorageItem label={t('pictures')} size={storageStats.breakdown.image} total={storageStats.used} color="var(--accent-color)" icon={<ImageIcon size={18} />} />
+            <StorageItem label={t('videoLabel')} size={storageStats.breakdown.video} total={storageStats.used} color="#a855f7" icon={<Video size={18} />} />
+            <StorageItem label={t('musicLabel')} size={storageStats.breakdown.audio} total={storageStats.used} color="#eab308" icon={<FileAudio size={18} />} />
+            <StorageItem label={t('documentsLabel')} size={storageStats.breakdown.doc} total={storageStats.used} color="#3b82f6" icon={<FileText size={18} />} />
         </div>
       </div>
     </motion.div>

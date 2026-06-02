@@ -3,6 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown, SkipBack, SkipForward, Play, Pause, Music } from 'lucide-react';
 import { FileSystemItem } from '../types';
+import { useI18n } from '../locales/i18nContext';
 
 interface FullPlayerProps {
   currentPlayingItem: FileSystemItem | null;
@@ -12,6 +13,8 @@ interface FullPlayerProps {
   onClose: () => void;
   onTogglePlay: () => void;
   onSeek: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onPrev?: () => void;
+  onNext?: () => void;
 }
 
 export const FullPlayer: React.FC<FullPlayerProps> = ({
@@ -22,7 +25,10 @@ export const FullPlayer: React.FC<FullPlayerProps> = ({
   onClose,
   onTogglePlay,
   onSeek,
+  onPrev,
+  onNext,
 }) => {
+  const { t } = useI18n();
   if (!currentPlayingItem) return null;
 
   return (
@@ -41,7 +47,7 @@ export const FullPlayer: React.FC<FullPlayerProps> = ({
           <ChevronDown size={24} />
         </button>
         <span className="text-xs text-zinc-500 font-medium uppercase tracking-widest">
-          Now Playing
+          {t('nowPlaying')}
         </span>
         <div className="w-10" />
       </div>
@@ -78,7 +84,7 @@ export const FullPlayer: React.FC<FullPlayerProps> = ({
           <p className="text-sm text-zinc-400 truncate mt-1">
             {(currentPlayingItem as any).decryptedArtist ||
               currentPlayingItem.artist ||
-              "Unknown Artist"}
+              t('unknownArtist')}
           </p>
         </div>
 
@@ -104,7 +110,7 @@ export const FullPlayer: React.FC<FullPlayerProps> = ({
         </div>
 
         <div className="flex items-center gap-6">
-          <button className="p-2 text-zinc-400 hover:text-white transition-colors">
+          <button onClick={onPrev} className="p-2 text-zinc-400 hover:text-white transition-colors">
             <SkipBack size={24} fill="currentColor" />
           </button>
           <button
@@ -120,7 +126,7 @@ export const FullPlayer: React.FC<FullPlayerProps> = ({
               <Play size={28} fill="currentColor" className="ml-1" />
             )}
           </button>
-          <button className="p-2 text-zinc-400 hover:text-white transition-colors">
+          <button onClick={onNext} className="p-2 text-zinc-400 hover:text-white transition-colors">
             <SkipForward size={24} fill="currentColor" />
           </button>
         </div>

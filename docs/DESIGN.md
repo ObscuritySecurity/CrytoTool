@@ -45,7 +45,7 @@ All surfaces use the glassmorphism design system defined in `styles/glass.css`:
 | Warning | `#eab308` (Yellow-500) | Cautions, notices |
 
 ### Typography
-- **Font Family**: Loaded from `utils/fonts.ts`, applied via Tailwind `font-sans`
+- **Font Family**: Loaded from `styles/fonts.ts`, applied via Tailwind `font-sans`
 - **Code/Keys**: `font-mono` (for encryption keys, hashes)
 - **Sizes**: `text-xs` (10px) for metadata, `text-sm` (12px) for body, `text-base` (14px) for headings, `text-lg` (18px) for titles
 - **Weights**: `font-bold` for actions, `font-black` for section headers
@@ -171,7 +171,7 @@ transition: { delay: index * 0.05 } // staggered
 
 ## 7. Internationalization (i18n)
 ### Adding a New Language
-1. Open `utils/i18n.ts`
+1. Open `locales/`
 2. Add language code to `SupportedLocale` type (line ~64)
 3. Add translation object following the `Translation` interface
 4. Use existing keys — never create new keys without updating ALL languages
@@ -192,7 +192,7 @@ transition: { delay: index * 0.05 } // staggered
 
 ## 8. Theming System
 ### Creating a New Theme
-1. Open `utils/themes.ts`
+1. Open `styles/themes.ts`
 2. Add entry to `themes` array following `ThemeConfig` interface:
    ```typescript
    { id: 'my-theme', name: 'My Theme', accent: '#xxxxxx', bgMain: '#xxxxxx', 
@@ -218,7 +218,7 @@ Before submitting a PR that changes UI/UX:
 - [ ] Animations use Framer Motion with provided presets
 - [ ] All text uses `t('key')` (no hardcoded strings)
 - [ ] A11y: keyboard navigable, screen-reader friendly
-- [ ] i18n: English source strings updated in `utils/i18n.ts` (community handles translations)
+- [ ] i18n: English source strings updated in `locales/` (community handles translations)
 - [ ] Theming: works with dark/light/system modes
 - [ ] Performance: no layout shifts, smooth animations (60fps)
 - [ ] Screenshots attached for visual changes
@@ -251,6 +251,6 @@ Use `animate-pulse` with `bg-zinc-800` for loading states:
 
 ## Resources
 - **Technical Architecture**: [ARCHITECTURE.md](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/ARCHITECTURE.md)
-- **i18n Keys**: [utils/i18n.ts](https://github.com/ObscuritySecurity/CrytoTool/blob/main/utils/i18n.ts)
-- **Theme Config**: [utils/themes.ts](https://github.com/ObscuritySecurity/CrytoTool/blob/main/utils/themes.ts)
+- **i18n Keys**: [locales/](https://github.com/ObscuritySecurity/CrytoTool/blob/main/locales/)
+- **Theme Config**: [styles/themes.ts](https://github.com/ObscuritySecurity/CrytoTool/blob/main/styles/themes.ts)
 - **Glass CSS**: [styles/glass.css](https://github.com/ObscuritySecurity/CrytoTool/blob/main/styles/glass.css)

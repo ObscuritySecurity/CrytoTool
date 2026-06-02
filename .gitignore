@@ -8,3 +8,5 @@ key.pem
 node_modules/
 platforms/
 !android/
+src-tauri/target/
+src-tauri/gen/

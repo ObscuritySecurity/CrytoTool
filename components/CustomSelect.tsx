@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, ChevronRight } from 'lucide-react';
+import { useI18n } from '../locales/i18nContext';
 
 export interface SelectOption {
   value: string;
@@ -20,6 +21,7 @@ interface CustomSelectProps {
 }
 
 export const CustomSelect: React.FC<CustomSelectProps> = ({ label, value, options, onChange, icon, inline = false }) => {
+  const { t } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
   
   const selectedOption = options.find(o => o.value === value) || options[0];
@@ -156,7 +158,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({ label, value, option
 
                 {/* Footer */}
                 <div className="p-4 border-t border-border bg-surface/30">
-                    <p className="text-[10px] text-center text-muted">Changes apply instantly.</p>
+                    <p className="text-[10px] text-center text-muted">{t('changesApplyInstantly')}</p>
                 </div>
             </motion.div>
           </div>

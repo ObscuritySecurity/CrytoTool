@@ -88,13 +88,6 @@ export async function loadTranslations(code: string): Promise<Translations> {
   }
 }
 
-export const getTranslation = (langCode: string, key: TranslationKey): string => {
-  const t = cache.get(langCode);
-  if (t && t[key]) return t[key];
-  const en = cache.get('en');
-  return en?.[key] || key;
-};
-
 export const getLanguageOptions = () => {
   return LANGUAGES.map(lang => ({
     label: lang.nativeName,
@@ -105,6 +98,4 @@ export const getLanguageOptions = () => {
   }));
 };
 
-export async function preloadLanguage(code: string): Promise<void> {
-  await loadTranslations(code);
-}
+

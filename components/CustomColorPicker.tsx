@@ -63,7 +63,7 @@ export const CustomColorPicker: React.FC<{
               <div className="w-6 h-6 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: color }}></div>
               <span className="text-xs font-bold text-primary font-mono uppercase">{color}</span>
             </div>
-            <div className="text-[10px] font-black uppercase tracking-widest text-muted group-hover:text-primary transition-colors">{t('change') || 'Change'}</div>
+            <div className="text-[10px] font-black uppercase tracking-widest text-muted group-hover:text-primary transition-colors">{t('change')}</div>
           </>
         )}
       </div>
@@ -84,13 +84,13 @@ export const CustomColorPicker: React.FC<{
               onClick={(e) => e.stopPropagation()}
             >
                <div className="p-5 border-b border-border bg-black/30 flex justify-between items-center">
-                  <h3 className="text-lg font-bold text-primary">{t('colorSelector') || 'Selector Culoare'}</h3>
+                   <h3 className="text-lg font-bold text-primary">{t('colorSelector')}</h3>
                </div>
                
                <div className="p-6 space-y-6">
                   <div>
                     <div className="flex justify-between mb-3">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-muted">{t('chooseShade') || 'Choose Shade'}</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-muted">{t('chooseShade')}</span>
                       <span className="text-[10px] font-mono font-bold text-primary">{hue}°</span>
                     </div>
                     <div className="h-6 rounded-full w-full relative overflow-hidden ring-2 ring-border">
@@ -100,7 +100,7 @@ export const CustomColorPicker: React.FC<{
                     </div>
                   </div>
                   <div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-muted mb-3 block">{t('generatedVariants') || 'Variante Generate'}</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted mb-3 block">{t('generatedVariants')}</span>
                     <div className="grid grid-cols-4 gap-3">
                       {generatedColors.map((c) => (
                         <button key={c} onClick={() => { onChange(c); setLocalColor(c); }} className={`w-full aspect-square rounded-xl border-2 transition-transform hover:scale-105 shadow-sm bg-black/30 ${localColor.toLowerCase() === c.toLowerCase() ? 'border-white scale-110 shadow-[0_0_15px_rgba(255,255,255,0.3)]' : 'border-white/10'}`} style={{ backgroundColor: c }} />
@@ -113,7 +113,7 @@ export const CustomColorPicker: React.FC<{
                   </div>
                </div>
                <div className="p-4 border-t border-border bg-black/30">
-                  <button onClick={() => setIsOpen(false)} className="w-full py-3 rounded-xl bg-neon-green text-black text-xs font-black uppercase tracking-widest shadow-[0_0_15px_rgba(var(--accent-rgb),0.3)] hover:scale-[1.02] transition-transform">{t('done') || 'Gata'}</button>
+                   <button onClick={() => setIsOpen(false)} className="w-full py-3 rounded-xl bg-neon-green text-black text-xs font-black uppercase tracking-widest shadow-[0_0_15px_rgba(var(--accent-rgb),0.3)] hover:scale-[1.02] transition-transform">{t('done')}</button>
                </div>
             </motion.div>
           </div>

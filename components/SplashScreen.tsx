@@ -1,12 +1,14 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useI18n } from '../locales/i18nContext';
 
 interface SplashScreenProps {
   onComplete: () => void;
 }
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
+  const { t } = useI18n();
   const [locked, setLocked] = useState(false);
   const [verified, setVerified] = useState(false);
   const [showText, setShowText] = useState(false);
@@ -138,7 +140,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
                 transition={{ duration: 0.8, delay: 0.2 }}
             />
             <p className="mt-4 text-[10px] font-bold tracking-[0.4em] text-zinc-500 uppercase">
-                Secure Vault Access
+                {t('secureVaultAccess')}
             </p>
         </motion.div>
       </div>
