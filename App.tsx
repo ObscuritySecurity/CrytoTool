@@ -6,7 +6,7 @@ import { Dashboard } from './components/Dashboard';
 import { AuthScreen } from './components/AuthScreen';
 import { cryptoService } from './utils/crypto';
 import { db } from './utils/db';
-import { I18nProvider } from './utils/i18n/i18nContext';
+import { I18nProvider } from './locales/i18nContext';
 import { hashPin } from './utils/security';
 
 const App: React.FC = () => {

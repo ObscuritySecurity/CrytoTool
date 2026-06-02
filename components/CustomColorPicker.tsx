@@ -3,7 +3,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useI18n } from '../utils/i18n/i18nContext';
+import { useI18n } from '../locales/i18nContext';
 
 // HSL to Hex Helper for Color Picker
 const hslToHex = (h: number, s: number, l: number) => {

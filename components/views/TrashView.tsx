@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Trash2, RotateCcw, AlertTriangle } from 'lucide-react';
 import { FileSystemItem, AppTheme } from '../../types';
 import { FileItem } from '../FileItem';
-import { useI18n } from '../../utils/i18n/i18nContext';
+import { useI18n } from '../../locales/i18nContext';
 
 interface TrashViewProps {
   trashItems: FileSystemItem[];

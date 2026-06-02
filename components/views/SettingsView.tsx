@@ -13,8 +13,8 @@ import { CustomColorPicker } from '../CustomColorPicker';
 import { CustomSelect } from '../CustomSelect';
 import { THEME_COLLECTIONS, CATEGORY_KEYS, getAllThemes } from '../../styles/themes';
 import { FONT_LIST, FONT_CATEGORIES, getFontsByCategory } from '../../styles/fonts';
-import { LANGUAGES } from '../../utils/i18n';
-import { useI18n } from '../../utils/i18n/i18nContext';
+import { LANGUAGES } from '../../locales';
+import { useI18n } from '../../locales/i18nContext';
 
 interface SettingsViewProps {
   onBack: () => void;

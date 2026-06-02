@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Music, Disc, User, ListMusic, Play, Pause, Shuffle, Heart, MoreHorizontal } from 'lucide-react';
 import { FileSystemItem, AppTheme } from '../../types';
-import { useI18n } from '../../utils/i18n/i18nContext';
+import { useI18n } from '../../locales/i18nContext';
 
 type MusicSubTab = 'songs' | 'albums' | 'artists' | 'playlists';
 

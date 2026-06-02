@@ -6,7 +6,7 @@ import {
   Grid3X3, Share2, Trash2, Info, Lock, Unlock
 } from 'lucide-react';
 import { FileSystemItem, AppTheme } from '../../types';
-import { useI18n } from '../../utils/i18n/i18nContext';
+import { useI18n } from '../../locales/i18nContext';
 
 type GallerySubTab = 'all' | 'photos' | 'videos' | 'favorites' | 'albums';
 
