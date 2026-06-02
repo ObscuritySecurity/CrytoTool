@@ -331,5 +331,6 @@ export const translations: Translations = {
   generatedVariants: 'Variante Generate',
   folder: 'FOLDER',
   select: 'Selectează',
-    deleteFile: 'Șterge Fișier'
+    deleteFile: 'Șterge Fișier',
+    documentsComingSoon: 'Document editing and viewing will come soon.',
 }

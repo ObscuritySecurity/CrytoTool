@@ -330,5 +330,6 @@ export const translations: Translations = {
     generatedVariants: '生成されたバリアント',
     folder: 'フォルダ',
     select: '選択',
-    deleteFile: 'ファイルを削除'
+    deleteFile: 'ファイルを削除',
+    documentsComingSoon: 'Document editing and viewing will come soon.',
 }

@@ -330,5 +330,6 @@ export const translations: Translations = {
     generatedVariants: 'Згенеровані варіанти',
     folder: 'ПАПКА',
     select: 'Вибрати',
-    deleteFile: 'Видалити файл'
+    deleteFile: 'Видалити файл',
+    documentsComingSoon: 'Document editing and viewing will come soon.',
 }

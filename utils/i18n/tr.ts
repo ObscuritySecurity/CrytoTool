@@ -330,5 +330,6 @@ export const translations: Translations = {
     generatedVariants: 'Oluşturulan Varyantlar',
     folder: 'KLASÖR',
     select: 'Seç',
-    deleteFile: 'Dosyayı Sil'
+    deleteFile: 'Dosyayı Sil',
+    documentsComingSoon: 'Document editing and viewing will come soon.',
 }

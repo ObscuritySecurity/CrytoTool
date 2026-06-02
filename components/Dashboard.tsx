@@ -987,6 +987,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
                   {activeTab === 'docs' && (
                       <div className="flex flex-col gap-2">
+                          <div className="px-3 py-2 rounded-lg bg-muted/10 border border-muted/20 mb-1">
+                              <p className="text-[11px] text-muted leading-relaxed">{t('documentsComingSoon')}</p>
+                          </div>
                           <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-2 px-1">{t('encryptedDocuments')}</p>
                           {items.filter(i => i.category === 'doc').map(item => (
                               <FileItem key={item.id} item={item} onAction={(act) => handleItemAction(act, item)} onOpenMenu={() => { if(item.type !== 'system') setMenuOpenItem(item); }} onClick={() => handleNavigate(item)} theme={appTheme} />

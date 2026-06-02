@@ -330,5 +330,6 @@ export const translations: Translations = {
     generatedVariants: 'जेनरेटेड वेरिएंट',
     folder: 'फ़ोल्डर',
     select: 'चुनें',
-    deleteFile: 'फ़ाइल हटाएं'
+    deleteFile: 'फ़ाइल हटाएं',
+    documentsComingSoon: 'Document editing and viewing will come soon.',
 }
