@@ -257,7 +257,6 @@ export const translations: Translations = {
     smoothAnimations: 'Sorunsuz Animasyonlar',
     nativeSecurity: 'Yerel Güvenlik',
     leadDeveloper: 'Baş Geliştirici',
-    allRightsReserved: '© 2024 ObscuritySecurity Inc. Tüm hakları saklıdır.',
     sourceCodeProtected: 'Kaynak kodu açık kaynak - GitHub\'da mevcut.',
     passwordMin30Error: 'Şifre en az 30 karakter olmalıdır.',
     incorrectPassword: 'Yanlış şifre.',

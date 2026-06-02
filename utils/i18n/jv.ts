@@ -257,7 +257,6 @@ export const translations: Translations = {
     smoothAnimations: 'Animasi Gamelan',
     nativeSecurity: 'Native Security',
     leadDeveloper: 'Lead Developer',
-    allRightsReserved: '© 2024 ObscuritySecurity Inc. Kabeh hak dilindhungi undhang-undhang.',
     sourceCodeProtected: 'Kode sumber terbuka - tersedia di GitHub.',
     passwordMin30Error: 'Tembung sandhi kudu paling sethithik 30 karakter.',
     incorrectPassword: 'Sandi salah.',

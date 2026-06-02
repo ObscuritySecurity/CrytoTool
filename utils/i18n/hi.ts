@@ -257,7 +257,6 @@ export const translations: Translations = {
     smoothAnimations: 'स्मूथ एनिमेशन',
     nativeSecurity: 'नेटिव सिक्योरिटी',
     leadDeveloper: 'लीड डेवलपर',
-    allRightsReserved: '© 2024 ऑब्स्क्यूरिटीसिक्योरिटी इंक. सर्वाधिकार सुरक्षित।',
     sourceCodeProtected: 'स्रोत कोड खुला है - GitHub पर उपलब्ध।',
     passwordMin30Error: 'पासवर्ड कम से कम 30 अक्षर का होना चाहिए।',
     incorrectPassword: 'ग़लत पासवर्ड.',

@@ -257,7 +257,6 @@ export const translations: Translations = {
     smoothAnimations: 'Smooth Animations',
     nativeSecurity: 'Native Security',
     leadDeveloper: 'Vodeći razvojni programer',
-    allRightsReserved: '© 2024 ObscuritySecurity Inc. Sva prava pridržana.',
     sourceCodeProtected: 'Izvorni kod je zaštićen vlasničkom licencom.',
     passwordMin30Error: 'Lozinka mora imati najmanje 30 znakova.',
     incorrectPassword: 'Netočna lozinka.',

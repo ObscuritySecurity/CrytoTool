@@ -257,7 +257,6 @@ export const translations: Translations = {
     smoothAnimations: '부드러운 애니메이션',
     nativeSecurity: '기본 보안',
     leadDeveloper: '수석 개발자',
-    allRightsReserved: '© 2024 ObscuritySecurity Inc. 모든 권리 보유.',
     sourceCodeProtected: '소스코드는 오픈소스입니다 - GitHub에서 확인 가능.',
     passwordMin30Error: '비밀번호는 30자 이상이어야 합니다.',
     incorrectPassword: '비밀번호가 틀렸습니다.',

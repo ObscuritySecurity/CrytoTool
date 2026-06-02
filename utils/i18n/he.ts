@@ -257,7 +257,6 @@ export const translations: Translations = {
     smoothAnimations: 'Smooth Animations',
     nativeSecurity: 'Native Security',
     leadDeveloper: 'מפתח ראשי',
-    allRightsReserved: '© 2024 ObscuritySecurity Inc. כל הזכויות שמורות.',
     sourceCodeProtected: 'קוד המקור הוא קוד פתוח - זמין ב-GitHub.',
     passwordMin30Error: 'הסיסמה חייבת להיות לפחות 30 תווים.',
     incorrectPassword: 'סיסמה שגויה.',

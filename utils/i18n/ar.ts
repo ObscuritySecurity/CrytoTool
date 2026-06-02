@@ -257,7 +257,6 @@ export const translations: Translations = {
     smoothAnimations: 'الرسوم المتحركة السلسة',
     nativeSecurity: 'Native Security',
     leadDeveloper: 'المطور الرئيسي',
-    allRightsReserved: '© 2024 ObscuritySecurity Inc. جميع الحقوق محفوظة.',
     sourceCodeProtected: 'كود المصدر مفتوح - متاح على GitHub.',
     passwordMin30Error: 'يجب أن تكون كلمة المرور 30 ​​حرفًا على الأقل.',
     incorrectPassword: 'كلمة المرور غير صحيحة.',

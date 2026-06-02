@@ -257,7 +257,6 @@ export const translations: Translations = {
     smoothAnimations: 'スムーズなアニメーション',
     nativeSecurity: 'ネイティブ セキュリティ',
     leadDeveloper: 'リード開発者',
-    allRightsReserved: '© 2024 ObscuritySecurity Inc. 全著作権所有。',
     sourceCodeProtected: 'ソースコードはオープンソースです - GitHubで入手可能。',
     passwordMin30Error: 'パスワードは 30 文字以上である必要があります。',
     incorrectPassword: 'パスワードが正しくありません。',

@@ -257,7 +257,6 @@ export const translations: Translations = {
     smoothAnimations: 'Плавна анімація',
     nativeSecurity: 'Внутрішня безпека',
     leadDeveloper: 'Провідний розробник',
-    allRightsReserved: '© 2024 ObscuritySecurity Inc. Усі права захищено.',
     sourceCodeProtected: 'Вихідний код відкритий - доступний на GitHub.',
     passwordMin30Error: 'Пароль має бути не менше 30 символів.',
     incorrectPassword: 'Неправильний пароль.',

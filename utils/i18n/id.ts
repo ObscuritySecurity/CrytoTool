@@ -257,7 +257,6 @@ export const translations: Translations = {
     smoothAnimations: 'Animasi Halus',
     nativeSecurity: 'Keamanan Asli',
     leadDeveloper: 'Pengembang Utama',
-    allRightsReserved: '© 2024 ObscuritySecurity Inc. Semua hak dilindungi undang-undang.',
     sourceCodeProtected: 'Kode sumber terbuka - tersedia di GitHub.',
     passwordMin30Error: 'Kata sandi minimal harus 30 karakter.',
     incorrectPassword: 'Kata sandi salah.',

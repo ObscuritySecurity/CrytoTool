@@ -257,7 +257,6 @@ export const translations: Translations = {
   smoothAnimations: 'Animații Fluide',
   nativeSecurity: 'Securitate Nativă',
   leadDeveloper: 'Lead Developer',
-  allRightsReserved: '© 2024 ObscuritySecurity Inc. Toate drepturile rezervate.',
   sourceCodeProtected: 'Codul sursă este Open Source - disponibil pe GitHub.',
   openSourceMessage: 'Codul sursă este public și gratuit. Contribuții binevenite!',
   passwordMin30Error: 'Parola trebuie să aibă minim 30 de caractere.',

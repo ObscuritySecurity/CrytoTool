@@ -257,7 +257,6 @@ export const translations: Translations = {
     smoothAnimations: 'Animacións suaves',
     nativeSecurity: 'Seguridade nativa',
     leadDeveloper: 'Desenvolvedor principal',
-    allRightsReserved: '© 2024 ObscuritySecurity Inc. Todos os dereitos reservados.',
     sourceCodeProtected: 'O código fonte é aberto - dispoñible en GitHub.',
     passwordMin30Error: 'O contrasinal debe ter polo menos 30 caracteres.',
     incorrectPassword: 'Contrasinal incorrecto.',

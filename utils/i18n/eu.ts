@@ -257,7 +257,6 @@ export const translations: Translations = {
     smoothAnimations: 'Animazio leunak',
     nativeSecurity: 'Native Security',
     leadDeveloper: 'Garatzaile nagusia',
-    allRightsReserved: '© 2024 ObscuritySecurity Inc. Eskubide guztiak erreserbatuta.',
     sourceCodeProtected: 'Iturburu-kodea irekia dago - GitHub-en eskuragarri.',
     passwordMin30Error: 'Pasahitzak 30 karaktere izan behar ditu gutxienez.',
     incorrectPassword: 'Pasahitz okerra.',

@@ -257,7 +257,6 @@ export const translations: Translations = {
     smoothAnimations: 'Animasi Lancar',
     nativeSecurity: 'Keselamatan Asli',
     leadDeveloper: 'Pemaju Utama',
-    allRightsReserved: '© 2024 ObscuritySecurity Inc. Hak cipta terpelihara.',
     sourceCodeProtected: 'Kod sumber terbuka - tersedia di GitHub.',
     passwordMin30Error: 'Kata laluan mestilah sekurang-kurangnya 30 aksara.',
     incorrectPassword: 'Kata laluan salah.',
