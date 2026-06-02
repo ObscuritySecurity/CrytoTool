@@ -1086,10 +1086,7 @@ export const AboutView: React.FC<{
               </section>
 
               {/* Footer */}
-              <div className="pt-6 text-center space-y-3">
-                  <p className="text-[10px] text-zinc-600">
-                      © 2024-2026 ObscuritySecurity. All rights reserved.
-                  </p>
+              <div className="pt-6 text-center">
                   <p className="text-[9px] text-zinc-700">
                       Open Source - Contribuții binevenite pe GitHub
                   </p>

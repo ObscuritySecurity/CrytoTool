@@ -218,8 +218,7 @@ export const LandingPage: React.FC = () => {
 
       {/* Footer */}
       <footer className="border-t border-zinc-900 bg-zinc-950 py-12 text-center text-zinc-500 text-sm">
-        <p>&copy; {new Date().getFullYear()} CrytoTool Vault. All rights reserved.</p>
-        <div className="mt-4 flex justify-center gap-6">
+        <div className="flex justify-center gap-6">
           <a href="#" className="hover:text-neon-green">Privacy Policy</a>
           <a href="#" className="hover:text-neon-green">Terms of Service</a>
           <a href="#" className="hover:text-neon-green">Contact</a>
