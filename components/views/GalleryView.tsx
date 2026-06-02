@@ -55,7 +55,8 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ items, onNavigate, the
 
   const handleItemClick = async (item: FileSystemItem) => {
     if (item.isEncrypted && !decryptedUrls[item.id]) {
-      await onDecrypt(item);
+      const url = await onDecrypt(item);
+      if (!url) return;
     }
     setLightboxItem(item);
   };
@@ -82,12 +83,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ items, onNavigate, the
                 </div>
 
                 <div className="flex-1 flex items-center justify-center p-4 relative overflow-hidden">
-                    {lightboxItem.isEncrypted && !decryptedUrls[lightboxItem.id] ? (
-                      <div className="flex flex-col items-center gap-4">
-                        <Lock size={64} className="text-neon-green" />
-                        <p className="text-white text-lg font-bold">Fișier criptat</p>
-                      </div>
-                    ) : lightboxItem.category === 'video' ? (
+                    {lightboxItem.category === 'video' ? (
                         <video 
                             src={decryptedUrls[lightboxItem.id] || lightboxItem.url} 
                             controls 
