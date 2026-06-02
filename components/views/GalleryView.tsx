@@ -22,6 +22,23 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ items, onNavigate, the
   const { t } = useI18n();
   const [subTab, setSubTab] = useState<GallerySubTab>('all');
   const [lightboxItem, setLightboxItem] = useState<FileSystemItem | null>(null);
+  const [decryptingIds, setDecryptingIds] = useState<Set<string>>(new Set());
+
+  // Auto-decrypt items that were auto-encrypted during import (no salt, no password needed)
+  useEffect(() => {
+    const toDecrypt = items.filter(
+      item => item.isEncrypted && !item.salt && item.rawBlob && !decryptedUrls[item.id]
+    );
+    if (toDecrypt.length === 0) return;
+    setDecryptingIds(prev => new Set([...prev, ...toDecrypt.map(i => i.id)]));
+    Promise.all(toDecrypt.map(item => onDecrypt(item))).then(() => {
+      setDecryptingIds(prev => {
+        const next = new Set(prev);
+        toDecrypt.forEach(i => next.delete(i.id));
+        return next;
+      });
+    });
+  }, [items, onDecrypt]);
 
   const filteredItems = useMemo(() => {
     return items.filter(item => {
@@ -36,12 +53,11 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ items, onNavigate, the
     });
   }, [items, subTab]);
 
-  const handleItemClick = (item: FileSystemItem) => {
+  const handleItemClick = async (item: FileSystemItem) => {
     if (item.isEncrypted && !decryptedUrls[item.id]) {
-      onDecrypt(item);
-    } else {
-      setLightboxItem(item);
+      await onDecrypt(item);
     }
+    setLightboxItem(item);
   };
 
   return (
@@ -151,7 +167,12 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ items, onNavigate, the
                   ) : (
                     <img src={decryptedUrls[item.id]} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt={(item as any).decryptedName || item.name} />
                   )
-                ) : item.isEncrypted ? (
+                ) : decryptingIds.has(item.id) ? (
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900/80">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-neon-green mb-2"></div>
+                    <p className="text-[10px] text-zinc-400 font-bold text-center px-2">Se decriptează...</p>
+                  </div>
+                ) : item.isEncrypted && item.salt ? (
                   <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900/80">
                     <Lock size={32} className="text-neon-green mb-2" />
                     <p className="text-[10px] text-zinc-400 font-bold text-center px-2">Click pentru a decripta</p>
