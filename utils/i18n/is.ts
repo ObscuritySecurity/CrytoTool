@@ -152,6 +152,7 @@ export const translations: Translations = {
   selected: 'valið',
   all: 'allt',
   albums: 'albúm',
+  songs: 'Songs',
   favorites: 'uppáhalds',
   photos: 'myndir',
   videos: 'myndbönd',

@@ -221,7 +221,7 @@ export const CopyMoveModal: React.FC<CopyMoveModalProps> = ({
               ) : (
                 <>
                   {mode === 'copy' ? <Copy size={16} /> : <Move size={16} />}
-                  {mode === 'copy' ? 'Copiază' : 'Mută'}
+                  {mode === 'copy' ? 'Copy' : 'Move'}
                 </>
               )}
             </button>

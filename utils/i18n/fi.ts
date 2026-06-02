@@ -152,6 +152,7 @@ export const translations: Translations = {
   selected: 'valittu',
   all: 'kaikki',
   albums: 'albumit',
+  songs: 'Songs',
   favorites: 'suosikit',
   photos: 'kuvat',
   videos: 'videot',

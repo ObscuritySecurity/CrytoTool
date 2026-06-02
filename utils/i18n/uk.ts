@@ -152,6 +152,7 @@ export const translations: Translations = {
   selected: 'вибрано',
   all: 'всі',
   albums: 'альбоми',
+  songs: 'Songs',
   favorites: 'улюблене',
   photos: 'фото',
   videos: 'відео',

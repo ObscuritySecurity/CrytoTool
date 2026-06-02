@@ -152,6 +152,7 @@ export const translations: Translations = {
   selected: '선택됨',
   all: '모두',
   albums: '앨범',
+  songs: 'Songs',
   favorites: '즐겨찾기',
   photos: '사진',
   videos: '동영상',

@@ -80,10 +80,10 @@ const getIconCategories = (pack: PackKey) => {
         'Esential': [], 
         'Media': [], 
         'Tech': [], 
-        'Birou': [], 
-        'Securitate': [],
-        'Vreme': [],
-        'Săgeți': [],
+        'Office': [], 
+        'Security': [],
+        'Weather': [],
+        'Arrows': [],
         'Toate': keys 
     };
 

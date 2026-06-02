@@ -152,6 +152,7 @@ export const translations: Translations = {
   selected: 'atlasīts',
   all: 'visi',
   albums: 'albumi',
+  songs: 'Songs',
   favorites: 'iecienītākie',
   photos: 'fotoattēli',
   videos: 'video',

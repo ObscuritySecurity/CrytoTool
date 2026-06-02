@@ -152,6 +152,7 @@ export const translations: Translations = {
   selected: 'të zgjedhura',
   all: 'të gjitha',
   albums: 'albume',
+  songs: 'Songs',
   favorites: 'të preferuarat',
   photos: 'fotografitë',
   videos: 'videot',

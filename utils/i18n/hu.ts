@@ -152,6 +152,7 @@ export const translations: Translations = {
   selected: 'kiválasztva',
   all: 'mind',
   albums: 'albumok',
+  songs: 'Songs',
   favorites: 'kedvencek',
   photos: 'képek',
   videos: 'videók',

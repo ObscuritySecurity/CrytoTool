@@ -152,6 +152,7 @@ export const translations: Translations = {
   selected: 'चयनित',
   all: 'सभी',
   albums: 'एल्बम',
+  songs: 'Songs',
   favorites: 'पसंदीदा',
   photos: 'फ़ोटो',
   videos: 'वीडियो',

@@ -152,6 +152,7 @@ export const translations: Translations = {
   selected: 'izabrano',
   all: 'sve',
   albums: 'albumi',
+  songs: 'Songs',
   favorites: 'omiljeni',
   photos: 'fotografije',
   videos: 'video',

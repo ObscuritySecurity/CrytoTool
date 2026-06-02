@@ -152,6 +152,7 @@ export const translations: Translations = {
   selected: 'dipilih',
   all: 'kabeh',
   albums: 'album',
+  songs: 'Songs',
   favorites: 'favorit',
   photos: 'foto',
   videos: 'video',

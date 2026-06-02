@@ -152,6 +152,7 @@ export const translations: Translations = {
   selected: '已选择',
   all: '全部',
   albums: '相册',
+  songs: 'Songs',
   favorites: '收藏',
   photos: '照片',
   videos: '视频',

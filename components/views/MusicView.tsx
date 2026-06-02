@@ -44,10 +44,10 @@ export const MusicView: React.FC<MusicViewProps> = ({ items, onPlay, currentSong
       {/* Header Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-2 no-scrollbar px-1 z-10 shrink-0">
         {[
-          { id: 'songs', label: 'Piese' },
-          { id: 'albums', label: 'Albume' },
-          { id: 'artists', label: 'Artists' },
-          { id: 'playlists', label: 'Playlist' }
+          { id: 'songs', label: t('songs') },
+          { id: 'albums', label: t('albums') },
+          { id: 'artists', label: t('artists') },
+          { id: 'playlists', label: t('playlist') }
         ].map(tab => (
           <button 
             key={tab.id} 

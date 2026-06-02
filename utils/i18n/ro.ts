@@ -151,6 +151,7 @@ export const translations: Translations = {
   items: 'elemente',
   selected: 'selectate',
   all: 'toate',
+  songs: 'Cântece',
   albums: 'albume',
   favorites: 'favorite',
   photos: 'fotografii',

@@ -152,6 +152,7 @@ export const translations: Translations = {
   selected: 'aukeratuta',
   all: 'guztiak',
   albums: 'albumak',
+  songs: 'Songs',
   favorites: 'gogokoak',
   photos: 'argazkiak',
   videos: 'bideoak',

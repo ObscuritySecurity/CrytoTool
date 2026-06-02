@@ -152,6 +152,7 @@ export const translations: Translations = {
   selected: '選択済み',
   all: 'すべて',
   albums: 'アルバム',
+  songs: 'Songs',
   favorites: 'お気に入り',
   photos: '写真',
   videos: '動画',
