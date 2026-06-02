@@ -1,5 +1,5 @@
 # CrytoTool Security Documentation
-_Version: 2.5.0-PRO | Last Updated: 2026-05-30_
+_Version: 2.5.0-beta | Last Updated: 2026-05-30_
 
 ---
 
