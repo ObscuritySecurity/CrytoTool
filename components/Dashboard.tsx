@@ -12,6 +12,7 @@ import { cryptoService } from '../utils/crypto';
 import { metadataCrypto } from '../utils/metadataCrypto';
 import { FileSystemItem, ViewState, AppTheme, ThemeConfig, ThemeCategory } from '../types';
 import { useI18n } from '../utils/i18nContext';
+import { FullPlayer } from './FullPlayer';
 
 // Import Shared Components
 import { FileItem } from './FileItem';
@@ -892,15 +893,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       <AnimatePresence>
         {isFullPlayerOpen && currentPlayingItem && (
-            <motion.div 
-                initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-                transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                className="fixed inset-0 z-[100] bg-black text-white flex flex-col"
-            >
-                {/* Full Player UI - Same as before */}
-                <button onClick={() => setIsFullPlayerOpen(false)} className="absolute top-6 left-6 p-2 rounded-full bg-zinc-800"><ChevronDown /></button>
-                <div className="flex-1 flex items-center justify-center"><img src={currentPlayingItem.customIcon || currentPlayingItem.coverUrl} className="w-64 h-64 rounded-xl object-cover" /></div>
-            </motion.div>
+          <FullPlayer
+            currentPlayingItem={currentPlayingItem}
+            isPlaying={isPlaying}
+            currentTime={currentTime}
+            duration={duration}
+            onClose={() => setIsFullPlayerOpen(false)}
+            onTogglePlay={() => setIsPlaying(!isPlaying)}
+            onSeek={handleSeek}
+          />
         )}
       </AnimatePresence>
 
