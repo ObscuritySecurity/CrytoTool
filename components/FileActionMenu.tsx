@@ -120,26 +120,26 @@ export const FileActionMenu: React.FC<FileActionMenuProps> = ({ isOpen, onClose,
 
             <div className="flex-1 overflow-y-auto px-5 pb-6 space-y-4 custom-scrollbar">
                 <div className="grid grid-cols-4 gap-2">
-                    <ActionBtn icon={<Lock />} label="Encrypt" onClick={() => handleAction('encrypt')} />
-                    <ActionBtn icon={<Unlock />} label="Decrypt" onClick={() => handleAction('decrypt')} />
-                    <ActionBtn icon={<Settings />} label="Style" onClick={() => handleAction('customize')} />
-                    <ActionBtn icon={<Share2 />} label="Share" onClick={() => handleAction('share')} />
+                    <ActionBtn icon={<Lock />} label={t('encrypt')} onClick={() => handleAction('encrypt')} />
+                    <ActionBtn icon={<Unlock />} label={t('decrypt')} onClick={() => handleAction('decrypt')} />
+                    <ActionBtn icon={<Settings />} label={t('style')} onClick={() => handleAction('customize')} />
+                    <ActionBtn icon={<Share2 />} label={t('share')} onClick={() => handleAction('share')} />
                 </div>
 
                 <div className="grid grid-cols-3 gap-2">
-                    <ActionBtn icon={<Star className={item.isFavorite ? "fill-neon-green" : ""} />} label="Favorite" onClick={() => handleAction('favorite')} />
-                    <ActionBtn icon={<Eye />} label="Preview" onClick={() => handleAction('preview')} />
-                    <ActionBtn icon={<FolderInput />} label="Vault" onClick={() => handleAction('moveToVault')} />
+                    <ActionBtn icon={<Star className={item.isFavorite ? "fill-neon-green" : ""} />} label={t('favorite')} onClick={() => handleAction('favorite')} />
+                    <ActionBtn icon={<Eye />} label={t('preview')} onClick={() => handleAction('preview')} />
+                    <ActionBtn icon={<FolderInput />} label={t('vault')} onClick={() => handleAction('moveToVault')} />
                 </div>
 
                 <div className="rounded-2xl glass-card border border-border overflow-hidden">
-                    <ListBtn icon={<Edit />} label="Rename" onClick={() => handleAction('rename')} />
-                    <ListBtn icon={<Copy />} label="Duplicate" onClick={() => handleAction('duplicate')} />
-                    <ListBtn icon={<Square />} label="Select" onClick={() => handleAction('select')} />
-                    <ListBtn icon={<Move />} label="Move" onClick={() => handleAction('move')} />
-                    <ListBtn icon={<Archive />} label="Copy" onClick={() => handleAction('copy')} />
-                    <ListBtn icon={<Download />} label="Download" onClick={() => handleAction('download')} />
-                    <ListBtn icon={<Info />} label="Info" onClick={() => handleAction('info')} />
+                    <ListBtn icon={<Edit />} label={t('rename')} onClick={() => handleAction('rename')} />
+                    <ListBtn icon={<Copy />} label={t('createCopy')} onClick={() => handleAction('duplicate')} />
+                    <ListBtn icon={<Square />} label={t('select')} onClick={() => handleAction('select')} />
+                    <ListBtn icon={<Move />} label={t('move')} onClick={() => handleAction('move')} />
+                    <ListBtn icon={<Archive />} label={t('copyFile')} onClick={() => handleAction('copy')} />
+                    <ListBtn icon={<Download />} label={t('download')} onClick={() => handleAction('download')} />
+                    <ListBtn icon={<Info />} label={t('info')} onClick={() => handleAction('info')} />
                 </div>
 
                 <motion.button 

@@ -42,8 +42,11 @@ interface DashboardProps {
   recoverySettings: {
     codes: string[];
     regenerate: () => void;
-    verify: (code: string) => boolean;
-    consume: (code: string) => boolean;
+    verify: (code: string) => Promise<boolean>;
+    consume: (code: string) => Promise<boolean>;
+    downloadCodes: () => void;
+    clearCodes: () => void;
+    codesCount: number;
   };
   vaultSettings: {
     enabled: boolean;
@@ -344,8 +347,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
           return url;
       }
     } catch (e) {
-      console.error("Eroare la decriptarea Lazy:", e);
-      alert("Decriptare esuata. Cheia sau datele sunt incorecte.");
+      console.error("Decryption error:", e);
+      alert(t('decryptionFailed'));
       return null;
     }
   };
@@ -848,7 +851,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
         onComplete={loadFiles}
       />
 
-      {/* Settings Lock Modal removed for brevity in this snippet as it was unchanged, assuming it persists */}
       <AnimatePresence>
         {showSettingsUnlock && (
           <motion.div 
@@ -857,7 +859,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[150] flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
           >
-            {/* ... Modal content ... */}
             <motion.div className="w-full max-w-sm bg-zinc-950 border border-border rounded-3xl p-8 shadow-2xl">
                  <form onSubmit={handleSettingsUnlock} className="space-y-4">
                     <input type="password" autoFocus value={settingsUnlockInput} onChange={(e) => setSettingsUnlockInput(e.target.value)} className="w-full bg-surface border border-border rounded-xl px-4 py-3 text-white outline-none" placeholder={t('passwordPlaceholder')} />
@@ -931,7 +932,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                      >
                        <div className="flex items-center gap-3">
                          <span className="text-neon-green font-bold">{selectedItems.size}</span>
-                         <span className="text-zinc-400 text-sm">selectate</span>
+                          <span className="text-zinc-400 text-sm">{t('selected')}</span>
                        </div>
                        <div className="flex items-center gap-2">
                          <button onClick={handleCopySelected} className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700">
@@ -944,7 +945,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                            <Trash2 size={18} className="text-red-500" />
                          </button>
                          <button onClick={() => { setIsSelectionMode(false); setSelectedItems(new Set()); }} className="px-3 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-bold">
-                            Cancel
+                            {t('cancel')}
                          </button>
                        </div>
                      </motion.div>
@@ -1017,7 +1018,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                             </div>
                             <div className="flex-1 min-w-0 flex flex-col justify-center z-10">
                                <h4 className="text-sm font-bold text-primary truncate">{currentPlayingItem.name}</h4>
-                               <p className="text-xs text-muted truncate">{currentPlayingItem.artist || 'Unknown'}</p>
+                               <p className="text-xs text-muted truncate">{currentPlayingItem.artist || t('unknown')}</p>
                             </div>
                             <div className="flex items-center gap-2 z-10">
                                <button 

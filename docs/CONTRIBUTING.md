@@ -43,7 +43,7 @@ By submitting a pull request, you agree that your contribution is licensed under
 ### UI/UX Requirements
 - Follow glassmorphism design (`styles/glass.css`)
 - Use `t('key')` for all text (never hardcode strings)
-- Support all 50+ languages — update English source strings in `utils/i18n.ts` (other languages are translated by the community)
+- Support all 50+ languages — update English source strings in `locales/` (other languages are translated by the community)
 - Responsive design: mobile-first, test at 375px and 1920px (test via browser DevTools at 375px)
 - Animations via Framer Motion with presets from `DESIGN.md`
 
@@ -83,7 +83,7 @@ Before submitting your PR, ensure:
 - [ ] Updates documentation if adding features
 - [ ] Follows glassmorphism design
 - [ ] Works on mobile and desktop viewports
-- [ ] English source strings updated in utils/i18n.ts
+- [ ] English source strings updated in locales/
 - [ ] Other languages marked with // TODO: translate if not updated
 - [ ] No console errors or warnings
 - [ ] Security-related code reviewed against `SECURITY.md`

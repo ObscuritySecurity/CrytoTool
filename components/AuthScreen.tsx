@@ -11,9 +11,10 @@ interface AuthScreenProps {
   lockUntil: number | null;
   onFailedAttempt: () => void;
   recoverySettings?: {
-    verify: (code: string) => boolean;
-    consume: (code: string) => boolean;
+    verify: (code: string) => Promise<boolean>;
+    consume: (code: string) => Promise<boolean>;
     codes: string[];
+    codesCount: number;
   };
   onResetWithRecovery: (code: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
   destructCountdown?: number | null;
@@ -265,30 +266,30 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
         </form>
 
         {/* Recovery Mode Button */}
-        {!isSetup && !isLocked && recoverySettings && recoverySettings.codes.length > 0 && (
+        {!isSetup && recoverySettings && recoverySettings.codesCount > 0 && !isRecoveryMode && (
           <div className="mt-4 pt-4 border-t border-white/10">
             <button
               type="button"
               onClick={() => setIsRecoveryMode(true)}
               className="w-full py-2 text-xs text-zinc-500 hover:text-white transition-colors"
             >
-              Forgot password? Use a recovery code
+              {t('forgotPassword')}
             </button>
           </div>
         )}
 
-        {/* Recovery Mode Form */}
+        {/* Recovery Code + Password Form */}
         {isRecoveryMode && (
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="mt-4 p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800"
           >
-            <h3 className="text-sm font-bold text-white mb-3">Reset with Recovery Code</h3>
+            <h3 className="text-sm font-bold text-white mb-3">{t('resetWithRecoveryCode')}</h3>
             
             <div className="space-y-3">
               <div>
-                <label className="text-[10px] text-zinc-500 uppercase tracking-wider">Recovery Code</label>
+                  <label className="text-[10px] text-zinc-500 uppercase tracking-wider">{t('recoveryCode')}</label>
                 <input
                   type="text"
                   value={recoveryCode}
@@ -300,23 +301,23 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
               </div>
               
               <div>
-                <label className="text-[10px] text-zinc-500 uppercase tracking-wider">New Password (min 30 chars)</label>
+                  <label className="text-[10px] text-zinc-500 uppercase tracking-wider">{t('newPasswordMin30')}</label>
                 <input
                   type="password"
                   value={newRecoveryPassword}
                   onChange={(e) => setNewRecoveryPassword(e.target.value)}
-                  placeholder="New password..."
+                  placeholder={t('newPasswordPlaceholder')}
                   className="w-full bg-black border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm mt-1"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] text-zinc-500 uppercase tracking-wider">Confirm Password</label>
+                  <label className="text-[10px] text-zinc-500 uppercase tracking-wider">{t('confirmPasswordLabel')}</label>
                 <input
                   type="password"
                   value={confirmNewPassword}
                   onChange={(e) => setConfirmNewPassword(e.target.value)}
-                  placeholder="Confirm password..."
+                  placeholder={t('confirmPasswordPlaceholder2')}
                   className="w-full bg-black border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm mt-1"
                 />
               </div>
@@ -336,20 +337,20 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
                   }}
                   className="flex-1 py-2 rounded-lg border border-zinc-700 text-zinc-400 text-sm hover:bg-zinc-800"
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button
                   onClick={async () => {
                     if (newRecoveryPassword.length < 30) {
-                      setError('Password must be at least 30 characters');
+                      setError(t('passwordMin30Error'));
                       return;
                     }
                     if (newRecoveryPassword !== confirmNewPassword) {
-                      setError('Passwords do not match');
+                      setError(t('passwordsDoNotMatch'));
                       return;
                     }
-                    if (!recoverySettings?.verify(recoveryCode)) {
-                      setError('Invalid recovery code');
+                    if (!(await recoverySettings?.verify(recoveryCode))) {
+                      setError(t('invalidRecoveryCode'));
                       return;
                     }
 
@@ -358,17 +359,16 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
                     setIsProcessing(false);
 
                     if (result.success) {
-                      // Reset successful, reload page to re-authenticate with new credentials
                       window.location.reload();
                     } else {
-                      setError(result.error || 'Reset error');
+                      setError(result.error || t('resetError'));
                     }
                   }}
                   disabled={isProcessing || !recoveryCode || !newRecoveryPassword || !confirmNewPassword}
                   className="flex-1 py-2 rounded-lg text-black text-sm font-bold disabled:opacity-50"
                   style={{ backgroundColor: accentColor }}
                 >
-                  Reset
+                  {t('reset')}
                 </button>
               </div>
             </div>

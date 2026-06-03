@@ -3,7 +3,7 @@ name = "crytotool"
 version = "2.5.0"
 description = "All-in-One Privacy no tracking no ads no data collection choose from 6 algorithms"
 authors = ["ObscuritySecurity"]
-edition = "2026"
+edition = "2021"
 
 [lib]
 name = "app_lib"

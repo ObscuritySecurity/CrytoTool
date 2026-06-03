@@ -8,6 +8,29 @@ import { cryptoService } from './utils/crypto';
 import { db } from './utils/db';
 import { I18nProvider } from './locales/i18nContext';
 import { hashPin } from './utils/security';
+import { argon2id } from 'hash-wasm';
+
+const RECOVERY_WRAP_PEPPER = 'CrytoTool_Recovery_Wrap_v2.5';
+
+async function deriveWrapKey(code: string, salt: Uint8Array): Promise<CryptoKey> {
+  const raw = await argon2id({
+    password: code.replace(/-/g, '').toUpperCase() + RECOVERY_WRAP_PEPPER,
+    salt,
+    iterations: 19,
+    memorySize: 131072,
+    parallelism: 4,
+    hashLength: 32,
+    outputType: 'binary',
+  }) as Uint8Array;
+  const keyBuffer = new Uint8Array(raw).buffer as ArrayBuffer;
+  return await crypto.subtle.importKey('raw', keyBuffer, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+}
+
+async function hashWithSalt(code: string, salt: Uint8Array): Promise<string> {
+  const combined = new Uint8Array([...salt, ...new TextEncoder().encode(code)]);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', combined);
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 const App: React.FC = () => {
   const [showSplash, setShowSplash] = useState(true);
@@ -186,30 +209,16 @@ const App: React.FC = () => {
     return () => clearInterval(intervalId);
   }, [isAuthenticated, destructTriggerTime]);
 
-  // --- RECOVERY CODES (Encrypted with Vault Key) ---
+  // --- RECOVERY CODES (Stored as salted SHA-256 hashes only) ---
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
-  
-  useEffect(() => {
-    const loadRecoveryCodes = async () => {
-      const saved = localStorage.getItem('crytotool_recovery_codes');
-      if (!saved) return;
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.iv && parsed.data) {
-          const decrypted = await cryptoService.decryptString(parsed.data, parsed.iv);
-          setRecoveryCodes(JSON.parse(decrypted));
-        } else {
-          setRecoveryCodes(parsed); // Legacy plaintext
-        }
-      } catch {
-        setRecoveryCodes([]);
-      }
-    };
-    
-    if (isAuthenticated) {
-      loadRecoveryCodes();
+  const [recoveryHashes, setRecoveryHashes] = useState<{ salt: string; hash: string }[]>(() => {
+    try {
+      const saved = localStorage.getItem('crytotool_recovery_hashes');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
     }
-  }, [isAuthenticated]);
+  });
 
   const generateRecoveryCodes = (): string[] => {
     const codes: string[] = [];
@@ -227,58 +236,141 @@ const App: React.FC = () => {
     return codes;
   };
 
-  const saveRecoveryCodes = async (codes: string[]) => {
-    try {
-      const jsonString = JSON.stringify(codes);
-      const encrypted = await cryptoService.encryptString(jsonString);
-      const stored = JSON.stringify({ iv: encrypted.iv, data: encrypted.ciphertext });
-      localStorage.setItem('crytotool_recovery_codes', stored);
-    } catch {
-      // Vault Key not available, save plaintext (fallback)
-      localStorage.setItem('crytotool_recovery_codes', JSON.stringify(codes));
+  const saveCodeHashes = async (codes: string[]) => {
+    const entries: { salt: string; hash: string }[] = [];
+    for (const code of codes) {
+      const normalized = code.replace(/-/g, '').toUpperCase();
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2, '0')).join('');
+      const hash = await hashWithSalt(normalized, salt);
+      entries.push({ salt: saltHex, hash });
     }
+    setRecoveryHashes(entries);
+    localStorage.setItem('crytotool_recovery_hashes', JSON.stringify(entries));
   };
 
-  const regenerateRecoveryCodes = () => {
+  const regenerateRecoveryCodes = async () => {
     const newCodes = generateRecoveryCodes();
     setRecoveryCodes(newCodes);
-    saveRecoveryCodes(newCodes);
+    await saveCodeHashes(newCodes);
+
+    const vaultKey = cryptoService.getVaultKey();
+    const rawVaultKey = await crypto.subtle.exportKey('raw', vaultKey);
+
+    const wraps: { salt: string; iv: string; data: string }[] = [];
+    for (const code of newCodes) {
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const wrapKey = await deriveWrapKey(code, salt);
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const ciphertext = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv }, wrapKey, rawVaultKey
+      );
+      wraps.push({
+        salt: btoa(String.fromCharCode(...salt)),
+        iv: btoa(String.fromCharCode(...iv)),
+        data: btoa(String.fromCharCode(...new Uint8Array(ciphertext)))
+      });
+    }
+    localStorage.setItem('crytotool_recovery_vault_wraps', JSON.stringify(wraps));
   };
 
-  const verifyRecoveryCode = (code: string): boolean => {
-    return recoveryCodes.includes(code.replace(/-/g, '').toUpperCase());
+  const downloadRecoveryCodes = () => {
+    const date = new Date().toISOString().split('T')[0];
+    const lines = [
+      'CrytoTool - Recovery Codes',
+      '========================',
+      `Generated: ${date}`,
+      '',
+      'Each code can be used ONLY ONCE to reset your Master Password.',
+      '',
+      ...recoveryCodes.map((code, i) => {
+        const num = String(i + 1).padStart(2, '0');
+        return `Code ${num}: ${code}`;
+      }),
+      '',
+      'Store this file securely. Do not share it.',
+    ];
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `crytotool-recovery-codes-${date}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
-  const consumeRecoveryCode = (code: string) => {
-    const normalizedCode = code.replace(/-/g, '').toUpperCase();
-    if (recoveryCodes.includes(normalizedCode)) {
-      const updatedCodes = recoveryCodes.filter(c => c.replace(/-/g, '') !== normalizedCode);
-      setRecoveryCodes(updatedCodes);
-      saveRecoveryCodes(updatedCodes);
-      return true;
+  const clearRecoveryCodes = () => {
+    setRecoveryCodes([]);
+  };
+
+  const verifyRecoveryCode = async (code: string): Promise<boolean> => {
+    const normalized = code.replace(/-/g, '').toUpperCase();
+    for (const entry of recoveryHashes) {
+      const salt = new Uint8Array(entry.salt.match(/.{2}/g)!.map(b => parseInt(b, 16)));
+      const hash = await hashWithSalt(normalized, salt);
+      if (hash === entry.hash) return true;
+    }
+    return false;
+  };
+
+  const consumeRecoveryCode = async (code: string): Promise<boolean> => {
+    const normalized = code.replace(/-/g, '').toUpperCase();
+    for (let i = 0; i < recoveryHashes.length; i++) {
+      const salt = new Uint8Array(recoveryHashes[i].salt.match(/.{2}/g)!.map(b => parseInt(b, 16)));
+      const hash = await hashWithSalt(normalized, salt);
+      if (hash === recoveryHashes[i].hash) {
+        const updatedHashes = recoveryHashes.filter((_, idx) => idx !== i);
+        setRecoveryHashes(updatedHashes);
+        localStorage.setItem('crytotool_recovery_hashes', JSON.stringify(updatedHashes));
+        return true;
+      }
     }
     return false;
   };
 
   const resetMasterPasswordWithRecovery = async (code: string, newPassword: string) => {
-    if (!consumeRecoveryCode(code)) {
-      return { success: false, error: 'Cod invalid' };
+    const normalized = code.replace(/-/g, '').toUpperCase();
+
+    let matchedIdx = -1;
+    for (let i = 0; i < recoveryHashes.length; i++) {
+      const salt = new Uint8Array(recoveryHashes[i].salt.match(/.{2}/g)!.map(b => parseInt(b, 16)));
+      const hash = await hashWithSalt(normalized, salt);
+      if (hash === recoveryHashes[i].hash) { matchedIdx = i; break; }
     }
+    if (matchedIdx === -1) return { success: false, error: 'Cod invalid' };
 
     try {
-      // Generate new salt and derive new master key
-      const salt = window.crypto.getRandomValues(new Uint8Array(16));
-      const masterKey = await cryptoService.deriveMasterKey(newPassword, salt);
-      const vaultKey = await cryptoService.generateVaultKey();
-      const rawVaultKey = await window.crypto.subtle.exportKey('raw', vaultKey);
+      const wraps = JSON.parse(localStorage.getItem('crytotool_recovery_vault_wraps') || '[]');
+      let rawVaultKey: ArrayBuffer | null = null;
+
+      for (const wrap of wraps) {
+        try {
+          const salt = Uint8Array.from(atob(wrap.salt), c => c.charCodeAt(0));
+          const iv = Uint8Array.from(atob(wrap.iv), c => c.charCodeAt(0));
+          const data = Uint8Array.from(atob(wrap.data), c => c.charCodeAt(0));
+          const wrapKey = await deriveWrapKey(code, salt);
+          rawVaultKey = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, wrapKey, data);
+          break;
+        } catch {}
+      }
+      if (!rawVaultKey) return { success: false, error: 'Cod invalid' };
+
+      const vaultKey = await crypto.subtle.importKey('raw', rawVaultKey, { name: 'AES-GCM' }, true, ['encrypt', 'decrypt']);
+
+      const newSalt = crypto.getRandomValues(new Uint8Array(16));
+      const masterKey = await cryptoService.deriveMasterKey(newPassword, newSalt);
       const encryptedVault = await cryptoService.encrypt(new Uint8Array(rawVaultKey), masterKey);
 
-      // Save new credentials
-      localStorage.setItem('crytotool_salt', cryptoService.arrayBufferToBase64(salt));
+      localStorage.setItem('crytotool_salt', cryptoService.arrayBufferToBase64(newSalt));
       localStorage.setItem('crytotool_iv', cryptoService.arrayBufferToBase64(encryptedVault.iv));
       localStorage.setItem('crytotool_vault_blob', cryptoService.arrayBufferToBase64(encryptedVault.ciphertext));
 
       cryptoService.setVaultKey(vaultKey);
+
+      const updatedHashes = recoveryHashes.filter((_, idx) => idx !== matchedIdx);
+      setRecoveryHashes(updatedHashes);
+      localStorage.setItem('crytotool_recovery_hashes', JSON.stringify(updatedHashes));
+      localStorage.removeItem('crytotool_recovery_vault_wraps');
 
       return { success: true };
     } catch (e) {
@@ -392,19 +484,20 @@ const App: React.FC = () => {
           <SplashScreen key="splash" onComplete={() => setShowSplash(false)} />
         ) : !isAuthenticated ? (
           <motion.div key="auth" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <AuthScreen 
-              onUnlock={handleUnlock} 
-              isSetup={isSetupRequired} 
-              lockUntil={lockUntil}
-              onFailedAttempt={handleFailedAttempt}
-              recoverySettings={{
-                verify: verifyRecoveryCode,
-                consume: consumeRecoveryCode,
-                codes: recoveryCodes
-              }}
-              onResetWithRecovery={resetMasterPasswordWithRecovery}
-              destructCountdown={destructCountdown}
-            />
+             <AuthScreen 
+               onUnlock={handleUnlock} 
+               isSetup={isSetupRequired} 
+               lockUntil={lockUntil}
+               onFailedAttempt={handleFailedAttempt}
+                recoverySettings={{
+                  verify: verifyRecoveryCode,
+                  consume: consumeRecoveryCode,
+                  codes: recoveryCodes,
+                  codesCount: recoveryHashes.length
+                }}
+                onResetWithRecovery={resetMasterPasswordWithRecovery}
+               destructCountdown={destructCountdown}
+             />
           </motion.div>
         ) : (
            <motion.div key="dashboard" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="relative h-full">
@@ -417,7 +510,10 @@ const App: React.FC = () => {
                   codes: recoveryCodes,
                   regenerate: regenerateRecoveryCodes,
                   verify: verifyRecoveryCode,
-                  consume: consumeRecoveryCode
+                  consume: consumeRecoveryCode,
+                  downloadCodes: downloadRecoveryCodes,
+                  clearCodes: clearRecoveryCodes,
+                  codesCount: recoveryHashes.length
                 }}
                 vaultSettings={{
                   enabled: vaultEnabled,
