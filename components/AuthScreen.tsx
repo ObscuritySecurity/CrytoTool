@@ -108,7 +108,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
         for (let i = 0; i < codes.length; i++) {
           const salt = window.crypto.getRandomValues(new Uint8Array(16));
           recoverySalts.push(bytesToBase64(salt));
-          const key = await deriveKey(codes[i], salt, { iterations: 3, memorySize: 65536, parallelism: 1 });
+          const key = await deriveKey(codes[i], salt, { iterations: 10, memorySize: 131072, parallelism: 4 });
           const paddedIdx = String(i + 1).padStart(2, '0');
           recoveryWrappers[paddedIdx] = await wrapRawKey(mvkBytes, key);
         }

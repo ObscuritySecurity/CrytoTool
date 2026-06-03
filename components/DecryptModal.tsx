@@ -84,11 +84,7 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
 
     try {
       const encryptedData = new Uint8Array(await item.rawBlob.arrayBuffer());
-      console.log('[Decrypt] encryptedData length:', encryptedData.length);
-      console.log('[Decrypt] algorithm:', item.algorithm);
-      console.log('[Decrypt] iv:', item.iv);
-      console.log('[Decrypt] salt:', item.salt);
-      console.log('[Decrypt] passphrase length:', passphrase.length);
+
 
       let decryptedData: Uint8Array;
       
@@ -103,7 +99,7 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
       } else {
         const iv = cryptoService.base64ToArrayBuffer(item.iv!);
         const salt = cryptoService.base64ToArrayBuffer(item.salt!);
-        console.log('[Decrypt] iv length:', iv.length, 'salt length:', salt.length);
+
 
         decryptedData = await cryptoService.decryptWithPassphrase(
           encryptedData,
@@ -114,7 +110,7 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
         );
       }
 
-      console.log('[Decrypt] SUCCESS, decryptedData length:', decryptedData.length);
+
 
       const ext = item.name.split('.').pop()?.toLowerCase() || '';
       const mimeType = ext === 'gif' ? 'image/gif' :
