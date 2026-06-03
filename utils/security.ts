@@ -1,6 +1,7 @@
 
 import { argon2id } from 'hash-wasm';
 import { cryptoService } from './crypto';
+import { getArgonParams } from './platform';
 
 // Security baseline helpers
 // - The following common PINs should be deprecated and avoided in production.
@@ -39,12 +40,13 @@ function hexToBytes(hex: string): Uint8Array {
 }
 
 async function derivePinHashArgon2id(pin: string, salt: Uint8Array): Promise<string> {
+  const { iterations, memorySize, parallelism } = await getArgonParams();
   const hash = await argon2id({
     password: pin,
     salt,
-    iterations: 19,
-    memorySize: 131072,
-    parallelism: 4,
+    iterations,
+    memorySize,
+    parallelism,
     hashLength: 32,
     outputType: 'binary',
   }) as Uint8Array;

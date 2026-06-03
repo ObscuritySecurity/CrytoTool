@@ -1,5 +1,6 @@
 
 import { argon2id } from 'hash-wasm';
+import { getArgonParams } from './platform';
 
 /**
  * STREAMING CRYPTO SERVICE
@@ -43,12 +44,13 @@ async function deriveChunkIV(baseIV: Uint8Array, chunkIndex: number): Promise<Ui
 }
 
 async function deriveStreamKey(passphrase: string, salt: Uint8Array): Promise<CryptoKey> {
+    const { iterations, memorySize, parallelism } = await getArgonParams();
     const keyBytes = await argon2id({
         password: passphrase,
         salt,
-        iterations: 19,
-        memorySize: 131072,
-        parallelism: 4,
+        iterations,
+        memorySize,
+        parallelism,
         hashLength: 32,
         outputType: 'binary',
     }) as Uint8Array;
