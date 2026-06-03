@@ -7,7 +7,7 @@ export interface ArgonParams {
 export type ArgonPurpose = 'master' | 'recovery';
 
 export async function getArgonParams(purpose: ArgonPurpose = 'master'): Promise<ArgonParams> {
-  const isTauri = typeof window !== 'undefined' && '__TAURI__' in window;
+  const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
   if (isTauri) {
     const isMobile = typeof navigator !== 'undefined' && /android|iphone|ipad|ipod/i.test(navigator.userAgent);
     if (isMobile) {
