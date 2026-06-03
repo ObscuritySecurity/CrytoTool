@@ -54,7 +54,7 @@ jobs:
         run: echo "y" | npm run tauri android init
 
       - name: Generate app icons
-        run: npm run tauri icon assets/CrytoTool.png
+        run: npm run tauri icon src-tauri/icon-sources/icon-manifest.json -o src-tauri/icons
 
       - name: Build Universal APK
         run: npm run tauri android build -- --apk
