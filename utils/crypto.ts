@@ -9,6 +9,7 @@ import {
     IV_LENGTHS 
 } from './cryptoPrimitives';
 import { streamCrypto } from './streamCrypto';
+import { getArgonParams } from './platform';
 
 export type CryptoAlgorithm = 'AES-GCM' | 'AES-CTR' | 'ChaCha20-Poly1305' | 'XChaCha20-Poly1305' | 'Salsa20-Poly1305' | 'AES-GCM-Stream';
 
@@ -24,12 +25,13 @@ class EncryptionService {
 
   // --- MASTER KEY DERIVATION (For Vault Access) ---
   async deriveMasterKey(password: string, salt: Uint8Array): Promise<CryptoKey> {
+    const { iterations, memorySize, parallelism } = await getArgonParams();
     const hash = await argon2id({
       password,
       salt,
-      iterations: 19,
-      memorySize: 131072,
-      parallelism: 4,
+      iterations,
+      memorySize,
+      parallelism,
       hashLength: 32, 
       outputType: 'binary',
     }) as Uint8Array;
@@ -72,12 +74,13 @@ class EncryptionService {
     const rawData = data instanceof Blob ? new Uint8Array(await data.arrayBuffer()) : data;
     const salt = window.crypto.getRandomValues(new Uint8Array(16));
 
+    const { iterations, memorySize, parallelism } = await getArgonParams();
     const key = await argon2id({
         password: passphrase,
         salt,
-        iterations: 19,
-        memorySize: 131072,
-        parallelism: 4,
+        iterations,
+        memorySize,
+        parallelism,
         hashLength: 32,
         outputType: 'binary',
     }) as Uint8Array;
@@ -131,12 +134,13 @@ class EncryptionService {
         return await streamCrypto.decrypt(encryptedData, passphrase);
     }
 
+    const { iterations, memorySize, parallelism } = await getArgonParams();
     const key = await argon2id({
         password: passphrase,
         salt,
-        iterations: 19,
-        memorySize: 131072,
-        parallelism: 4,
+        iterations,
+        memorySize,
+        parallelism,
         hashLength: 32,
         outputType: 'binary',
     }) as Uint8Array;
