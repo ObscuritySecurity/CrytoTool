@@ -1,25 +1,33 @@
-
 import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Key, Loader2, ShieldCheck, Timer, ShieldAlert } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cryptoService } from '../utils/crypto';
 import { useI18n } from '../locales/i18nContext';
+import {
+  deriveKey,
+  wrapRawKey,
+  unwrapRawKey,
+  bytesToBase64,
+  base64ToBytes,
+  generateRecoveryCodes,
+} from '../utils/keyWrapping';
+import type { CryptoMetadata, VaultWrappers } from '../utils/keyWrapping';
 
 interface AuthScreenProps {
-  onUnlock: (vaultKey: CryptoKey) => void;
+  onUnlock: () => void;
   isSetup: boolean;
   lockUntil: number | null;
   onFailedAttempt: () => void;
   recoverySettings?: {
-    verify: (code: string) => boolean;
-    consume: (code: string) => boolean;
-    codes: string[];
+    count: number;
   };
   onResetWithRecovery: (code: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
   destructCountdown?: number | null;
+  onNewCodes?: (codes: string[]) => void;
+  onStoreMvkBytes?: (bytes: Uint8Array) => void;
 }
 
-export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockUntil, onFailedAttempt, recoverySettings, onResetWithRecovery }) => {
+export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockUntil, onFailedAttempt, recoverySettings, onResetWithRecovery, onNewCodes, onStoreMvkBytes }) => {
   const { t } = useI18n();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -27,8 +35,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
-  
-  // Recovery mode state
+
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
   const [recoveryCode, setRecoveryCode] = useState('');
   const [newRecoveryPassword, setNewRecoveryPassword] = useState('');
@@ -39,8 +46,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
     const c = accentColor.replace('#', '');
     return `${parseInt(c.slice(0, 2), 16)}, ${parseInt(c.slice(2, 4), 16)}, ${parseInt(c.slice(4, 6), 16)}`;
   })();
-  
-  // Read theme config for background
+
   const themeConfig = (() => {
     try {
       const saved = localStorage.getItem('app_theme_config');
@@ -86,51 +92,111 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
           return;
         }
 
-        const salt = window.crypto.getRandomValues(new Uint8Array(16));
-        const masterKey = await cryptoService.deriveMasterKey(password, salt);
-        const vaultKey = await cryptoService.generateVaultKey();
-        const rawVaultKey = await window.crypto.subtle.exportKey('raw', vaultKey);
-        const encryptedVault = await cryptoService.encrypt(new Uint8Array(rawVaultKey), masterKey);
-        
-        localStorage.setItem('crytotool_salt', cryptoService.arrayBufferToBase64(salt));
-        localStorage.setItem('crytotool_iv', cryptoService.arrayBufferToBase64(encryptedVault.iv));
-        localStorage.setItem('crytotool_vault_blob', cryptoService.arrayBufferToBase64(encryptedVault.ciphertext));
-        
-        cryptoService.setVaultKey(vaultKey);
-        onUnlock(vaultKey);
-      } else {
-        const saltB64 = localStorage.getItem('crytotool_salt');
-        const ivB64 = localStorage.getItem('crytotool_iv');
-        const vaultB64 = localStorage.getItem('crytotool_vault_blob');
+        const mvk = await cryptoService.generateVaultKey();
+        const rawMvk = await window.crypto.subtle.exportKey('raw', mvk);
+        const mvkBytes = new Uint8Array(rawMvk);
 
-        if (!saltB64 || !ivB64 || !vaultB64) {
-          setError(t('missingData'));
-          setIsProcessing(false);
-          return;
+        const codes = generateRecoveryCodes();
+
+        const masterSalt = window.crypto.getRandomValues(new Uint8Array(16));
+        const masterKey = await deriveKey(password, masterSalt, { iterations: 19, memorySize: 131072, parallelism: 4 });
+        const masterWrapper = await wrapRawKey(mvkBytes, masterKey);
+
+        const recoverySalts: string[] = [];
+        const recoveryWrappers: Record<string, { ciphertext: string; iv: string }> = {};
+
+        for (let i = 0; i < codes.length; i++) {
+          const salt = window.crypto.getRandomValues(new Uint8Array(16));
+          recoverySalts.push(bytesToBase64(salt));
+          const key = await deriveKey(codes[i], salt, { iterations: 3, memorySize: 65536, parallelism: 1 });
+          const paddedIdx = String(i + 1).padStart(2, '0');
+          recoveryWrappers[paddedIdx] = await wrapRawKey(mvkBytes, key);
         }
 
-        const salt = cryptoService.base64ToArrayBuffer(saltB64);
-        const iv = cryptoService.base64ToArrayBuffer(ivB64);
-        const encryptedVault = cryptoService.base64ToArrayBuffer(vaultB64);
+        const meta: CryptoMetadata = {
+          master_salt: bytesToBase64(masterSalt),
+          recovery_salts: recoverySalts,
+        };
+        const wrappers: VaultWrappers = {
+          master: masterWrapper,
+          recovery: recoveryWrappers,
+        };
 
-        const masterKey = await cryptoService.deriveMasterKey(password, salt);
+        localStorage.setItem('crytotool_crypto_metadata', JSON.stringify(meta));
+        localStorage.setItem('crytotool_vault_wrappers', JSON.stringify(wrappers));
 
-        try {
-          const rawVaultKey = await cryptoService.decrypt(encryptedVault, iv, masterKey);
-          const vaultKey = await window.crypto.subtle.importKey(
-            'raw',
-            rawVaultKey.buffer as ArrayBuffer,
-            { name: 'AES-GCM' },
-            true,
-            ['encrypt', 'decrypt']
-          );
-          
-          cryptoService.setVaultKey(vaultKey);
-          onUnlock(vaultKey);
-        } catch (err) {
-          setError(t('wrongPassword'));
-          setPassword('');
-          onFailedAttempt();
+        cryptoService.setVaultKey(mvk);
+        onStoreMvkBytes?.(mvkBytes);
+        onNewCodes?.(codes);
+        onUnlock();
+      } else {
+        const wrappersRaw = localStorage.getItem('crytotool_vault_wrappers');
+        if (wrappersRaw) {
+          const metadataRaw = localStorage.getItem('crytotool_crypto_metadata');
+          if (!metadataRaw) {
+            setError(t('missingData'));
+            setIsProcessing(false);
+            return;
+          }
+
+          const wrappers: VaultWrappers = JSON.parse(wrappersRaw);
+          const meta: CryptoMetadata = JSON.parse(metadataRaw);
+          const masterSalt = base64ToBytes(meta.master_salt);
+
+          const masterKey = await deriveKey(password, masterSalt, { iterations: 19, memorySize: 131072, parallelism: 4 });
+
+          try {
+            const mvkBytes = await unwrapRawKey(wrappers.master, masterKey);
+            const mvk = await window.crypto.subtle.importKey(
+              'raw',
+              mvkBytes as unknown as BufferSource,
+              { name: 'AES-GCM' },
+              true,
+              ['encrypt', 'decrypt']
+            );
+
+            cryptoService.setVaultKey(mvk);
+            onStoreMvkBytes?.(mvkBytes);
+            onUnlock();
+          } catch (err) {
+            setError(t('wrongPassword'));
+            setPassword('');
+            onFailedAttempt();
+          }
+        } else {
+          const saltB64 = localStorage.getItem('crytotool_salt');
+          const ivB64 = localStorage.getItem('crytotool_iv');
+          const vaultB64 = localStorage.getItem('crytotool_vault_blob');
+
+          if (!saltB64 || !ivB64 || !vaultB64) {
+            setError(t('missingData'));
+            setIsProcessing(false);
+            return;
+          }
+
+          const salt = cryptoService.base64ToArrayBuffer(saltB64);
+          const iv = cryptoService.base64ToArrayBuffer(ivB64);
+          const encryptedVault = cryptoService.base64ToArrayBuffer(vaultB64);
+
+          const masterKey = await cryptoService.deriveMasterKey(password, salt);
+
+          try {
+            const rawVaultKey = await cryptoService.decrypt(encryptedVault, iv, masterKey);
+            const vaultKey = await window.crypto.subtle.importKey(
+              'raw',
+              rawVaultKey.buffer as ArrayBuffer,
+              { name: 'AES-GCM' },
+              true,
+              ['encrypt', 'decrypt']
+            );
+
+            cryptoService.setVaultKey(vaultKey);
+            onUnlock();
+          } catch (err) {
+            setError(t('wrongPassword'));
+            setPassword('');
+            onFailedAttempt();
+          }
         }
       }
     } catch (err) {
@@ -147,7 +213,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
       <svg viewBox="0 0 100 100" className="w-full h-full" style={{ filter: `drop-shadow(0 0 15px rgba(${isLocked ? '239, 68, 68' : accentRgb}, 0.5))` }}>
         <path d="M30 40 V25 A20 20 0 0 1 70 25 V40" stroke={isLocked ? '#ef4444' : accentColor} strokeWidth="10" strokeLinecap="round" fill="none" className="transition-colors duration-500" />
         <rect x="15" y="40" width="70" height="45" rx="10" fill="none" stroke={isLocked ? '#ef4444' : accentColor} strokeWidth="8" className="transition-colors duration-500" />
-        
+
         {isLocked ? (
            <path d="M40 55 L60 75 M60 55 L40 75" stroke="#ef4444" strokeWidth="6" strokeLinecap="round" fill="none" />
         ) : (
@@ -168,7 +234,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
         <p className="text-sm text-muted mb-6 tracking-wide">All-in-One Privacy</p>
       </div>
 
-      <motion.div 
+      <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         className={`w-full max-w-md glass-card border ${isLocked ? 'border-red-500/50' : 'border-white/10'} rounded-3xl p-6 relative overflow-hidden mt-8`}
@@ -178,10 +244,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
             {isLocked ? t('lockedOut') : (isSetup ? t('setupPassword') : t('unlock'))}
           </h1>
           <p className="text-muted text-sm leading-relaxed">
-            {isLocked 
+            {isLocked
               ? `${t('securityLockout')} ${t('tryAgainIn')} ${timeLeft} ${t('processing')}`
-              : (isSetup 
-                  ? `${t('argon2idAES')} ${t('min30Chars')}` 
+              : (isSetup
+                  ? `${t('argon2idAES')} ${t('min30Chars')}`
                   : t('enterMasterPassword')
                 )
             }
@@ -189,7 +255,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
         </div>
 
         {isLocked && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center justify-center p-8 bg-red-500/5 rounded-2xl border border-red-500/10 mb-6"
@@ -213,7 +279,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
                 autoFocus
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-3 text-muted">
-                <button 
+                <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="hover:text-primary transition-colors"
@@ -264,8 +330,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
           </button>
         </form>
 
-        {/* Recovery Mode Button */}
-        {!isSetup && !isLocked && recoverySettings && recoverySettings.codes.length > 0 && (
+        {!isSetup && !isLocked && recoverySettings && recoverySettings.count > 0 && (
           <div className="mt-4 pt-4 border-t border-white/10">
             <button
               type="button"
@@ -277,28 +342,27 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
           </div>
         )}
 
-        {/* Recovery Mode Form */}
         {isRecoveryMode && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="mt-4 p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800"
           >
             <h3 className="text-sm font-bold text-white mb-3">Reset with Recovery Code</h3>
-            
+
             <div className="space-y-3">
               <div>
                 <label className="text-[10px] text-zinc-500 uppercase tracking-wider">Recovery Code</label>
                 <input
                   type="text"
                   value={recoveryCode}
-                  onChange={(e) => setRecoveryCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
-                  placeholder="XXXX-XXXX-XXXX-XXXX"
+                  onChange={(e) => setRecoveryCode(e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, ''))}
+                  placeholder="CRYTO-XX-XXXX-XXXX-XXXX"
                   className="w-full bg-black border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm font-mono mt-1"
-                  maxLength={19}
+                  maxLength={23}
                 />
               </div>
-              
+
               <div>
                 <label className="text-[10px] text-zinc-500 uppercase tracking-wider">New Password (min 30 chars)</label>
                 <input
@@ -348,17 +412,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
                       setError('Passwords do not match');
                       return;
                     }
-                    if (!recoverySettings?.verify(recoveryCode)) {
-                      setError('Invalid recovery code');
-                      return;
-                    }
 
                     setIsProcessing(true);
                     const result = await onResetWithRecovery(recoveryCode, newRecoveryPassword);
                     setIsProcessing(false);
 
                     if (result.success) {
-                      // Reset successful, reload page to re-authenticate with new credentials
                       window.location.reload();
                     } else {
                       setError(result.error || 'Reset error');

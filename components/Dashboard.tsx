@@ -23,6 +23,7 @@ import { PinModal } from './PinModal';
 import { EncryptionModal } from './EncryptionModal';
 import { DecryptModal } from './DecryptModal';
 import { CopyMoveModal } from './CopyMoveModal';
+import { RecoveryCodesModal } from './RecoveryCodesModal';
 
 // Import Views
 import { StorageView } from './views/StorageView';
@@ -40,10 +41,10 @@ interface DashboardProps {
     setPassword: (pwd: string | null) => void;
   };
   recoverySettings: {
-    codes: string[];
+    codes: string[] | null;
+    count: number;
     regenerate: () => void;
-    verify: (code: string) => boolean;
-    consume: (code: string) => boolean;
+    dismissCodes: () => void;
   };
   vaultSettings: {
     enabled: boolean;
@@ -127,6 +128,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   progressiveLockSettings,
   autoDestructSettings 
 }) => {
+  const [showCodesModal, setShowCodesModal] = useState(false);
   const { t } = useI18n();
   const [activeTab, setActiveTab] = useState('files');
   const [currentView, setCurrentView] = useState<ViewState | 'backup'>('dashboard');
@@ -242,6 +244,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
         Object.values(decryptedUrls).forEach(url => URL.revokeObjectURL(url as string));
     };
   }, []);
+
+  useEffect(() => {
+    if (recoverySettings.codes && recoverySettings.codes.length > 0) {
+      setShowCodesModal(true);
+    }
+  }, [recoverySettings.codes]);
 
   // --- NAVIGATION HANDLER WITH LOCK ---
   const handleViewNavigation = (view: ViewState) => {
@@ -784,6 +792,29 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 onSuccess={handlePinSuccess}
                 onClose={() => { setShowPinModal(false); setPendingVaultAction(null); }}
             />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showCodesModal && recoverySettings.codes && (
+          <RecoveryCodesModal
+            codes={recoverySettings.codes}
+            onDownload={() => {
+              const header = 'CrytoTool Recovery Codes\nGenerated: ' + new Date().toISOString().split('T')[0] + '\n\u2500'.repeat(30) + '\n\n';
+              const content = header + recoverySettings.codes!.join('\n');
+              const blob = new Blob([content], { type: 'text/plain' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = 'crytotool-recovery-codes.txt';
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+            onDismiss={() => {
+              recoverySettings.dismissCodes();
+              setShowCodesModal(false);
+            }}
+          />
         )}
       </AnimatePresence>
       

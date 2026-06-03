@@ -11,6 +11,7 @@ import {
 import { AppTheme, ThemeConfig, ThemeCategory, FontCategory, FontConfig } from '../../types';
 import { CustomColorPicker } from '../CustomColorPicker';
 import { CustomSelect } from '../CustomSelect';
+
 import { THEME_COLLECTIONS, CATEGORY_KEYS, getAllThemes } from '../../styles/themes';
 import { FONT_LIST, FONT_CATEGORIES, getFontsByCategory } from '../../styles/fonts';
 import { LANGUAGES } from '../../locales';
@@ -45,8 +46,10 @@ interface SettingsViewProps {
     setPassword: (pwd: string | null) => void;
   };
   recoverySettings: {
-    codes: string[];
+    codes: string[] | null;
+    count: number;
     regenerate: () => void;
+    dismissCodes: () => void;
   };
   vaultSettings: {
     enabled: boolean;
@@ -64,7 +67,6 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
     const [region, setRegion] = useState('Bucharest');
     const [isLangOpen, setIsLangOpen] = useState(false);
     const [isRegionOpen, setIsRegionOpen] = useState(false);
-
     // State for settings password modification
     const [isSettingPassword, setIsSettingPassword] = useState(false);
     const [newSettingsPwd, setNewSettingsPwd] = useState('');
@@ -576,7 +578,7 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                     </div>
                 </div>
 
-                {/* RECOVERY CODES SECTION */}
+                    {/* RECOVERY CODES SECTION */}
                 <div className="border-t border-border pt-6 mt-4">
                     <h4 className="text-[10px] font-black uppercase tracking-widest text-neon-green flex items-center gap-2 mb-4">
                         <KeyRound size={14} /> Password Recovery
@@ -586,29 +588,23 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                         <div className="flex items-center justify-between mb-3">
                             <div>
                                 <p className="text-xs font-bold text-white">Recovery Codes</p>
-                                <p className="text-[10px] text-zinc-500">{props.recoverySettings.codes.length}/10 codes available</p>
+                                <p className="text-[10px] text-zinc-500">{props.recoverySettings.count}/10 codes available</p>
                             </div>
                             <button 
-                                onClick={props.recoverySettings.regenerate}
+                                onClick={() => {
+                                    props.recoverySettings.regenerate();
+                                }}
                                 className="px-3 py-1.5 rounded-lg bg-neon-green/10 border border-neon-green/30 text-neon-green text-[10px] font-bold hover:bg-neon-green/20 transition-colors"
                             >
-                                Regenerate
+                                {props.recoverySettings.count === 0 ? 'Generate' : 'Regenerate'}
                             </button>
                         </div>
 
-                        {props.recoverySettings.codes.length > 0 ? (
-                            <div className="grid grid-cols-2 gap-2">
-                                {props.recoverySettings.codes.map((code, idx) => (
-                                    <div key={idx} className="px-2 py-1.5 rounded bg-black/50 text-[10px] font-mono text-zinc-400 text-center border border-zinc-800">
-                                        {code}
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <p className="text-[10px] text-zinc-500 text-center py-2">
-                                Press "Regenerate" to create new codes
-                            </p>
-                        )}
+                        <p className="text-[10px] text-zinc-500 text-center py-2">
+                            {props.recoverySettings.count > 0
+                                ? `${props.recoverySettings.count}/10 codes remaining`
+                                : 'No recovery codes generated yet'}
+                        </p>
                     </div>
 
                     <p className="text-[9px] text-zinc-600 leading-relaxed">
