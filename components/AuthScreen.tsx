@@ -359,7 +359,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
                     setIsProcessing(false);
 
                     if (result.success) {
-                      await recoverySettings?.consume(recoveryCode);
                       window.location.reload();
                     } else {
                       setError(result.error || 'Reset error');
