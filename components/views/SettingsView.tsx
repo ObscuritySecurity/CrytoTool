@@ -47,6 +47,9 @@ interface SettingsViewProps {
   recoverySettings: {
     codes: string[];
     regenerate: () => void;
+    downloadCodes: () => void;
+    clearCodes: () => void;
+    codesCount: number;
   };
   vaultSettings: {
     enabled: boolean;
@@ -74,6 +77,7 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
 
     // Local state for autodestruct time unit
     const [inactivityUnit, setInactivityUnit] = useState<'sec' | 'min' | 'hour' | 'day'>('day');
+    const [showRecoveryModal, setShowRecoveryModal] = useState(false);
     const [inactivityValue, setInactivityValue] = useState(0);
 
     // Initialize unit/value from seconds
@@ -586,35 +590,81 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                         <div className="flex items-center justify-between mb-3">
                             <div>
                                 <p className="text-xs font-bold text-white">{t('recoveryCodes')}</p>
-                                <p className="text-[10px] text-zinc-500">{props.recoverySettings.codes.length}/10 {t('codesAvailable')}</p>
+                                <p className="text-[10px] text-zinc-500">{props.recoverySettings.codesCount}/10 {t('codesAvailable')}</p>
                             </div>
                             <button 
-                                onClick={props.recoverySettings.regenerate}
+                                onClick={async () => {
+                                    if (props.recoverySettings.codesCount > 0) {
+                                        if (!window.confirm(t('recoveryCodesRegenerateWarning'))) return;
+                                    }
+                                    await props.recoverySettings.regenerate();
+                                    setShowRecoveryModal(true);
+                                }}
                                 className="px-3 py-1.5 rounded-lg bg-neon-green/10 border border-neon-green/30 text-neon-green text-[10px] font-bold hover:bg-neon-green/20 transition-colors"
                             >
                                 {t('regenerate')}
                             </button>
                         </div>
 
-                        {props.recoverySettings.codes.length > 0 ? (
-                            <div className="grid grid-cols-2 gap-2">
+                        {props.recoverySettings.codesCount === 0 ? (
+                            <p className="text-[10px] text-zinc-500 text-center py-2">
+                                {t('pressRegenerate')}
+                            </p>
+                        ) : (
+                            <p className="text-[10px] text-zinc-500 text-center py-2">
+                                {t('recoveryCodesDesc')}
+                            </p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Recovery Codes Modal */}
+                <AnimatePresence>
+                {showRecoveryModal && props.recoverySettings.codes.length > 0 && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+                    >
+                        <motion.div 
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="w-full max-w-md bg-zinc-900 border border-zinc-700 rounded-3xl p-6"
+                        >
+                            <h3 className="text-lg font-bold text-white mb-2">{t('recoveryCodes')}</h3>
+                            <p className="text-xs text-red-400 font-bold mb-4">{t('recoveryCodesSaveWarning')}</p>
+                            
+                            <div className="grid grid-cols-2 gap-2 mb-4">
                                 {props.recoverySettings.codes.map((code, idx) => (
-                                    <div key={idx} className="px-2 py-1.5 rounded bg-black/50 text-[10px] font-mono text-zinc-400 text-center border border-zinc-800">
+                                    <div key={idx} className="px-2 py-1.5 rounded bg-black/50 text-xs font-mono text-zinc-300 text-center border border-zinc-700">
                                         {code}
                                     </div>
                                 ))}
                             </div>
-                        ) : (
-                            <p className="text-[10px] text-zinc-500 text-center py-2">
-                                {t('pressRegenerate')}
-                            </p>
-                        )}
-                    </div>
 
-                    <p className="text-[9px] text-zinc-600 leading-relaxed">
-                        {t('recoveryCodesDesc')}
-                    </p>
-                </div>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={props.recoverySettings.downloadCodes}
+                                    className="flex-1 py-2.5 rounded-xl bg-neon-green/10 border border-neon-green/30 text-neon-green text-sm font-bold hover:bg-neon-green/20 transition-colors"
+                                >
+                                    {t('recoveryCodesDownload')}
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setShowRecoveryModal(false);
+                                        props.recoverySettings.clearCodes();
+                                    }}
+                                    className="flex-1 py-2.5 rounded-xl bg-white/10 text-white text-sm font-bold hover:bg-white/20 transition-colors"
+                                >
+                                    {t('recoveryCodesSavedConfirm')}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+                </AnimatePresence>
 
                 <div className="grid grid-cols-2 gap-4 border-t border-border pt-6">
                     <div className="p-3 rounded-2xl border border-border bg-surface/50">

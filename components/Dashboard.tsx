@@ -42,8 +42,11 @@ interface DashboardProps {
   recoverySettings: {
     codes: string[];
     regenerate: () => void;
-    verify: (code: string) => boolean;
-    consume: (code: string) => boolean;
+    verify: (code: string) => Promise<boolean>;
+    consume: (code: string) => Promise<boolean>;
+    downloadCodes: () => void;
+    clearCodes: () => void;
+    codesCount: number;
   };
   vaultSettings: {
     enabled: boolean;

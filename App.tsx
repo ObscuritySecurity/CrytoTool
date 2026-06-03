@@ -8,48 +8,11 @@ import { cryptoService } from './utils/crypto';
 import { db } from './utils/db';
 import { I18nProvider } from './locales/i18nContext';
 import { hashPin } from './utils/security';
-import { argon2id } from 'hash-wasm';
 
-const RECOVERY_PEPPER = 'CrytoTool_Vault_Recovery_v2.5.0_beta';
-const RECOVERY_SALT = new TextEncoder().encode('CrytoTool_Recovery_Salt_2026');
-
-async function deriveRecoveryKey(): Promise<CryptoKey> {
-  const hash = await argon2id({
-    password: RECOVERY_PEPPER,
-    salt: RECOVERY_SALT,
-    iterations: 19,
-    memorySize: 131072,
-    parallelism: 4,
-    hashLength: 32,
-    outputType: 'binary',
-  }) as Uint8Array;
-
-  return await window.crypto.subtle.importKey(
-    'raw',
-    hash as BufferSource,
-    { name: 'AES-GCM' },
-    false,
-    ['encrypt', 'decrypt']
-  );
-}
-
-async function encryptRecoveryCodes(plaintext: string): Promise<{ iv: string; data: string }> {
-  const key = await deriveRecoveryKey();
-  const iv = window.crypto.getRandomValues(new Uint8Array(12));
-  const encoded = new TextEncoder().encode(plaintext);
-  const ciphertext = await window.crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
-  return {
-    iv: btoa(String.fromCharCode(...iv)),
-    data: btoa(String.fromCharCode(...new Uint8Array(ciphertext)))
-  };
-}
-
-async function decryptRecoveryCodes(data: string, iv: string): Promise<string> {
-  const key = await deriveRecoveryKey();
-  const ciphertext = Uint8Array.from(atob(data), c => c.charCodeAt(0));
-  const ivBytes = Uint8Array.from(atob(iv), c => c.charCodeAt(0));
-  const decrypted = await window.crypto.subtle.decrypt({ name: 'AES-GCM', iv: ivBytes }, key, ciphertext);
-  return new TextDecoder().decode(decrypted);
+async function hashWithSalt(code: string, salt: Uint8Array): Promise<string> {
+  const combined = new Uint8Array([...salt, ...new TextEncoder().encode(code)]);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', combined);
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 const App: React.FC = () => {
@@ -229,28 +192,16 @@ const App: React.FC = () => {
     return () => clearInterval(intervalId);
   }, [isAuthenticated, destructTriggerTime]);
 
-  // --- RECOVERY CODES (Encrypted with Vault Key) ---
+  // --- RECOVERY CODES (Stored as salted SHA-256 hashes only) ---
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
-  
-  useEffect(() => {
-    const loadRecoveryCodes = async () => {
-      const saved = localStorage.getItem('crytotool_recovery_codes');
-      if (!saved) return;
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.iv && parsed.data) {
-          const decrypted = await decryptRecoveryCodes(parsed.data, parsed.iv);
-          setRecoveryCodes(JSON.parse(decrypted));
-        } else if (Array.isArray(parsed)) {
-          // Legacy plaintext — re-encrypt on next save
-          setRecoveryCodes(parsed);
-        }
-      } catch {
-        setRecoveryCodes([]);
-      }
-    };
-    loadRecoveryCodes();
-  }, []);
+  const [recoveryHashes, setRecoveryHashes] = useState<{ salt: string; hash: string }[]>(() => {
+    try {
+      const saved = localStorage.getItem('crytotool_recovery_hashes');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
 
   const generateRecoveryCodes = (): string[] => {
     const codes: string[] = [];
@@ -268,35 +219,81 @@ const App: React.FC = () => {
     return codes;
   };
 
-  const saveRecoveryCodes = async (codes: string[]) => {
-    const jsonString = JSON.stringify(codes);
-    const encrypted = await encryptRecoveryCodes(jsonString);
-    localStorage.setItem('crytotool_recovery_codes', JSON.stringify({ iv: encrypted.iv, data: encrypted.data }));
+  const saveCodeHashes = async (codes: string[]) => {
+    const entries: { salt: string; hash: string }[] = [];
+    for (const code of codes) {
+      const normalized = code.replace(/-/g, '').toUpperCase();
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2, '0')).join('');
+      const hash = await hashWithSalt(normalized, salt);
+      entries.push({ salt: saltHex, hash });
+    }
+    setRecoveryHashes(entries);
+    localStorage.setItem('crytotool_recovery_hashes', JSON.stringify(entries));
   };
 
-  const regenerateRecoveryCodes = () => {
+  const regenerateRecoveryCodes = async () => {
     const newCodes = generateRecoveryCodes();
     setRecoveryCodes(newCodes);
-    saveRecoveryCodes(newCodes);
+    await saveCodeHashes(newCodes);
   };
 
-  const verifyRecoveryCode = (code: string): boolean => {
-    return recoveryCodes.includes(code.replace(/-/g, '').toUpperCase());
+  const downloadRecoveryCodes = () => {
+    const date = new Date().toISOString().split('T')[0];
+    const lines = [
+      'CrytoTool - Recovery Codes',
+      '========================',
+      `Generated: ${date}`,
+      '',
+      'Each code can be used ONLY ONCE to reset your Master Password.',
+      '',
+      ...recoveryCodes.map((code, i) => {
+        const num = String(i + 1).padStart(2, '0');
+        return `Code ${num}: ${code}`;
+      }),
+      '',
+      'Store this file securely. Do not share it.',
+    ];
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `crytotool-recovery-codes-${date}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
-  const consumeRecoveryCode = (code: string) => {
-    const normalizedCode = code.replace(/-/g, '').toUpperCase();
-    if (recoveryCodes.includes(normalizedCode)) {
-      const updatedCodes = recoveryCodes.filter(c => c.replace(/-/g, '') !== normalizedCode);
-      setRecoveryCodes(updatedCodes);
-      saveRecoveryCodes(updatedCodes);
-      return true;
+  const clearRecoveryCodes = () => {
+    setRecoveryCodes([]);
+  };
+
+  const verifyRecoveryCode = async (code: string): Promise<boolean> => {
+    const normalized = code.replace(/-/g, '').toUpperCase();
+    for (const entry of recoveryHashes) {
+      const salt = new Uint8Array(entry.salt.match(/.{2}/g)!.map(b => parseInt(b, 16)));
+      const hash = await hashWithSalt(normalized, salt);
+      if (hash === entry.hash) return true;
+    }
+    return false;
+  };
+
+  const consumeRecoveryCode = async (code: string): Promise<boolean> => {
+    const normalized = code.replace(/-/g, '').toUpperCase();
+    for (let i = 0; i < recoveryHashes.length; i++) {
+      const salt = new Uint8Array(recoveryHashes[i].salt.match(/.{2}/g)!.map(b => parseInt(b, 16)));
+      const hash = await hashWithSalt(normalized, salt);
+      if (hash === recoveryHashes[i].hash) {
+        const updatedHashes = recoveryHashes.filter((_, idx) => idx !== i);
+        setRecoveryHashes(updatedHashes);
+        localStorage.setItem('crytotool_recovery_hashes', JSON.stringify(updatedHashes));
+        return true;
+      }
     }
     return false;
   };
 
   const resetMasterPasswordWithRecovery = async (code: string, newPassword: string) => {
-    if (!consumeRecoveryCode(code)) {
+    if (!await consumeRecoveryCode(code)) {
       return { success: false, error: 'Cod invalid' };
     }
 
@@ -427,19 +424,20 @@ const App: React.FC = () => {
           <SplashScreen key="splash" onComplete={() => setShowSplash(false)} />
         ) : !isAuthenticated ? (
           <motion.div key="auth" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <AuthScreen 
-              onUnlock={handleUnlock} 
-              isSetup={isSetupRequired} 
-              lockUntil={lockUntil}
-              onFailedAttempt={handleFailedAttempt}
-              recoverySettings={{
-                verify: verifyRecoveryCode,
-                consume: consumeRecoveryCode,
-                codes: recoveryCodes
-              }}
-              onResetWithRecovery={resetMasterPasswordWithRecovery}
-              destructCountdown={destructCountdown}
-            />
+             <AuthScreen 
+               onUnlock={handleUnlock} 
+               isSetup={isSetupRequired} 
+               lockUntil={lockUntil}
+               onFailedAttempt={handleFailedAttempt}
+                recoverySettings={{
+                  verify: verifyRecoveryCode,
+                  consume: consumeRecoveryCode,
+                  codes: recoveryCodes,
+                  codesCount: recoveryHashes.length
+                }}
+                onResetWithRecovery={resetMasterPasswordWithRecovery}
+               destructCountdown={destructCountdown}
+             />
           </motion.div>
         ) : (
            <motion.div key="dashboard" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="relative h-full">
@@ -452,7 +450,10 @@ const App: React.FC = () => {
                   codes: recoveryCodes,
                   regenerate: regenerateRecoveryCodes,
                   verify: verifyRecoveryCode,
-                  consume: consumeRecoveryCode
+                  consume: consumeRecoveryCode,
+                  downloadCodes: downloadRecoveryCodes,
+                  clearCodes: clearRecoveryCodes,
+                  codesCount: recoveryHashes.length
                 }}
                 vaultSettings={{
                   enabled: vaultEnabled,
