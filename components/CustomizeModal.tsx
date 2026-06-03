@@ -77,30 +77,30 @@ const getIconCategories = (pack: PackKey) => {
     
     // Define Categories
     const categories: Record<string, string[]> = {
-        'Essential': [], 
+        'Esential': [], 
         'Media': [], 
         'Tech': [], 
         'Office': [], 
         'Security': [],
         'Weather': [],
         'Arrows': [],
-        'All': keys 
+        'Toate': keys 
     };
 
     keys.forEach(key => {
         const lower = key.toLowerCase();
         
         // --- Shared Categorization Logic ---
-        if (['user', 'home', 'settings', 'menu', 'search', 'check', 'x', 'plus', 'minus', 'edit', 'trash', 'save', 'filter', 'grid', 'more', 'loader', 'flag', 'star', 'heart'].some(k => lower.includes(k))) categories['Essential'].push(key);
+        if (['user', 'home', 'settings', 'menu', 'search', 'check', 'x', 'plus', 'minus', 'edit', 'trash', 'save', 'filter', 'grid', 'more', 'loader', 'flag', 'star', 'heart'].some(k => lower.includes(k))) categories['Esential'].push(key);
         if (['video', 'music', 'audio', 'image', 'camera', 'film', 'mic', 'volume', 'play', 'pause', 'stop', 'cast'].some(k => lower.includes(k))) categories['Media'].push(key);
         if (['cpu', 'wifi', 'battery', 'code', 'database', 'server', 'laptop', 'phone', 'monitor', 'keyboard', 'mouse', 'bug', 'git', 'usb', 'bluetooth'].some(k => lower.includes(k))) categories['Tech'].push(key);
-        if (['file', 'folder', 'book', 'clip', 'paper', 'archive', 'calendar', 'chart', 'mail', 'inbox', 'printer', 'briefcase', 'pen'].some(k => lower.includes(k))) categories['Office'].push(key);
-        if (['lock', 'key', 'shield', 'eye', 'scan', 'alert', 'warning', 'info'].some(k => lower.includes(k))) categories['Security'].push(key);
-        if (['sun', 'moon', 'cloud', 'rain', 'snow', 'wind', 'storm', 'zap', 'thermometer'].some(k => lower.includes(k))) categories['Weather'].push(key);
-        if (['arrow', 'chevron', 'caret', 'corner', 'move', 'refresh', 'sync', 'loop', 'undo', 'redo'].some(k => lower.includes(k))) categories['Arrows'].push(key);
+        if (['file', 'folder', 'book', 'clip', 'paper', 'archive', 'calendar', 'chart', 'mail', 'inbox', 'printer', 'briefcase', 'pen'].some(k => lower.includes(k))) categories['Birou'].push(key);
+        if (['lock', 'key', 'shield', 'eye', 'scan', 'alert', 'warning', 'info'].some(k => lower.includes(k))) categories['Securitate'].push(key);
+        if (['sun', 'moon', 'cloud', 'rain', 'snow', 'wind', 'storm', 'zap', 'thermometer'].some(k => lower.includes(k))) categories['Vreme'].push(key);
+        if (['arrow', 'chevron', 'caret', 'corner', 'move', 'refresh', 'sync', 'loop', 'undo', 'redo'].some(k => lower.includes(k))) categories['Săgeți'].push(key);
     });
 
-    if (categories['Essential'].length < 20) categories['Essential'] = keys.slice(0, 50);
+    if (categories['Esential'].length < 20) categories['Esential'] = keys.slice(0, 50);
 
     return categories;
 };
@@ -158,7 +158,7 @@ export const CustomizeModal: React.FC<{
         }
 
         // Limit for 'Toate' to prevent crash with huge packs like MD
-        if (iconCategory === 'All' && !librarySearch) return icons.slice(0, 500);
+        if (iconCategory === 'Toate' && !librarySearch) return icons.slice(0, 500);
         return icons;
     }, [iconCategory, librarySearch, selectedPack, activeCategories]);
 
@@ -167,7 +167,7 @@ export const CustomizeModal: React.FC<{
     const handlePackSelect = (pack: PackKey) => {
         setSelectedPack(pack);
         const cats = getIconCategories(pack);
-        const firstCat = Object.keys(cats).includes('Essential') ? 'Essential' : Object.keys(cats)[0];
+        const firstCat = Object.keys(cats).includes('Esential') ? 'Esential' : Object.keys(cats)[0];
         setIconCategory(firstCat);
         setView('library');
     };
@@ -222,7 +222,7 @@ export const CustomizeModal: React.FC<{
     // --- RENDER HELPERS ---
     
     const RenderSelectedIconPreview = () => {
-        if (!selectedIcon) return <span className="text-muted text-xs">{t('default')}</span>;
+        if (!selectedIcon) return <span className="text-muted text-xs">Implicit</span>;
         
         // Handle Images
         if (selectedIcon.startsWith('data:') || selectedIcon.startsWith('http')) {
@@ -278,13 +278,13 @@ export const CustomizeModal: React.FC<{
                                     <FileItem item={previewItem} onAction={() => {}} onClick={() => {}} theme="dark" />
                                 </div>
                                 <p className="text-[10px] text-muted text-center mt-8 max-w-[200px]">
-                                    {t('livePreviewText')}
+                                    {t('livePreviewText' as any) || 'Real-time preview.'}
                                 </p>
                             </div>
 
                             <div className="mt-8 space-y-4">
                                 <div>
-                                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted mb-2 block">{t('rename')}</label>
+                                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted mb-2 block">{t('rename') || 'Rename'}</label>
                                     <input 
                                         type="text" 
                                         value={name} 
@@ -327,13 +327,13 @@ export const CustomizeModal: React.FC<{
                                                                 <RenderSelectedIconPreview />
                                                             </div>
                                                             <div>
-                                                                <p className="text-sm font-bold text-primary">{t('currentIcon')}</p>
-                                                                <p className="text-[10px] text-muted">{t('publiclyVisible')}</p>
+                                                                <p className="text-sm font-bold text-primary">{t('currentIcon' as any) || 'Current Icon'}</p>
+                                                                <p className="text-[10px] text-muted">{t('publiclyVisible' as any) || 'Publicly visible'}</p>
                                                             </div>
                                                         </div>
                                                         {selectedIcon && (
                                                             <button onClick={() => setSelectedIcon(undefined)} className="px-4 py-2 rounded-xl bg-red-500/10 text-red-500 text-[10px] font-bold uppercase hover:bg-red-500 hover:text-white transition-colors">
-                                                                {t('reset')}
+                                                                {t('reset' as any) || 'Reset'}
                                                             </button>
                                                         )}
                                                     </div>
@@ -344,15 +344,15 @@ export const CustomizeModal: React.FC<{
                                                             <LucideIcons.Upload size={24} className="text-muted group-hover:text-neon-green" />
                                                         </div>
                                                         <div className="text-center relative z-10">
-                                                            <span className="text-sm font-bold text-primary block">{t('uploadImage')}</span>
-                                                            <span className="text-[10px] text-muted"><span className="text-[10px] text-muted">{t('jpgPngSvg')}</span></span>
+                                                            <span className="text-sm font-bold text-primary block">{t('uploadImage' as any) || 'Upload Image'}</span>
+                                                            <span className="text-[10px] text-muted">JPG, PNG, SVG (Max 2MB)</span>
                                                         </div>
                                                         <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleIconUpload} />
                                                     </div>
 
                                                     <div className="flex items-center gap-4 py-2 opacity-50">
                                                         <div className="h-px bg-border flex-1" />
-                                                        <span className="text-[10px] font-bold text-muted uppercase">{t('or')}</span>
+                                                        <span className="text-[10px] font-bold text-muted uppercase">SAU</span>
                                                         <div className="h-px bg-border flex-1" />
                                                     </div>
 
@@ -367,8 +367,8 @@ export const CustomizeModal: React.FC<{
                                                                     <LucideIcons.Grid size={24} />
                                                                 </div>
                                                                 <div>
-                                                                    <h4 className="font-bold text-lg text-primary group-hover:text-neon-green transition-colors">{t('openLibrary')}</h4>
-                                                                    <p className="text-xs text-muted">{t('accessCollections')}</p>
+                                                                    <h4 className="font-bold text-lg text-primary group-hover:text-neon-green transition-colors">{t('openLibrary' as any) || 'Open Library'}</h4>
+                                                                    <p className="text-xs text-muted">{t('accessCollections' as any) || 'Access 10 premium collections'}</p>
                                                                 </div>
                                                             </div>
                                                             <div className="w-10 h-10 rounded-full bg-black border border-border flex items-center justify-center text-muted group-hover:text-white group-hover:border-neon-green transition-all">
@@ -383,16 +383,16 @@ export const CustomizeModal: React.FC<{
                                             {activeTab === 'tags' && (
                                                 <div className="space-y-6">
                                                     <div className="bg-surface/30 rounded-[24px] p-5 border border-border space-y-4">
-                                                        <h4 className="text-xs font-black uppercase tracking-widest text-muted">{t('newTag')}</h4>
+                                                        <h4 className="text-xs font-black uppercase tracking-widest text-muted">{t('newTag' as any) || 'Tag Nou'}</h4>
                                                         <div className="flex gap-3">
-                                                            <input type="text" placeholder={t('tagLabel')} value={newTagLabel} onChange={(e) => setNewTagLabel(e.target.value)} className="flex-1 bg-background border border-border rounded-xl px-4 text-sm text-primary outline-none focus:border-neon-green" />
+                                                            <input type="text" placeholder={t('tagLabel' as any) || "Tag name..."} value={newTagLabel} onChange={(e) => setNewTagLabel(e.target.value)} className="flex-1 bg-background border border-border rounded-xl px-4 text-sm text-primary outline-none focus:border-neon-green" />
                                                             <div className="w-12"><CustomColorPicker compact color={newTagColor} onChange={setNewTagColor} /></div>
                                                             <button onClick={addTag} className="w-12 h-12 rounded-xl bg-neon-green text-black flex items-center justify-center hover:scale-105 transition-transform"><LucideIcons.Plus size={20} /></button>
                                                         </div>
                                                     </div>
 
                                                     <div>
-                                                        <h4 className="text-xs font-black uppercase tracking-widest text-muted mb-4">{t('activeTags')}</h4>
+                                                        <h4 className="text-xs font-black uppercase tracking-widest text-muted mb-4">{t('activeTags' as any) || 'Etichete Active'}</h4>
                                                         <div className="flex flex-wrap gap-2">
                                                             {tags.map(tag => (
                                                                 <span key={tag.id} className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-black text-xs font-bold" style={{ backgroundColor: tag.color }}>
@@ -400,7 +400,7 @@ export const CustomizeModal: React.FC<{
                                                                     <button onClick={() => removeTag(tag.id)} className="hover:bg-black/20 rounded-full p-0.5"><LucideIcons.X size={12} /></button>
                                                                 </span>
                                                             ))}
-                                                            {tags.length === 0 && <p className="text-xs text-muted italic">{t('noTagsAdded')}</p>}
+                                                            {tags.length === 0 && <p className="text-xs text-muted italic">{t('noTagsAdded' as any) || 'No tags added.'}</p>}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -409,8 +409,8 @@ export const CustomizeModal: React.FC<{
 
                                         {/* FOOTER ACTIONS - CLEANED NO SHADOW-NEON */}
                                         <div className="p-6 border-t border-border flex justify-end gap-4 bg-surface/30 shrink-0">
-                                            <button onClick={onClose} className="px-6 py-3 rounded-xl border border-border text-xs font-bold uppercase tracking-wide hover:bg-surface text-muted hover:text-white transition-colors">{t('cancel')}</button>
-                                            <button onClick={handleSave} className="px-8 py-3 rounded-xl bg-neon-green text-black text-xs font-black uppercase tracking-wide shadow-sm hover:scale-105 transition-transform">{t('save')}</button>
+                                            <button onClick={onClose} className="px-6 py-3 rounded-xl border border-border text-xs font-bold uppercase tracking-wide hover:bg-surface text-muted hover:text-white transition-colors">{t('cancel' as any) || 'Cancel'}</button>
+                                            <button onClick={handleSave} className="px-8 py-3 rounded-xl bg-neon-green text-black text-xs font-black uppercase tracking-wide shadow-sm hover:scale-105 transition-transform">{t('save' as any) || 'Save'}</button>
                                         </div>
                                     </motion.div>
                                 ) : view === 'packs' ? (
@@ -427,8 +427,8 @@ export const CustomizeModal: React.FC<{
                                                 <LucideIcons.ArrowLeft size={24} />
                                             </button>
                                             <div>
-                                                <h3 className="text-xl font-bold text-primary">{t('choosePack')}</h3>
-                                                <p className="text-[10px] text-muted uppercase tracking-wider">{t('collectionsAvailable')}</p>
+                                                <h3 className="text-xl font-bold text-primary">{t('choosePack' as any) || 'Alege Pachetul'}</h3>
+                                                <p className="text-[10px] text-muted uppercase tracking-wider">{t('collectionsAvailable' as any) || '10 Collections Available'}</p>
                                             </div>
                                         </div>
                                         
@@ -460,7 +460,7 @@ export const CustomizeModal: React.FC<{
                                                         {/* Footer / Action Section */}
                                                         <div className="mt-auto relative z-10 pt-4">
                                                             <div className="flex items-center text-[10px] font-black text-neon-green uppercase tracking-wider group-hover:translate-x-1 transition-transform">
-                                                                {t('select')} <LucideIcons.ArrowRight className="ml-1" size={12} />
+                                                                {t('select' as any) || 'Select'} <LucideIcons.ArrowRight className="ml-1" size={12} />
                                                             </div>
                                                         </div>
                                                     </button>
@@ -486,7 +486,7 @@ export const CustomizeModal: React.FC<{
                                                         <LucideIcons.ArrowLeft size={20} />
                                                     </button>
                                                     <div>
-                                                        <h3 className="text-lg font-bold text-primary">{t('openLibrary')}</h3>
+                                                        <h3 className="text-lg font-bold text-primary">Library</h3>
                                                         <p className="text-[10px] text-muted uppercase tracking-widest">{PACK_DEFS.find(p => p.key === selectedPack)?.name}</p>
                                                     </div>
                                                 </div>
@@ -500,7 +500,7 @@ export const CustomizeModal: React.FC<{
                                                 <div className="relative">
                                                     <input 
                                                         type="text" 
-                                                        placeholder={t('searchLibrary')}
+                                                        placeholder={t('searchLibrary' as any) || "Search library (ex: arrow, wifi)..."}
                                                         value={librarySearch}
                                                         onChange={(e) => setLibrarySearch(e.target.value)}
                                                         className="w-full bg-background border border-border rounded-xl py-2 pl-9 pr-4 text-xs font-bold text-primary focus:outline-none focus:border-neon-green"
@@ -572,13 +572,13 @@ export const CustomizeModal: React.FC<{
                                                 </div>
                                             ) : (
                                                 <div className="flex flex-col items-center justify-center h-40 text-muted">
-                                                    <p className="text-xs">{t('noIconFound')}</p>
+                                                    <p className="text-xs">{t('noIconFound' as any) || 'No icons found.'}</p>
                                                 </div>
                                             )}
                                             
-                                            {iconCategory === 'All' && !librarySearch && visibleLibraryIcons.length === 500 && (
+                                            {iconCategory === 'Toate' && !librarySearch && visibleLibraryIcons.length === 500 && (
                                                 <div className="py-4 text-center text-[10px] text-muted uppercase font-bold">
-                                                    {t('showingTop500')}
+                                                    {t('showingTop500' as any) || 'Showing first 500. Use search for all.'}
                                                 </div>
                                             )}
 

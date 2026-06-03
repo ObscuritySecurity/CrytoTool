@@ -41,13 +41,13 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
 
   const handleVaultAutoFill = async (pin: string) => {
     if (!vaultPin) {
-      setPinError(t('vaultPinNotConfigured'));
+      setPinError('Vault PIN nu este configurat.');
       return;
     }
 
     const isValid = await verifyPin(pin, vaultPin);
     if (!isValid) {
-      setPinError(t('pinIncorrect'));
+      setPinError('PIN incorect.');
       return;
     }
 
@@ -58,24 +58,24 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
       setShowPinModal(false);
       setPinError(null);
     } else {
-      setPinError(t('noKeyFoundForFile'));
+      setPinError('No key found for this file in Vault.');
       setShowPinModal(false);
     }
   };
 
   const handleDecrypt = async () => {
     if (!passphrase.trim()) {
-      setError(t('enterDecryptionKey'));
+      setError('Introdu o cheie de decriptare.');
       return;
     }
 
     if (!item.rawBlob) {
-      setError(t('fileDataCorrupt'));
+      setError('Datele fisierului sunt corupte sau lipsesc.');
       return;
     }
 
     if (item.algorithm !== 'AES-GCM-Stream' && (!item.iv || !item.salt)) {
-      setError(t('fileDataCorrupt'));
+      setError('Datele fisierului sunt corupte sau lipsesc.');
       return;
     }
 
@@ -84,6 +84,11 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
 
     try {
       const encryptedData = new Uint8Array(await item.rawBlob.arrayBuffer());
+      console.log('[Decrypt] encryptedData length:', encryptedData.length);
+      console.log('[Decrypt] algorithm:', item.algorithm);
+      console.log('[Decrypt] iv:', item.iv);
+      console.log('[Decrypt] salt:', item.salt);
+      console.log('[Decrypt] passphrase length:', passphrase.length);
 
       let decryptedData: Uint8Array;
       
@@ -98,6 +103,7 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
       } else {
         const iv = cryptoService.base64ToArrayBuffer(item.iv!);
         const salt = cryptoService.base64ToArrayBuffer(item.salt!);
+        console.log('[Decrypt] iv length:', iv.length, 'salt length:', salt.length);
 
         decryptedData = await cryptoService.decryptWithPassphrase(
           encryptedData,
@@ -107,6 +113,8 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
           item.algorithm || 'AES-GCM'
         );
       }
+
+      console.log('[Decrypt] SUCCESS, decryptedData length:', decryptedData.length);
 
       const ext = item.name.split('.').pop()?.toLowerCase() || '';
       const mimeType = ext === 'gif' ? 'image/gif' :
@@ -125,7 +133,7 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
       onSuccess(blob, mimeType);
     } catch (e: any) {
       console.error(e);
-      setError(t('incorrectKey'));
+      setError('Cheie incorecta. Verifica si incearca din nou.');
       setPassphrase('');
       setVaultKeyFound(null);
     } finally {
@@ -165,7 +173,7 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
                 <Lock size={10} className="md:size-5" />
               </div>
               <div>
-                <h3 className="text-xs md:text-lg font-bold text-white leading-tight">{t('decrypt')}</h3>
+                <h3 className="text-xs md:text-lg font-bold text-white leading-tight">{t('decrypt') || 'Decripteaza'}</h3>
                 <p className="text-[8px] md:text-[10px] text-zinc-400 uppercase tracking-wider truncate max-w-[120px] md:max-w-[200px]">{item.name}</p>
               </div>
             </div>
@@ -179,7 +187,7 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
                   <Loader2 size={32} className="text-neon-green animate-spin relative z-10 md:size-16" />
                 </div>
                 <div className="text-center">
-                  <h4 className="text-sm md:text-xl font-bold text-white">{t('processing')}</h4>
+                  <h4 className="text-sm md:text-xl font-bold text-white">{t('processing') || 'Decriptare...'}</h4>
                   <p className="text-zinc-400 text-[8px] md:text-xs mt-0.5 md:mt-2 font-mono">{item.algorithm || 'AES-GCM'}</p>
                 </div>
               </div>
@@ -187,10 +195,10 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
               <div className="space-y-2 md:space-y-5">
                 <div className="p-2 md:p-4 rounded-lg md:rounded-2xl bg-zinc-900/50 border border-zinc-800">
                   <div className="flex items-center gap-1.5 md:gap-2 mb-1 md:mb-2">
-                    <span className="text-[9px] md:text-xs font-bold text-zinc-300">{t('encryptedFile')}</span>
+                    <span className="text-[9px] md:text-xs font-bold text-zinc-300">{t('encryptedFile') || 'Fisier Criptat Manual'}</span>
                   </div>
                   <p className="text-[8px] md:text-[11px] text-zinc-500">
-                    {t('enterDecryptionKey')}
+                    {t('enterDecryptionKey') || 'Introdu cheia generata la criptare pentru a debloca fisierul.'}
                   </p>
                   <div className="mt-1 md:mt-2 px-1.5 md:px-2 py-0.5 md:py-1 rounded bg-black/50 font-mono text-[8px] md:text-[10px] text-zinc-400 inline-block flex items-center gap-1 md:gap-2">
                     <span>{item.algorithm || 'AES-GCM'}</span>
@@ -214,10 +222,10 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
                           </div>
                           <div className="text-left">
                             <p className={`text-[9px] md:text-xs font-bold ${autoFillFromVault && vaultKeyFound ? 'text-white' : 'text-zinc-400'}`}>
-                              {autoFillFromVault && vaultKeyFound ? t('keyAutoFilled') : t('autoFillFromVault')}
+                              {autoFillFromVault && vaultKeyFound ? 'Key auto-filled from Vault' : 'Auto-fill from Vault'}
                             </p>
                             <p className="text-[7px] md:text-[9px] text-zinc-600">
-                              {autoFillFromVault && vaultKeyFound ? t('keyFound') : t('enterPinToAutoFill')}
+                              {autoFillFromVault && vaultKeyFound ? 'Key found' : 'Enter PIN to auto-fill'}
                             </p>
                           </div>
                         </div>
@@ -235,8 +243,8 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
                         <Shield size={16} />
                       </div>
                       <div className="text-left">
-                        <p className="text-xs font-bold text-zinc-500">{t('autoFillFromVault')}</p>
-                        <p className="text-[9px] text-zinc-700">{t('setPinToEnable')}</p>
+                        <p className="text-xs font-bold text-zinc-500">Auto-fill from Vault</p>
+                        <p className="text-[9px] text-zinc-700">Set a PIN in Settings → Vault to enable</p>
                       </div>
                     </div>
                   )}
@@ -244,14 +252,14 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
 
                 <div>
                   <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2 block">
-                    {t('enterKey')}
+                    {t('enterKey') || 'Cheie de Decriptare'}
                   </label>
                   <div className="relative">
                     <input
                       type={showKey ? 'text' : 'password'}
                       value={passphrase}
                       onChange={(e) => setPassphrase(e.target.value)}
-                      placeholder={t('enterDecryptionKey')}
+                      placeholder={t('enterDecryptionKey') || 'Enter the decryption key'}
                       className={`w-full bg-black border rounded-xl px-4 py-3.5 pr-12 text-sm font-mono outline-none transition-colors placeholder:text-zinc-700 ${vaultKeyFound ? 'border-neon-green/50 text-neon-green focus:border-neon-green' : 'border-zinc-800 text-neon-green focus:border-neon-green'}`}
                       autoFocus
                       autoComplete="new-password"
@@ -290,7 +298,7 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
                 disabled={!passphrase.trim()}
                 className="ml-auto px-4 md:px-8 py-2 md:py-3 rounded-lg md:rounded-xl bg-white text-black text-[9px] md:text-xs font-bold uppercase tracking-wider flex items-center gap-1 disabled:opacity-30"
               >
-                {t('decrypt')}
+                Decripteaza
               </button>
             </div>
           )}
