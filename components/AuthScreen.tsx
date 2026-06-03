@@ -99,7 +99,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
         const codes = generateRecoveryCodes();
 
         const masterSalt = window.crypto.getRandomValues(new Uint8Array(16));
-        const masterKey = await deriveKey(password, masterSalt, { iterations: 19, memorySize: 131072, parallelism: 4 });
+          const masterKey = await deriveKey(password, masterSalt, 'master');
         const masterWrapper = await wrapRawKey(mvkBytes, masterKey);
 
         const recoverySalts: string[] = [];
@@ -108,7 +108,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
         for (let i = 0; i < codes.length; i++) {
           const salt = window.crypto.getRandomValues(new Uint8Array(16));
           recoverySalts.push(bytesToBase64(salt));
-          const key = await deriveKey(codes[i], salt, { iterations: 10, memorySize: 131072, parallelism: 4 });
+          const key = await deriveKey(codes[i], salt, 'recovery');
           const paddedIdx = String(i + 1).padStart(2, '0');
           recoveryWrappers[paddedIdx] = await wrapRawKey(mvkBytes, key);
         }
@@ -143,7 +143,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
           const meta: CryptoMetadata = JSON.parse(metadataRaw);
           const masterSalt = base64ToBytes(meta.master_salt);
 
-          const masterKey = await deriveKey(password, masterSalt, { iterations: 19, memorySize: 131072, parallelism: 4 });
+        const masterKey = await deriveKey(password, masterSalt, 'master');
 
           try {
             const mvkBytes = await unwrapRawKey(wrappers.master, masterKey);

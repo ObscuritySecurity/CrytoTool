@@ -324,7 +324,7 @@ const App: React.FC = () => {
       if (saltIdx < 0 || saltIdx >= meta.recovery_salts.length) return { success: false, error: 'Salt lipsă' };
 
       const recoverySalt = base64ToBytes(meta.recovery_salts[saltIdx]);
-      const recoveryKey = await deriveKey(code, recoverySalt, { iterations: 10, memorySize: 131072, parallelism: 4 });
+      const recoveryKey = await deriveKey(code, recoverySalt, 'recovery');
 
       let mvkBytes: Uint8Array;
       try {
@@ -334,7 +334,7 @@ const App: React.FC = () => {
       }
 
       const newMasterSalt = window.crypto.getRandomValues(new Uint8Array(16));
-      const newMasterKey = await deriveKey(newPassword, newMasterSalt, { iterations: 19, memorySize: 131072, parallelism: 4 });
+      const newMasterKey = await deriveKey(newPassword, newMasterSalt, 'master');
       const newMasterWrapper = await wrapRawKey(mvkBytes, newMasterKey);
 
       delete wrappers.recovery[idx];
@@ -372,7 +372,7 @@ const App: React.FC = () => {
     for (let i = 0; i < codes.length; i++) {
       const salt = window.crypto.getRandomValues(new Uint8Array(16));
       salts.push(bytesToBase64(salt));
-      const key = await deriveKey(codes[i], salt, { iterations: 10, memorySize: 131072, parallelism: 4 });
+      const key = await deriveKey(codes[i], salt, 'recovery');
       const paddedIdx = String(i + 1).padStart(2, '0');
       recoveryWrappers[paddedIdx] = await wrapRawKey(mvkBytes, key);
     }

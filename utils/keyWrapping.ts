@@ -1,4 +1,5 @@
 import { argon2id } from 'hash-wasm';
+import { getArgonParams, type ArgonPurpose } from './platform';
 
 export function bytesToBase64(bytes: Uint8Array): string {
   let binary = '';
@@ -20,9 +21,9 @@ export function base64ToBytes(base64: string): Uint8Array {
 export async function deriveKey(
   secret: string,
   salt: Uint8Array,
-  params?: { iterations?: number; memorySize?: number; parallelism?: number }
+  purpose: ArgonPurpose = 'master'
 ): Promise<CryptoKey> {
-  const { iterations = 19, memorySize = 131072, parallelism = 4 } = params || {};
+  const { iterations, memorySize, parallelism } = await getArgonParams(purpose);
   const hash = await argon2id({
     password: secret,
     salt,

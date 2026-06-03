@@ -1,4 +1,5 @@
 import { argon2id } from 'hash-wasm';
+import { getArgonParams } from './platform';
 
 /**
  * BACKUP CRYPTO SERVICE
@@ -54,12 +55,13 @@ class BackupEncryptionService {
      * 19 iterations, 128MB memory, 4 parallelism.
      */
     private async keyFromPassphrase(passphrase: string, salt: Uint8Array): Promise<CryptoKey> {
+        const { iterations, memorySize, parallelism } = await getArgonParams();
         const hash = await argon2id({
             password: passphrase,
             salt,
-            iterations: 19,
-            memorySize: 131072,
-            parallelism: 4,
+            iterations,
+            memorySize,
+            parallelism,
             hashLength: 32,
             outputType: 'binary',
         }) as Uint8Array;
