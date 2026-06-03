@@ -94,10 +94,10 @@ const getIconCategories = (pack: PackKey) => {
         if (['user', 'home', 'settings', 'menu', 'search', 'check', 'x', 'plus', 'minus', 'edit', 'trash', 'save', 'filter', 'grid', 'more', 'loader', 'flag', 'star', 'heart'].some(k => lower.includes(k))) categories['Esential'].push(key);
         if (['video', 'music', 'audio', 'image', 'camera', 'film', 'mic', 'volume', 'play', 'pause', 'stop', 'cast'].some(k => lower.includes(k))) categories['Media'].push(key);
         if (['cpu', 'wifi', 'battery', 'code', 'database', 'server', 'laptop', 'phone', 'monitor', 'keyboard', 'mouse', 'bug', 'git', 'usb', 'bluetooth'].some(k => lower.includes(k))) categories['Tech'].push(key);
-        if (['file', 'folder', 'book', 'clip', 'paper', 'archive', 'calendar', 'chart', 'mail', 'inbox', 'printer', 'briefcase', 'pen'].some(k => lower.includes(k))) categories['Birou'].push(key);
-        if (['lock', 'key', 'shield', 'eye', 'scan', 'alert', 'warning', 'info'].some(k => lower.includes(k))) categories['Securitate'].push(key);
-        if (['sun', 'moon', 'cloud', 'rain', 'snow', 'wind', 'storm', 'zap', 'thermometer'].some(k => lower.includes(k))) categories['Vreme'].push(key);
-        if (['arrow', 'chevron', 'caret', 'corner', 'move', 'refresh', 'sync', 'loop', 'undo', 'redo'].some(k => lower.includes(k))) categories['Săgeți'].push(key);
+        if (['file', 'folder', 'book', 'clip', 'paper', 'archive', 'calendar', 'chart', 'mail', 'inbox', 'printer', 'briefcase', 'pen'].some(k => lower.includes(k))) categories['Office'].push(key);
+        if (['lock', 'key', 'shield', 'eye', 'scan', 'alert', 'warning', 'info'].some(k => lower.includes(k))) categories['Security'].push(key);
+        if (['sun', 'moon', 'cloud', 'rain', 'snow', 'wind', 'storm', 'zap', 'thermometer'].some(k => lower.includes(k))) categories['Weather'].push(key);
+        if (['arrow', 'chevron', 'caret', 'corner', 'move', 'refresh', 'sync', 'loop', 'undo', 'redo'].some(k => lower.includes(k))) categories['Arrows'].push(key);
     });
 
     if (categories['Esential'].length < 20) categories['Esential'] = keys.slice(0, 50);
