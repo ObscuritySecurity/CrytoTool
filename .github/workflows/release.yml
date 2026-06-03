@@ -25,6 +25,6 @@ jobs:
       - uses: softprops/action-gh-release@v3
         with:
           body_path: release_body.md
-          update: true
           make_latest: ${{ !contains(github.ref_name, 'beta') && !contains(github.ref_name, 'alpha') && !contains(github.ref_name, 'rc') }}
           prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') || contains(github.ref_name, 'rc') }}
+          overwrite_files: true
