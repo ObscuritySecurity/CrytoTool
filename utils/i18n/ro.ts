@@ -331,5 +331,9 @@ export const translations: Translations = {
   generatedVariants: 'Variante Generate',
   folder: 'FOLDER',
   select: 'Selectează',
-    deleteFile: 'Șterge Fișier'
+    deleteFile: 'Șterge Fișier',
+    recoveryCodesDownload: 'Descarcă Codurile de Recuperare',
+    recoveryCodesSaveWarning: 'Salvează aceste coduri ACUM! Nu vor mai fi afișate după ce închizi această fereastră.',
+    recoveryCodesSavedConfirm: 'Am salvat codurile',
+    recoveryCodesRegenerateWarning: 'Regenerarea codurilor va invalida toate codurile anterioare. Continui?'
 }

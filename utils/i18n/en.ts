@@ -342,5 +342,9 @@ export const translations: Translations = {
     permanentlyDelete: 'Permanently Delete',
     financiar: 'Financial',
     socialmedia: 'Social Media',
-    documente: 'Documents'
+    documente: 'Documents',
+    recoveryCodesDownload: 'Download Recovery Codes',
+    recoveryCodesSaveWarning: 'Save these codes now! They will NOT be shown again after you close this window.',
+    recoveryCodesSavedConfirm: "I've saved the codes",
+    recoveryCodesRegenerateWarning: 'Regenerating codes will invalidate all previous codes. Continue?'
 }

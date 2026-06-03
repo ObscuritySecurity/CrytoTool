@@ -9,6 +9,12 @@ import { db } from './utils/db';
 import { I18nProvider } from './utils/i18n/i18nContext';
 import { hashPin } from './utils/security';
 
+async function hashWithSalt(code: string, salt: Uint8Array): Promise<string> {
+  const combined = new Uint8Array([...salt, ...new TextEncoder().encode(code)]);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', combined);
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 const App: React.FC = () => {
   const [showSplash, setShowSplash] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -186,30 +192,16 @@ const App: React.FC = () => {
     return () => clearInterval(intervalId);
   }, [isAuthenticated, destructTriggerTime]);
 
-  // --- RECOVERY CODES (Encrypted with Vault Key) ---
+  // --- RECOVERY CODES (Stored as salted SHA-256 hashes only) ---
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
-  
-  useEffect(() => {
-    const loadRecoveryCodes = async () => {
-      const saved = localStorage.getItem('crytotool_recovery_codes');
-      if (!saved) return;
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.iv && parsed.data) {
-          const decrypted = await cryptoService.decryptString(parsed.data, parsed.iv);
-          setRecoveryCodes(JSON.parse(decrypted));
-        } else {
-          setRecoveryCodes(parsed); // Legacy plaintext
-        }
-      } catch {
-        setRecoveryCodes([]);
-      }
-    };
-    
-    if (isAuthenticated) {
-      loadRecoveryCodes();
+  const [recoveryHashes, setRecoveryHashes] = useState<{ salt: string; hash: string }[]>(() => {
+    try {
+      const saved = localStorage.getItem('crytotool_recovery_hashes');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
     }
-  }, [isAuthenticated]);
+  });
 
   const generateRecoveryCodes = (): string[] => {
     const codes: string[] = [];
@@ -227,41 +219,81 @@ const App: React.FC = () => {
     return codes;
   };
 
-  const saveRecoveryCodes = async (codes: string[]) => {
-    try {
-      const jsonString = JSON.stringify(codes);
-      const encrypted = await cryptoService.encryptString(jsonString);
-      const stored = JSON.stringify({ iv: encrypted.iv, data: encrypted.ciphertext });
-      localStorage.setItem('crytotool_recovery_codes', stored);
-    } catch {
-      // Vault Key not available, save plaintext (fallback)
-      localStorage.setItem('crytotool_recovery_codes', JSON.stringify(codes));
+  const saveCodeHashes = async (codes: string[]) => {
+    const entries: { salt: string; hash: string }[] = [];
+    for (const code of codes) {
+      const normalized = code.replace(/-/g, '').toUpperCase();
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2, '0')).join('');
+      const hash = await hashWithSalt(normalized, salt);
+      entries.push({ salt: saltHex, hash });
     }
+    setRecoveryHashes(entries);
+    localStorage.setItem('crytotool_recovery_hashes', JSON.stringify(entries));
   };
 
-  const regenerateRecoveryCodes = () => {
+  const regenerateRecoveryCodes = async () => {
     const newCodes = generateRecoveryCodes();
     setRecoveryCodes(newCodes);
-    saveRecoveryCodes(newCodes);
+    await saveCodeHashes(newCodes);
   };
 
-  const verifyRecoveryCode = (code: string): boolean => {
-    return recoveryCodes.includes(code.replace(/-/g, '').toUpperCase());
+  const downloadRecoveryCodes = () => {
+    const date = new Date().toISOString().split('T')[0];
+    const lines = [
+      'CrytoTool - Recovery Codes',
+      '========================',
+      `Generated: ${date}`,
+      '',
+      'Each code can be used ONLY ONCE to reset your Master Password.',
+      '',
+      ...recoveryCodes.map((code, i) => {
+        const num = String(i + 1).padStart(2, '0');
+        return `Code ${num}: ${code}`;
+      }),
+      '',
+      'Store this file securely. Do not share it.',
+    ];
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `crytotool-recovery-codes-${date}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
-  const consumeRecoveryCode = (code: string) => {
-    const normalizedCode = code.replace(/-/g, '').toUpperCase();
-    if (recoveryCodes.includes(normalizedCode)) {
-      const updatedCodes = recoveryCodes.filter(c => c.replace(/-/g, '') !== normalizedCode);
-      setRecoveryCodes(updatedCodes);
-      saveRecoveryCodes(updatedCodes);
-      return true;
+  const clearRecoveryCodes = () => {
+    setRecoveryCodes([]);
+  };
+
+  const verifyRecoveryCode = async (code: string): Promise<boolean> => {
+    const normalized = code.replace(/-/g, '').toUpperCase();
+    for (const entry of recoveryHashes) {
+      const salt = new Uint8Array(entry.salt.match(/.{2}/g)!.map(b => parseInt(b, 16)));
+      const hash = await hashWithSalt(normalized, salt);
+      if (hash === entry.hash) return true;
+    }
+    return false;
+  };
+
+  const consumeRecoveryCode = async (code: string): Promise<boolean> => {
+    const normalized = code.replace(/-/g, '').toUpperCase();
+    for (let i = 0; i < recoveryHashes.length; i++) {
+      const salt = new Uint8Array(recoveryHashes[i].salt.match(/.{2}/g)!.map(b => parseInt(b, 16)));
+      const hash = await hashWithSalt(normalized, salt);
+      if (hash === recoveryHashes[i].hash) {
+        const updatedHashes = recoveryHashes.filter((_, idx) => idx !== i);
+        setRecoveryHashes(updatedHashes);
+        localStorage.setItem('crytotool_recovery_hashes', JSON.stringify(updatedHashes));
+        return true;
+      }
     }
     return false;
   };
 
   const resetMasterPasswordWithRecovery = async (code: string, newPassword: string) => {
-    if (!consumeRecoveryCode(code)) {
+    if (!await consumeRecoveryCode(code)) {
       return { success: false, error: 'Cod invalid' };
     }
 
@@ -392,19 +424,20 @@ const App: React.FC = () => {
           <SplashScreen key="splash" onComplete={() => setShowSplash(false)} />
         ) : !isAuthenticated ? (
           <motion.div key="auth" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <AuthScreen 
-              onUnlock={handleUnlock} 
-              isSetup={isSetupRequired} 
-              lockUntil={lockUntil}
-              onFailedAttempt={handleFailedAttempt}
-              recoverySettings={{
-                verify: verifyRecoveryCode,
-                consume: consumeRecoveryCode,
-                codes: recoveryCodes
-              }}
-              onResetWithRecovery={resetMasterPasswordWithRecovery}
-              destructCountdown={destructCountdown}
-            />
+             <AuthScreen 
+               onUnlock={handleUnlock} 
+               isSetup={isSetupRequired} 
+               lockUntil={lockUntil}
+               onFailedAttempt={handleFailedAttempt}
+                recoverySettings={{
+                  verify: verifyRecoveryCode,
+                  consume: consumeRecoveryCode,
+                  codes: recoveryCodes,
+                  codesCount: recoveryHashes.length
+                }}
+                onResetWithRecovery={resetMasterPasswordWithRecovery}
+               destructCountdown={destructCountdown}
+             />
           </motion.div>
         ) : (
            <motion.div key="dashboard" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="relative h-full">
@@ -417,7 +450,10 @@ const App: React.FC = () => {
                   codes: recoveryCodes,
                   regenerate: regenerateRecoveryCodes,
                   verify: verifyRecoveryCode,
-                  consume: consumeRecoveryCode
+                  consume: consumeRecoveryCode,
+                  downloadCodes: downloadRecoveryCodes,
+                  clearCodes: clearRecoveryCodes,
+                  codesCount: recoveryHashes.length
                 }}
                 vaultSettings={{
                   enabled: vaultEnabled,

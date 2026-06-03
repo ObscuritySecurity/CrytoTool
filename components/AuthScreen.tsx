@@ -11,9 +11,10 @@ interface AuthScreenProps {
   lockUntil: number | null;
   onFailedAttempt: () => void;
   recoverySettings?: {
-    verify: (code: string) => boolean;
-    consume: (code: string) => boolean;
+    verify: (code: string) => Promise<boolean>;
+    consume: (code: string) => Promise<boolean>;
     codes: string[];
+    codesCount: number;
   };
   onResetWithRecovery: (code: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
   destructCountdown?: number | null;
@@ -265,7 +266,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
         </form>
 
         {/* Recovery Mode Button */}
-        {!isSetup && !isLocked && recoverySettings && recoverySettings.codes.length > 0 && (
+        {!isSetup && recoverySettings && recoverySettings.codesCount > 0 && !isRecoveryMode && (
           <div className="mt-4 pt-4 border-t border-white/10">
             <button
               type="button"
@@ -277,7 +278,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
           </div>
         )}
 
-        {/* Recovery Mode Form */}
+        {/* Recovery Code + Password Form */}
         {isRecoveryMode && (
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
@@ -348,8 +349,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
                       setError('Passwords do not match');
                       return;
                     }
-                    if (!recoverySettings?.verify(recoveryCode)) {
-                      setError('Invalid recovery code');
+                    if (!(await recoverySettings?.verify(recoveryCode))) {
+                      setError(t('invalidRecoveryCode'));
                       return;
                     }
 
@@ -358,7 +359,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
                     setIsProcessing(false);
 
                     if (result.success) {
-                      // Reset successful, reload page to re-authenticate with new credentials
+                      await recoverySettings?.consume(recoveryCode);
                       window.location.reload();
                     } else {
                       setError(result.error || 'Reset error');
