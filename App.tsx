@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { SplashScreen } from './components/SplashScreen';
@@ -8,27 +7,32 @@ import { cryptoService } from './utils/crypto';
 import { db } from './utils/db';
 import { I18nProvider } from './locales/i18nContext';
 import { hashPin } from './utils/security';
+import {
+  deriveKey,
+  wrapRawKey,
+  unwrapRawKey,
+  base64ToBytes,
+  bytesToBase64,
+  generateRecoveryCodes,
+  parseCodeIndex,
+} from './utils/keyWrapping';
+import type { CryptoMetadata, VaultWrappers } from './utils/keyWrapping';
 
 const App: React.FC = () => {
   const [showSplash, setShowSplash] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  useEffect(() => {
-    if (!showSplash) {
-      // StatusBar handled internally
-    }
-  }, [showSplash]);
-  
   const [isSetupRequired, setIsSetupRequired] = useState(() => {
     const salt = localStorage.getItem('crytotool_salt');
-    return !salt;
+    const wrappers = localStorage.getItem('crytotool_vault_wrappers');
+    return !salt && !wrappers;
   });
 
   const [autoBlurSeconds, setAutoBlurSeconds] = useState(() => {
     const saved = localStorage.getItem('crytotool_blur_time');
     return saved ? parseInt(saved, 10) : 20;
   });
-  
+
   const [autoLockSeconds, setAutoLockSeconds] = useState(() => {
     const saved = localStorage.getItem('crytotool_lock_time');
     return saved ? parseInt(saved, 10) : 25;
@@ -37,21 +41,16 @@ const App: React.FC = () => {
   const [isBlurred, setIsBlurred] = useState(false);
   const lastActivityRef = useRef(Date.now());
 
-  // --- SETTINGS LOCK ---
-  // Settings password is kept in memory only (not persisted) for security
   const [settingsPassword, setSettingsPassword] = useState<string | null>(null);
 
   const updateSettingsPassword = (pwd: string | null) => {
     setSettingsPassword(pwd);
   };
 
-  // --- VAULT SETTINGS (NEW) ---
-  // Vault is disabled by default for new people
   const [vaultEnabled, setVaultEnabled] = useState(() => {
     const saved = localStorage.getItem('crytotool_vault_enabled');
     return saved !== null ? saved === 'true' : false;
   });
-  // Vault PIN - stored as hash in localStorage
   const [vaultPin, setVaultPin] = useState<string | null>(() => {
     return localStorage.getItem('crytotool_vault_pin_hash');
   });
@@ -69,7 +68,6 @@ const App: React.FC = () => {
     localStorage.setItem('crytotool_vault_enabled', String(enabled));
   };
 
-  // --- PROGRESSIVE LOCK SETTINGS ---
   const [progressiveLockSeconds, setProgressiveLockSeconds] = useState(() => {
     const saved = localStorage.getItem('crytotool_prog_lock_time');
     return saved ? parseInt(saved, 10) : 60;
@@ -80,7 +78,6 @@ const App: React.FC = () => {
     return saved ? parseInt(saved, 10) : 3;
   });
 
-  // --- AUTO DESTRUCT SETTINGS ---
   const [autoDestructEnabled, setAutoDestructEnabled] = useState(() => {
     return localStorage.getItem('crytotool_ad_enabled') === 'true';
   });
@@ -92,7 +89,7 @@ const App: React.FC = () => {
 
   const [autoDestructInactivity, setAutoDestructInactivity] = useState(() => {
     const saved = localStorage.getItem('crytotool_ad_inactivity');
-    return saved ? parseInt(saved, 10) : 0; 
+    return saved ? parseInt(saved, 10) : 0;
   });
 
   const [destructCountdownSeconds, setDestructCountdownSeconds] = useState(() => {
@@ -112,6 +109,41 @@ const App: React.FC = () => {
     const saved = localStorage.getItem('crytotool_destruct_time');
     return saved ? parseInt(saved, 10) : null;
   });
+
+  const [newlyGeneratedCodes, setNewlyGeneratedCodes] = useState<string[] | null>(null);
+  const mvkBytesRef = useRef<Uint8Array | null>(null);
+  const [recoveryWrappersCount, setRecoveryWrappersCount] = useState(() => {
+    const raw = localStorage.getItem('crytotool_vault_wrappers');
+    if (!raw) return 0;
+    try {
+      const wrappers: VaultWrappers = JSON.parse(raw);
+      return Object.keys(wrappers.recovery || {}).length;
+    } catch { return 0; }
+  });
+
+  const syncRecoveryCount = () => {
+    const raw = localStorage.getItem('crytotool_vault_wrappers');
+    if (!raw) { setRecoveryWrappersCount(0); return; }
+    try {
+      const wrappers: VaultWrappers = JSON.parse(raw);
+      setRecoveryWrappersCount(Object.keys(wrappers.recovery || {}).length);
+    } catch { setRecoveryWrappersCount(0); }
+  };
+
+  const downloadCodes = (codes: string[]) => {
+    const header = 'CrytoTool Recovery Codes\nGenerated: ' + new Date().toISOString().split('T')[0] + '\n\u2500'.repeat(30) + '\n\n';
+    const content = header + codes.join('\n');
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'crytotool-recovery-codes.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [lockUntil, setLockUntil] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated || !autoDestructEnabled || autoDestructInactivity === 0) return;
@@ -186,130 +218,20 @@ const App: React.FC = () => {
     return () => clearInterval(intervalId);
   }, [isAuthenticated, destructTriggerTime]);
 
-  // --- RECOVERY CODES (Encrypted with Vault Key) ---
-  const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
-  
-  useEffect(() => {
-    const loadRecoveryCodes = async () => {
-      const saved = localStorage.getItem('crytotool_recovery_codes');
-      if (!saved) return;
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.iv && parsed.data) {
-          const decrypted = await cryptoService.decryptString(parsed.data, parsed.iv);
-          setRecoveryCodes(JSON.parse(decrypted));
-        } else {
-          setRecoveryCodes(parsed); // Legacy plaintext
-        }
-      } catch {
-        setRecoveryCodes([]);
-      }
-    };
-    
-    if (isAuthenticated) {
-      loadRecoveryCodes();
-    }
-  }, [isAuthenticated]);
-
-  const generateRecoveryCodes = (): string[] => {
-    const codes: string[] = [];
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    for (let i = 0; i < 10; i++) {
-      let code = '';
-      const randomValues = new Uint8Array(8);
-      window.crypto.getRandomValues(randomValues);
-      for (let j = 0; j < 8; j++) {
-        code += chars[randomValues[j] % chars.length];
-        if ((j + 1) % 4 === 0 && j !== 7) code += '-';
-      }
-      codes.push(code);
-    }
-    return codes;
-  };
-
-  const saveRecoveryCodes = async (codes: string[]) => {
-    try {
-      const jsonString = JSON.stringify(codes);
-      const encrypted = await cryptoService.encryptString(jsonString);
-      const stored = JSON.stringify({ iv: encrypted.iv, data: encrypted.ciphertext });
-      localStorage.setItem('crytotool_recovery_codes', stored);
-    } catch {
-      // Vault Key not available, save plaintext (fallback)
-      localStorage.setItem('crytotool_recovery_codes', JSON.stringify(codes));
-    }
-  };
-
-  const regenerateRecoveryCodes = () => {
-    const newCodes = generateRecoveryCodes();
-    setRecoveryCodes(newCodes);
-    saveRecoveryCodes(newCodes);
-  };
-
-  const verifyRecoveryCode = (code: string): boolean => {
-    return recoveryCodes.includes(code.replace(/-/g, '').toUpperCase());
-  };
-
-  const consumeRecoveryCode = (code: string) => {
-    const normalizedCode = code.replace(/-/g, '').toUpperCase();
-    if (recoveryCodes.includes(normalizedCode)) {
-      const updatedCodes = recoveryCodes.filter(c => c.replace(/-/g, '') !== normalizedCode);
-      setRecoveryCodes(updatedCodes);
-      saveRecoveryCodes(updatedCodes);
-      return true;
-    }
-    return false;
-  };
-
-  const resetMasterPasswordWithRecovery = async (code: string, newPassword: string) => {
-    if (!consumeRecoveryCode(code)) {
-      return { success: false, error: 'Cod invalid' };
-    }
-
-    try {
-      // Generate new salt and derive new master key
-      const salt = window.crypto.getRandomValues(new Uint8Array(16));
-      const masterKey = await cryptoService.deriveMasterKey(newPassword, salt);
-      const vaultKey = await cryptoService.generateVaultKey();
-      const rawVaultKey = await window.crypto.subtle.exportKey('raw', vaultKey);
-      const encryptedVault = await cryptoService.encrypt(new Uint8Array(rawVaultKey), masterKey);
-
-      // Save new credentials
-      localStorage.setItem('crytotool_salt', cryptoService.arrayBufferToBase64(salt));
-      localStorage.setItem('crytotool_iv', cryptoService.arrayBufferToBase64(encryptedVault.iv));
-      localStorage.setItem('crytotool_vault_blob', cryptoService.arrayBufferToBase64(encryptedVault.ciphertext));
-
-      cryptoService.setVaultKey(vaultKey);
-
-      return { success: true };
-    } catch (e) {
-      return { success: false, error: 'Eroare la resetare' };
-    }
-  };
-
-  const [failedAttempts, setFailedAttempts] = useState(0);
-  const [lockUntil, setLockUntil] = useState<number | null>(null);
-
-  // Auto-destruct on inactivity is implemented as part of the activity timer below.
-  // We intentionally avoid persisting any activity logs; this check relies on in-memory
-  // timestamps to determine inactivity.
-  useEffect(() => {
-    // no-op: we keep this hook for parity, actual destruction is handled in the main timer
-  }, [autoDestructEnabled, autoDestructInactivity, isSetupRequired]);
-
   const performWipe = async () => {
     try {
-        await db.clearDatabase();
-        localStorage.clear();
-        sessionStorage.clear();
-        cryptoService.clearKeys();
-        window.location.reload();
+      await db.clearDatabase();
+      localStorage.clear();
+      sessionStorage.clear();
+      cryptoService.clearKeys();
+      window.location.reload();
     } catch (e) {
-        localStorage.clear();
-        window.location.reload();
+      localStorage.clear();
+      window.location.reload();
     }
   };
 
-  const handleUnlock = (vaultKey: CryptoKey) => {
+  const handleUnlock = () => {
     setIsAuthenticated(true);
     setIsSetupRequired(false);
     setIsBlurred(false);
@@ -321,7 +243,7 @@ const App: React.FC = () => {
   const handleFailedAttempt = () => {
     const newCount = failedAttempts + 1;
     setFailedAttempts(newCount);
-    
+
     if (autoDestructEnabled && autoDestructAttempts > 0) {
       if (newCount >= autoDestructAttempts) {
         if (!destructTriggerTime) {
@@ -340,12 +262,10 @@ const App: React.FC = () => {
   };
 
   const handleLock = () => {
-    if (isAuthenticated) {
-        // Do not persist last login timestamp
-    }
     setIsAuthenticated(false);
     setIsBlurred(false);
     cryptoService.clearKeys();
+    mvkBytesRef.current = null;
   };
 
   useEffect(() => {
@@ -384,6 +304,95 @@ const App: React.FC = () => {
     };
   }, [isAuthenticated, isBlurred, autoBlurSeconds, autoLockSeconds, autoDestructInactivity, autoDestructEnabled]);
 
+  const resetMasterPasswordWithRecovery = async (code: string, newPassword: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const idx = parseCodeIndex(code);
+      if (!idx) return { success: false, error: 'Format cod invalid' };
+
+      const wrappersRaw = localStorage.getItem('crytotool_vault_wrappers');
+      const metadataRaw = localStorage.getItem('crytotool_crypto_metadata');
+      if (!wrappersRaw || !metadataRaw) return { success: false, error: 'Date lipsă' };
+
+      const wrappers: VaultWrappers = JSON.parse(wrappersRaw);
+      const meta: CryptoMetadata = JSON.parse(metadataRaw);
+
+      const recoveryWrapper = wrappers.recovery[idx];
+      if (!recoveryWrapper) return { success: false, error: 'Cod de recuperare deja folosit sau invalid' };
+
+      const saltIdx = parseInt(idx, 10) - 1;
+      if (saltIdx < 0 || saltIdx >= meta.recovery_salts.length) return { success: false, error: 'Salt lipsă' };
+
+      const recoverySalt = base64ToBytes(meta.recovery_salts[saltIdx]);
+      const recoveryKey = await deriveKey(code, recoverySalt, { iterations: 3, memorySize: 65536, parallelism: 1 });
+
+      let mvkBytes: Uint8Array;
+      try {
+        mvkBytes = await unwrapRawKey(recoveryWrapper, recoveryKey);
+      } catch {
+        return { success: false, error: 'Cod de recuperare invalid' };
+      }
+
+      const newMasterSalt = window.crypto.getRandomValues(new Uint8Array(16));
+      const newMasterKey = await deriveKey(newPassword, newMasterSalt, { iterations: 19, memorySize: 131072, parallelism: 4 });
+      const newMasterWrapper = await wrapRawKey(mvkBytes, newMasterKey);
+
+      delete wrappers.recovery[idx];
+      meta.master_salt = bytesToBase64(newMasterSalt);
+      wrappers.master = newMasterWrapper;
+
+      localStorage.setItem('crytotool_crypto_metadata', JSON.stringify(meta));
+      localStorage.setItem('crytotool_vault_wrappers', JSON.stringify(wrappers));
+
+      const mvk = await window.crypto.subtle.importKey(
+        'raw',
+        mvkBytes as unknown as BufferSource,
+        { name: 'AES-GCM' },
+        true,
+        ['encrypt', 'decrypt']
+      );
+      cryptoService.setVaultKey(mvk);
+      mvkBytesRef.current = mvkBytes;
+      syncRecoveryCount();
+
+      return { success: true };
+    } catch (e) {
+      return { success: false, error: 'Eroare la resetare' };
+    }
+  };
+
+  const generateNewRecoveryCodes = async () => {
+    if (!mvkBytesRef.current) return;
+    const mvkBytes = mvkBytesRef.current;
+
+    const codes = generateRecoveryCodes();
+    const salts: string[] = [];
+    const recoveryWrappers: Record<string, { ciphertext: string; iv: string }> = {};
+
+    for (let i = 0; i < codes.length; i++) {
+      const salt = window.crypto.getRandomValues(new Uint8Array(16));
+      salts.push(bytesToBase64(salt));
+      const key = await deriveKey(codes[i], salt, { iterations: 3, memorySize: 65536, parallelism: 1 });
+      const paddedIdx = String(i + 1).padStart(2, '0');
+      recoveryWrappers[paddedIdx] = await wrapRawKey(mvkBytes, key);
+    }
+
+    const metaRaw = localStorage.getItem('crytotool_crypto_metadata');
+    if (!metaRaw) return;
+    const meta: CryptoMetadata = JSON.parse(metaRaw);
+    meta.recovery_salts = salts;
+    localStorage.setItem('crytotool_crypto_metadata', JSON.stringify(meta));
+
+    const wrappersRaw = localStorage.getItem('crytotool_vault_wrappers');
+    if (!wrappersRaw) return;
+    const wrappers: VaultWrappers = JSON.parse(wrappersRaw);
+    wrappers.recovery = recoveryWrappers;
+    localStorage.setItem('crytotool_vault_wrappers', JSON.stringify(wrappers));
+
+    setNewlyGeneratedCodes(codes);
+    downloadCodes(codes);
+    syncRecoveryCount();
+  };
+
   return (
     <I18nProvider>
     <div className="w-full min-h-screen bg-background text-primary font-sans selection:bg-neon-green selection:text-black relative">
@@ -392,51 +401,55 @@ const App: React.FC = () => {
           <SplashScreen key="splash" onComplete={() => setShowSplash(false)} />
         ) : !isAuthenticated ? (
           <motion.div key="auth" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <AuthScreen 
-              onUnlock={handleUnlock} 
-              isSetup={isSetupRequired} 
+            <AuthScreen
+              onUnlock={handleUnlock}
+              isSetup={isSetupRequired}
               lockUntil={lockUntil}
               onFailedAttempt={handleFailedAttempt}
               recoverySettings={{
-                verify: verifyRecoveryCode,
-                consume: consumeRecoveryCode,
-                codes: recoveryCodes
+                count: recoveryWrappersCount
               }}
               onResetWithRecovery={resetMasterPasswordWithRecovery}
+              onStoreMvkBytes={(bytes) => { mvkBytesRef.current = bytes; }}
               destructCountdown={destructCountdown}
+              onNewCodes={(codes) => {
+                setNewlyGeneratedCodes(codes);
+                downloadCodes(codes);
+                syncRecoveryCount();
+              }}
             />
           </motion.div>
         ) : (
            <motion.div key="dashboard" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="relative h-full">
-              <Dashboard 
+              <Dashboard
                 settingsLock={{
                   password: settingsPassword,
                   setPassword: updateSettingsPassword
                 }}
                 recoverySettings={{
-                  codes: recoveryCodes,
-                  regenerate: regenerateRecoveryCodes,
-                  verify: verifyRecoveryCode,
-                  consume: consumeRecoveryCode
+                  codes: newlyGeneratedCodes,
+                  count: recoveryWrappersCount,
+                  regenerate: generateNewRecoveryCodes,
+                  dismissCodes: () => setNewlyGeneratedCodes(null)
                 }}
                 vaultSettings={{
                   enabled: vaultEnabled,
                   pin: vaultPin,
                   update: updateVaultSettings
                 }}
-               autoBlurSettings={{ 
-                 value: autoBlurSeconds, 
-                 setValue: (v) => { 
-                   setAutoBlurSeconds(v); 
-                   localStorage.setItem('crytotool_blur_time', v.toString()); 
-                 } 
+               autoBlurSettings={{
+                 value: autoBlurSeconds,
+                 setValue: (v) => {
+                   setAutoBlurSeconds(v);
+                   localStorage.setItem('crytotool_blur_time', v.toString());
+                 }
                }}
-               autoLockSettings={{ 
-                 value: autoLockSeconds, 
-                 setValue: (v) => { 
-                   setAutoLockSeconds(v); 
-                   localStorage.setItem('crytotool_lock_time', v.toString()); 
-                 } 
+               autoLockSettings={{
+                 value: autoLockSeconds,
+                 setValue: (v) => {
+                   setAutoLockSeconds(v);
+                   localStorage.setItem('crytotool_lock_time', v.toString());
+                 }
                }}
                progressiveLockSettings={{
                  lockTime: progressiveLockSeconds,
@@ -474,10 +487,10 @@ const App: React.FC = () => {
                 }}
                 destructCountdown={destructCountdown}
               />
-             
+
               <AnimatePresence>
                 {isBlurred && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
                     animate={{ opacity: 1, backdropFilter: "blur(40px)" }}
                     exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
