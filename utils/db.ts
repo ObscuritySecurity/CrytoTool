@@ -222,20 +222,46 @@ class VaultDB {
       const store = transaction.objectStore(STORE_NAME);
 
       for (const item of items) {
-          let blob = undefined;
-          if (item.fileDataBase64) {
-              const byteCharacters = atob(item.fileDataBase64);
-              const byteNumbers = new Array(byteCharacters.length);
-              for (let i = 0; i < byteCharacters.length; i++) {
-                  byteNumbers[i] = byteCharacters.charCodeAt(i);
+          try {
+              if (typeof item.id !== 'string' || typeof item.name !== 'string') {
+                if (!item.id && !item.name) {
+                  console.warn('Skipping invalid item during import (missing id/name):', item.id);
+                  continue;
+                }
               }
-              const byteArray = new Uint8Array(byteNumbers);
-              blob = new Blob([byteArray]);
+              const validTypes = ['file', 'folder', 'note', 'encrypted'];
+              if (item.type && !validTypes.includes(item.type)) {
+                console.warn('Skipping item with invalid type during import:', item.id, item.type);
+                continue;
+              }
+              if (item.fileDataBase64 !== undefined && typeof item.fileDataBase64 !== 'string') {
+                console.warn('Skipping item with invalid fileDataBase64 during import:', item.id);
+                continue;
+              }
+              if (item.encryptedMeta !== undefined) {
+                if (typeof item.encryptedMeta !== 'object' || item.encryptedMeta === null || typeof (item.encryptedMeta as any).iv !== 'string' || typeof (item.encryptedMeta as any).ciphertext !== 'string') {
+                  console.warn('Skipping item with invalid encryptedMeta during import:', item.id);
+                  continue;
+                }
+              }
+
+              let blob = undefined;
+              if (item.fileDataBase64) {
+                  const byteCharacters = atob(item.fileDataBase64);
+                  const byteNumbers = new Array(byteCharacters.length);
+                  for (let i = 0; i < byteCharacters.length; i++) {
+                      byteNumbers[i] = byteCharacters.charCodeAt(i);
+                  }
+                  const byteArray = new Uint8Array(byteNumbers);
+                  blob = new Blob([byteArray]);
+              }
+              
+              const { fileDataBase64, ...rest } = item;
+              const dbItem: DBItem = { ...rest, fileData: blob };
+              store.add(dbItem);
+          } catch (e) {
+              console.warn('Skipping item due to validation error during import:', item.id, e);
           }
-          
-          const { fileDataBase64, ...rest } = item;
-          const dbItem: DBItem = { ...rest, fileData: blob };
-          store.add(dbItem);
       }
       
       return new Promise((resolve, reject) => {

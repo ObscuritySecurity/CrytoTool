@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Delete, Lock, ShieldAlert, CheckCircle, X } from 'lucide-react';
-import { validatePin, getBackoffTime, verifyPin } from '../utils/security';
+import { validatePin, getBackoffTime, verifyPin, timingSafeEqual } from '../utils/security';
 import { useI18n } from '../locales/i18nContext';
 
 interface PinModalProps {
@@ -101,7 +101,7 @@ export const PinModal: React.FC<PinModalProps> = ({ mode, onSuccess, onClose, sa
           }
           setPin('');
         }
-      } else if (pin === savedPin) {
+      } else if (timingSafeEqual(pin, savedPin || '')) {
         onSuccess(pin);
       } else {
         const newFail = failedAttempts + 1;

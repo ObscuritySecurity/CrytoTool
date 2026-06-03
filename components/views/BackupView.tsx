@@ -94,8 +94,22 @@ export const BackupView: React.FC<BackupViewProps> = ({ onBack, theme }) => {
 
           if (!data.db || !data.localStorage) throw new Error("Format invalid");
 
+          const allowedKeys = new Set([
+            'crytotool_salt', 'crytotool_iv', 'crytotool_vault_blob',
+            'crytotool_crypto_metadata', 'crytotool_vault_wrappers',
+            'crytotool_vault_pin_hash', 'crytotool_vault_enabled',
+            'crytotool_ad_enabled', 'crytotool_ad_attempts', 'crytotool_ad_inactivity', 'crytotool_ad_countdown',
+            'crytotool_blur_time', 'crytotool_lock_time',
+            'crytotool_prog_lock_time', 'crytotool_prog_attempts',
+            'crytotool_destruct_time',
+            'theme_accent', 'app_theme_config', 'app_font_config', 'app_language', 'app_region',
+          ]);
           Object.entries(data.localStorage).forEach(([k, v]) => {
-              if (v) localStorage.setItem(k, v as string);
+              if (v && allowedKeys.has(k)) {
+                localStorage.setItem(k, v as string);
+              } else if (v && !allowedKeys.has(k)) {
+                console.warn('Skipping disallowed localStorage key during restore:', k);
+              }
           });
 
           await db.importDatabase(data.db);

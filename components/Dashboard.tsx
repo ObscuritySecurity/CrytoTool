@@ -16,6 +16,7 @@ import { FullPlayer } from './FullPlayer';
 
 // Import Shared Components
 import { FileItem } from './FileItem';
+import { timingSafeEqual } from '../utils/security';
 import { CustomizeModal } from './CustomizeModal';
 import { FileActionMenu } from './FileActionMenu';
 import { TopActions } from './TopActions';
@@ -297,7 +298,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const handleSettingsUnlock = (e: React.FormEvent) => {
     e.preventDefault();
-    if (settingsUnlockInput === settingsLock.password) {
+    if (timingSafeEqual(settingsUnlockInput, settingsLock.password || '')) {
       setShowSettingsUnlock(false);
       setCurrentView('settings');
     } else {
@@ -1040,11 +1041,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           {/* Mini Player UI */}
                            <div className="glass-card rounded-full p-3 pr-4 flex items-center gap-3 relative overflow-hidden group">
                             <div className="w-14 h-14 rounded-full bg-black border border-border flex items-center justify-center shrink-0 overflow-hidden relative z-10">
-                               {currentPlayingItem.customIcon || currentPlayingItem.coverUrl ? (
-                                   <img src={currentPlayingItem.customIcon || currentPlayingItem.coverUrl} className={`w-full h-full object-cover ${isPlaying ? 'animate-[spin_4s_linear_infinite]' : ''}`} />
-                               ) : (
-                                   <Music size={18} className="text-muted" />
-                               )}
+                               {(() => {
+                                  const src = currentPlayingItem.customIcon || currentPlayingItem.coverUrl;
+                                  return src && !src.startsWith('data:image/svg');
+                                })() ? (
+                                    <img src={currentPlayingItem.customIcon || currentPlayingItem.coverUrl} className={`w-full h-full object-cover ${isPlaying ? 'animate-[spin_4s_linear_infinite]' : ''}`} />
+                                ) : (
+                                    <Music size={18} className="text-muted" />
+                                )}
                             </div>
                             <div className="flex-1 min-w-0 flex flex-col justify-center z-10">
                                <h4 className="text-sm font-bold text-primary truncate">{currentPlayingItem.name}</h4>

@@ -74,7 +74,7 @@ export const FileItem: React.FC<{
      const iconStr = item.customIcon || '';
 
      // 1. Image URL
-     if (iconStr.startsWith('data:') || iconStr.startsWith('http') || iconStr.startsWith('blob:')) {
+      if ((iconStr.startsWith('data:') && !iconStr.startsWith('data:image/svg')) || iconStr.startsWith('http') || iconStr.startsWith('blob:')) {
          RenderedIcon = <img src={iconStr} className="w-full h-full object-cover" />;
          iconBgClass = "border border-border bg-surface p-0 overflow-hidden";
      } 

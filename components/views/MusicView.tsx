@@ -76,7 +76,10 @@ export const MusicView: React.FC<MusicViewProps> = ({ items, onPlay, currentSong
                   className="min-w-[140px] flex flex-col gap-3 group cursor-pointer"
                 >
                   <div className="w-[140px] h-[140px] rounded-2xl overflow-hidden relative shadow-lg">
-                    {item.customIcon || item.coverUrl ? (
+                    {(() => {
+                      const src = (item as any).decryptedCustomIcon || (item as any).decryptedCoverUrl || item.customIcon || item.coverUrl;
+                      return src && !src.startsWith('data:image/svg');
+                    })() ? (
                       <img src={(item as any).decryptedCustomIcon || (item as any).decryptedCoverUrl || item.customIcon || item.coverUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : (
                       <div className="w-full h-full bg-zinc-900 flex items-center justify-center border border-zinc-800">
@@ -130,7 +133,10 @@ export const MusicView: React.FC<MusicViewProps> = ({ items, onPlay, currentSong
                 >
                   {/* Thumbnail */}
                   <div className="w-12 h-12 rounded-lg bg-zinc-900 flex items-center justify-center shrink-0 overflow-hidden relative shadow-sm">
-                    {(item as any).decryptedCustomIcon || (item as any).decryptedCoverUrl || item.customIcon || item.coverUrl ? (
+                    {(() => {
+                      const src = (item as any).decryptedCustomIcon || (item as any).decryptedCoverUrl || item.customIcon || item.coverUrl;
+                      return src && !src.startsWith('data:image/svg');
+                    })() ? (
                         <>
                           <img src={(item as any).decryptedCustomIcon || (item as any).decryptedCoverUrl || item.customIcon || item.coverUrl} className={`w-full h-full object-cover transition-opacity ${isCurrent && isPlaying ? 'opacity-40' : 'opacity-100'}`} alt="Art" />
                           {isCurrent && isPlaying && (

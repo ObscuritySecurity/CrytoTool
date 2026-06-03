@@ -68,7 +68,7 @@ async function derivePinHashLegacy(pin: string, salt: Uint8Array): Promise<strin
   return bytesToHex(new Uint8Array(hashBuffer));
 }
 
-function timingSafeEqual(a: string, b: string): boolean {
+export function timingSafeEqual(a: string, b: string): boolean {
   const aBytes = new TextEncoder().encode(a);
   const bBytes = new TextEncoder().encode(b);
   const maxLen = Math.max(aBytes.length, bBytes.length);

@@ -79,10 +79,16 @@ export function generateRecoveryCodes(): string[] {
     const idx = String(i + 1).padStart(2, '0');
     const randomValues = new Uint8Array(12);
     window.crypto.getRandomValues(randomValues);
+    const alphabetLength = chars.length;
+    const maxUnbiased = Math.floor(256 / alphabetLength) * alphabetLength;
     let body = '';
-    for (let j = 0; j < 12; j++) {
-      body += chars[randomValues[j] % chars.length];
-      if ((j + 1) % 4 === 0 && j !== 11) body += '-';
+    let pos = 0;
+    while (body.length < 12) {
+      const val = randomValues[pos++];
+      if (val < maxUnbiased) {
+        body += chars[val % alphabetLength];
+        if ((body.length + 1) % 4 === 0 && body.length < 12) body += '-';
+      }
     }
     codes.push(`CRYTO-${idx}-${body}`);
   }

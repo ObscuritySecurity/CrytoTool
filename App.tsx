@@ -149,12 +149,10 @@ const App: React.FC = () => {
     if (!isAuthenticated || !autoDestructEnabled || autoDestructInactivity === 0) return;
     const lastActivityKey = 'crytotool_last_activity';
     const handleActivity = () => {
-      localStorage.setItem(lastActivityKey, Date.now().toString());
       lastActivityRef.current = Date.now();
       if (isBlurred) setIsBlurred(false);
     };
     if (!localStorage.getItem(lastActivityKey)) {
-      localStorage.setItem(lastActivityKey, Date.now().toString());
       lastActivityRef.current = Date.now();
     } else {
       lastActivityRef.current = parseInt(localStorage.getItem(lastActivityKey)!, 10);
@@ -265,6 +263,9 @@ const App: React.FC = () => {
     setIsAuthenticated(false);
     setIsBlurred(false);
     cryptoService.clearKeys();
+    if (mvkBytesRef.current) {
+      mvkBytesRef.current.fill(0);
+    }
     mvkBytesRef.current = null;
   };
 
@@ -323,7 +324,7 @@ const App: React.FC = () => {
       if (saltIdx < 0 || saltIdx >= meta.recovery_salts.length) return { success: false, error: 'Salt lipsă' };
 
       const recoverySalt = base64ToBytes(meta.recovery_salts[saltIdx]);
-      const recoveryKey = await deriveKey(code, recoverySalt, { iterations: 3, memorySize: 65536, parallelism: 1 });
+      const recoveryKey = await deriveKey(code, recoverySalt, { iterations: 10, memorySize: 131072, parallelism: 4 });
 
       let mvkBytes: Uint8Array;
       try {
@@ -371,7 +372,7 @@ const App: React.FC = () => {
     for (let i = 0; i < codes.length; i++) {
       const salt = window.crypto.getRandomValues(new Uint8Array(16));
       salts.push(bytesToBase64(salt));
-      const key = await deriveKey(codes[i], salt, { iterations: 3, memorySize: 65536, parallelism: 1 });
+      const key = await deriveKey(codes[i], salt, { iterations: 10, memorySize: 131072, parallelism: 4 });
       const paddedIdx = String(i + 1).padStart(2, '0');
       recoveryWrappers[paddedIdx] = await wrapRawKey(mvkBytes, key);
     }
