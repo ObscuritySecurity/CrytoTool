@@ -8,25 +8,35 @@ import { cryptoService } from './utils/crypto';
 import { db } from './utils/db';
 import { I18nProvider } from './locales/i18nContext';
 import { hashPin } from './utils/security';
+import { argon2id } from 'hash-wasm';
+
 const RECOVERY_WRAP_PEPPER = 'CrytoTool_Recovery_Wrap_v2.5';
-const RECOVERY_ITERATIONS = 600000;
 
 async function deriveWrapKey(code: string, salt: Uint8Array): Promise<CryptoKey> {
-  const combined = new TextEncoder().encode(code.replace(/-/g, '').toUpperCase() + RECOVERY_WRAP_PEPPER);
-  const keyMaterial = await window.crypto.subtle.importKey('raw', combined, 'PBKDF2', false, ['deriveKey']);
-  return window.crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt, iterations: RECOVERY_ITERATIONS, hash: 'SHA-256' },
-    keyMaterial,
-    { name: 'AES-GCM', length: 256 },
-    false,
-    ['encrypt', 'decrypt']
-  );
+  const password = code.replace(/-/g, '').toUpperCase() + RECOVERY_WRAP_PEPPER;
+  const key = await argon2id({
+    password,
+    salt,
+    iterations: 19,
+    memorySize: 131072,
+    parallelism: 4,
+    hashLength: 32,
+    outputType: 'binary',
+  }) as Uint8Array;
+  return window.crypto.subtle.importKey('raw', key as BufferSource, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
 }
 
 async function hashWithSalt(code: string, salt: Uint8Array): Promise<string> {
-  const combined = new Uint8Array([...salt, ...new TextEncoder().encode(code)]);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', combined);
-  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+  const hash = await argon2id({
+    password: code,
+    salt,
+    iterations: 19,
+    memorySize: 131072,
+    parallelism: 4,
+    hashLength: 32,
+    outputType: 'binary',
+  }) as Uint8Array;
+  return Array.from(hash).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 const App: React.FC = () => {
