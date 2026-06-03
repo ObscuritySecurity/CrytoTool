@@ -22,9 +22,15 @@ jobs:
             flag { print }
           ' docs/CHANGELOG.md > release_body.md
 
-      - uses: softprops/action-gh-release@v3
-        with:
-          body_path: release_body.md
-          make_latest: ${{ !contains(github.ref_name, 'beta') && !contains(github.ref_name, 'alpha') && !contains(github.ref_name, 'rc') }}
-          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') || contains(github.ref_name, 'rc') }}
-          overwrite_files: true
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          IS_PRERELEASE="${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') || contains(github.ref_name, 'rc') }}"
+          IS_LATEST="${{ !contains(github.ref_name, 'beta') && !contains(github.ref_name, 'alpha') && !contains(github.ref_name, 'rc') }}"
+          if [ "$IS_LATEST" = "true" ]; then LATEST_FLAG="--latest"; else LATEST_FLAG="--verify-tag"; fi
+          if [ "$IS_PRERELEASE" = "true" ]; then PRERELEASE_FLAG="--prerelease"; else PRERELEASE_FLAG=""; fi
+          gh release create "${{ github.ref_name }}" \
+            --title "${{ github.ref_name }}" \
+            --notes-file release_body.md \
+            $PRERELEASE_FLAG $LATEST_FLAG
