@@ -96,9 +96,9 @@ For full technical details, consult the [Technical Architecture](https://github.
 -   **Trash:** Delete and restore files and folders
 
 **Multiple Models**
--   **Gallery:** View photos and videos, favorites, albums *(photo/video editor coming soon)*
+-   **Gallery:** View photos and videos, favorites, albums
 -   **Music:** Listen to songs, browse albums, artists, playlists
--   **Documents:** View standard document formats *(document editor and viewer coming soon)*
+-   **Documents:** View standard document formats
 -   **Vault:** Store encryption keys, categorized for easy access
 -   **Encrypted Backup:** Backup or restore the entire application from `.enc` file
 -   **Settings:** Customize all preferences and security options
