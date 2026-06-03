@@ -126,7 +126,7 @@ export const TopActions: React.FC<TopActionsProps> = ({
           </button>
         </div>
 
-        <p className="text-xs text-muted font-medium pt-1 opacity-80">{t('browseAndManage')}</p>
+        <p className="text-xs text-muted font-medium pt-1 opacity-80">Browse and manage your files and folders.</p>
       </div>
     </header>
   );

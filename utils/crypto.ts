@@ -47,11 +47,6 @@ class EncryptionService {
     this.vaultKey = key;
   }
 
-  getVaultKey(): CryptoKey {
-    if (!this.vaultKey) throw new Error('Vault key not initialized');
-    return this.vaultKey;
-  }
-
   clearKeys() {
     this.vaultKey = null;
   }

@@ -4,8 +4,8 @@
 ```bash
 npm run dev      # Start dev server
 npm run build    # TypeScript check + Vite build
-npm run tauri dev    # Start Tauri desktop dev server
-npm run tauri build  # Build Tauri app (desktop + mobile)
+npm run tauri    # Build Tauri desktop app
+npm run tauri    # Build Tauri app (desktop + mobile)
 ```
 
 ## Architecture

@@ -35,7 +35,7 @@ CrytoTool is a four-in-one, client-side encrypted file manager, gallery, music p
 
 - **Master Key Derivation:** Argon2id (128MB memory, 19 iterations, 4 parallelism) via hash-wasm
 - **Passphrase KDF:** Argon2id (128MB memory, 19 iterations) for manual file encryption
-- **Backup KDF:** Argon2id (19 iterations, 128MB memory)
+- **Backup KDF:** Argon2id + AES-256-GCM with 600,000 PBKDF2-SHA256 iterations
 - **Streaming KDF:** Argon2id (128MB memory, 19 iterations)
 - **AES-CTR Key Derivation:** WebCrypto native HKDF-SHA256
 - **Streaming Nonces:** HMAC-SHA256-based per-chunk derivation (prevents collision)
@@ -82,7 +82,7 @@ CrytoTool is a four-in-one, client-side encrypted file manager, gallery, music p
 - **Mobile:** Android (APK), iOS (IPA) — via Tauri v2
 - **Web:** Any browser with Web Crypto API support — via Vite
 
-### Stack
+### stack 
 
 - **Frontend:** React 18 + TypeScript + Vite + Tailwind CSS
 - **Desktop:** Tauri 2 (Rust + WebView)

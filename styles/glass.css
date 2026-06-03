@@ -442,7 +442,7 @@
 
 .glass-brightness-110 {
   backdrop-filter: brightness(110%);
-  -webkit-backdrop-filter: brightness(110%);
+  -webkit-backdrop-filter: brightness(110px);
 }
 
 .glass-bg-opacity-5 {

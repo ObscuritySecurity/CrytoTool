@@ -65,11 +65,9 @@ CrytoTool/
 │   ├── backupCrypto.ts       # Backup encryption
 │   ├── db.ts                 # IndexedDB wrapper
 │   ├── vaultStorage.ts       # Encrypted key storage
-│   └── security.ts           # PIN, lockout
-│
-├── locales/         # Internationalization (51 languages)
-│   ├── index.ts              # Language loader
-│   └── i18nContext.tsx       # React i18n context
+│   ├── security.ts           # PIN, lockout
+│   ├── i18n.ts               # 50+ languages
+│   └── themes.ts             # Theme configurations
 │
 ├── components/      # React UI
 │   ├── App.tsx               # Main app state
@@ -83,10 +81,7 @@ CrytoTool/
 │       ├── BackupView.tsx
 │       └── SettingsView.tsx
 │
-├── styles/          # Styles and themes
-│   ├── themes.ts             # 100 theme configurations
-│   ├── fonts.ts              # 40+ font configurations
-│   ├── fonts-imports.ts      # Font face imports
+├── styles/          # CSS
 │   └── glass.css             # Glassmorphism system
 │
 └── src-tauri/      # Tauri desktop (Rust)
@@ -96,8 +91,8 @@ CrytoTool/
 ```bash
 npm run dev          # Start Vite dev server
 npm run build        # TypeScript check + Vite build
-npm run tauri dev    # Start Tauri desktop dev server
-npm run tauri build  # Build Tauri app (desktop + mobile)
+npm run tauri       # Build Tauri desktop app
+npm run tauri       # Also builds Tauri mobile (Android/iOS) when configured
 ```
 
 ### Code Style
@@ -118,7 +113,7 @@ npm run tauri build  # Build Tauri app (desktop + mobile)
    - New modals → `components/FeatureModal.tsx`
    - New crypto → add to `utils/crypto.ts` or `utils/cryptoPrimitives.ts`
 
-3. **Update i18n** - Add English source strings in `locales/` (other languages are translated by the community)
+3. **Update i18n** - Add English source strings in `utils/i18n.ts` (other languages are translated by the community)
 
 4. **Test build**
    ```bash
@@ -144,7 +139,7 @@ npm run build
 
 ### Desktop (Tauri)
 ```bash
-npm run tauri build
+npm run tauri
 # Output: src-tauri/target/release/
 ```
 
@@ -223,7 +218,7 @@ const version = import.meta.env.VITE_APP_VERSION;
 ## Working with Translations
 
 ### Adding a New Language
-1. Open `locales/`
+1. Open `utils/i18n.ts`
 2. Add language code to `SupportedLocale` type
 3. Add translation object following `Translation` interface
 4. Test with `App.tsx` locale state
@@ -271,7 +266,7 @@ const version = import.meta.env.VITE_APP_VERSION;
 | Start dev server | `npm run dev` |
 | Check types | `npx tsc --noEmit` |
 | Build for web | `npm run build` |
-| Build desktop | `npm run tauri build` |
+| Build desktop | `npm run tauri` |
 | Build mobile Android | `npm run tauri android build` |
 | Build mobile iOS | `npm run tauri ios build` |
 

@@ -9,7 +9,7 @@
   <br>
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white" alt="TypeScript" /></a> <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB" alt="React" /></a> <a href="https://vitejs.dev/"><img src="https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white" alt="Vite" /></a> <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" /></a> <a href="https://tauri.app/"><img src="https://img.shields.io/badge/Tauri-24C8D8?style=flat&logo=tauri&logoColor=white" alt="Tauri" /></a>
   <br>
-  <a href="https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-38d.pdf"><img src="https://img.shields.io/badge/AES--256--GCM-FF6F00?style=flat&logo=letsencrypt&logoColor=white" alt="AES-256-GCM" /></a> <a href="https://github.com/P-H-C/phc-winner-argon2"><img src="https://img.shields.io/badge/Argon2id-9C27B0?style=flat&logo=password&logoColor=white" alt="Argon2id" /></a> <a href="https://github.com/ObscuritySecurity/CrytoTool/tree/main/locales"><img src="https://img.shields.io/badge/51_Languages-4CAF50?style=flat&logo=translate&logoColor=white" alt="51 Languages" /></a>
+  <a href="https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-38d.pdf"><img src="https://img.shields.io/badge/AES--256--GCM-FF6F00?style=flat&logo=letsencrypt&logoColor=white" alt="AES-256-GCM" /></a> <a href="https://github.com/P-H-C/phc-winner-argon2"><img src="https://img.shields.io/badge/Argon2id-9C27B0?style=flat&logo=password&logoColor=white" alt="Argon2id" /></a> <a href="https://github.com/ObscuritySecurity/CrytoTool/blob/main/utils/i18n.ts"><img src="https://img.shields.io/badge/51_Languages-4CAF50?style=flat&logo=translate&logoColor=white" alt="51 Languages" /></a>
   </p>
 </div>  
 
@@ -86,6 +86,7 @@ For full technical details, consult the [Technical Architecture](https://github.
 
 **Recovery**
 -   **10 Recovery Codes:** Generate 10 unique, single-use codes for emergency vault access
+-   
 -   **Encrypted Backups:** Create fully encrypted backups of all your data.
 
 **File Management**
@@ -127,6 +128,8 @@ Explore these guides to understand our project's principles, technical design, a
 -   [Development Guide](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/DEVELOPMENT.md) Setup, workflows, and coding standards for developers.
 -   [Release Guide](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/RELEASE.md) How to create releases for web, desktop, and mobile.
 -   [Changelog](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/CHANGELOG.md) History of versions and changes.
+
+
 
 ### Contributors
 
