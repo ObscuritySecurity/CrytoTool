@@ -2,6 +2,7 @@
 import { argon2id } from 'hash-wasm';
 import { cryptoService } from './crypto';
 import { getArgonParams } from './platform';
+import { deriveKey, bytesToBase64, base64ToBytes } from './keyWrapping';
 
 // Security baseline helpers
 // - The following common PINs should be deprecated and avoided in production.
@@ -82,67 +83,110 @@ export function timingSafeEqual(a: string, b: string): boolean {
 }
 
 /**
- * Hash PIN with Argon2id + random salt.
- * Format: "a2:saltHex:hashHex" encrypted with Vault Key.
- * Uses same Argon2id parameters as the rest of the app.
+ * Hash PIN with PIN Key — completely independent of Vault Key.
+ * PIN ──Argon2id(2 iter, 32MB)──> PIN Key ──AES-GCM──> encrypted verifier
+ * No MVK dependency. PIN can be verified even when vault is locked.
  */
 export async function hashPin(pin: string): Promise<string> {
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const hashHex = await derivePinHashArgon2id(pin, salt);
-  const saltHex = bytesToHex(salt);
-  const combined = `a2:${saltHex}:${hashHex}`;
+  const pinSalt = window.crypto.getRandomValues(new Uint8Array(16));
+  const pinKey = await deriveKey(pin, pinSalt, 'pin');
 
-  try {
-    const encrypted = await cryptoService.encryptString(combined);
-    return JSON.stringify({ iv: encrypted.iv, data: encrypted.ciphertext });
-  } catch {
-    throw new Error('Vault not initialized. Cannot store PIN securely.');
-  }
+  const nonce = window.crypto.getRandomValues(new Uint8Array(12));
+  const encoder = new TextEncoder();
+  const plaintext = encoder.encode('CrytoTool PIN v2');
+
+  const ciphertext = await window.crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv: nonce as BufferSource },
+    pinKey,
+    plaintext as BufferSource
+  );
+
+  return JSON.stringify({
+    pinSalt: bytesToBase64(pinSalt),
+    nonce: bytesToBase64(nonce),
+    encryptedHash: bytesToBase64(new Uint8Array(ciphertext)),
+  });
 }
 
 /**
  * Verify a PIN against stored value.
- * Supports both Argon2id (new, prefixed "a2:") and PBKDF2 (legacy) formats.
+ * Supports:
+ *   1. New PIN-independent format (pinSalt + nonce + encryptedHash)
+ *   2. Old MVK-dependent format ({ iv, data })
+ *   3. Legacy plaintext Argon2id (a2:salt:hash)
+ *   4. Legacy plaintext PBKDF2 (salt:hash)
  */
 export async function verifyPin(pin: string, storedValue: string): Promise<boolean> {
-  let storedCombined: string;
+  // --- 1. New format: PIN-independent (PIN Key) ---
+  try {
+    const parsed = JSON.parse(storedValue);
+    if (parsed.pinSalt && parsed.nonce && parsed.encryptedHash) {
+      const pinSalt = base64ToBytes(parsed.pinSalt);
+      const nonce = base64ToBytes(parsed.nonce);
+      const encryptedHash = base64ToBytes(parsed.encryptedHash);
 
+      const pinKey = await deriveKey(pin, pinSalt, 'pin');
+
+      try {
+        const decrypted = await window.crypto.subtle.decrypt(
+          { name: 'AES-GCM', iv: nonce as BufferSource },
+          pinKey,
+          encryptedHash as BufferSource
+        );
+        const decoder = new TextDecoder();
+        const plaintext = decoder.decode(decrypted);
+        return timingSafeEqual(plaintext, 'CrytoTool PIN v2');
+      } catch {
+        return false;
+      }
+    }
+  } catch {
+    // not JSON → continue to legacy
+  }
+
+  // --- 2. Old format: MVK-encrypted (needs vault unlocked) ---
   try {
     const parsed = JSON.parse(storedValue);
     if (parsed.iv && parsed.data) {
-      storedCombined = await cryptoService.decryptString(parsed.data, parsed.iv);
-    } else {
-      storedCombined = storedValue;
+      let storedCombined: string;
+      try {
+        storedCombined = await cryptoService.decryptString(parsed.data, parsed.iv);
+      } catch {
+        return false;
+      }
+      const parts = storedCombined.split(':');
+      if (parts[0] === 'a2' && parts.length === 3) {
+        const salt = hexToBytes(parts[1]);
+        const newHashHex = await derivePinHashArgon2id(pin, salt);
+        return timingSafeEqual(parts[2], newHashHex);
+      }
+      return false;
     }
   } catch {
-    storedCombined = storedValue;
+    // not JSON → continue
   }
 
-  const parts = storedCombined.split(':');
-  if (parts.length < 2) return false;
-
-  if (parts[0] === 'a2' && parts.length === 3) {
-    const [_, saltHex, storedHashHex] = parts;
-    let salt: Uint8Array;
+  // --- 3. Legacy plaintext Argon2id (a2:saltHex:hashHex) ---
+  const parts = storedValue.split(':');
+  if (parts.length >= 3 && parts[0] === 'a2') {
     try {
-      salt = hexToBytes(saltHex);
+      const salt = hexToBytes(parts[1]);
+      const newHashHex = await derivePinHashArgon2id(pin, salt);
+      return timingSafeEqual(parts[2], newHashHex);
     } catch {
       return false;
     }
-    const newHashHex = await derivePinHashArgon2id(pin, salt);
-    return timingSafeEqual(storedHashHex, newHashHex);
   }
 
+  // --- 4. Legacy plaintext PBKDF2 (saltHex:hashHex) ---
   if (parts.length === 2) {
-    const [saltHex, storedHashHex] = parts;
-    let salt: Uint8Array;
     try {
-      salt = hexToBytes(saltHex);
+      const salt = hexToBytes(parts[0]);
+      const newHashHex = await derivePinHashLegacy(pin, salt);
+      return timingSafeEqual(parts[1], newHashHex);
     } catch {
       return false;
     }
-    const newHashHex = await derivePinHashLegacy(pin, salt);
-    return timingSafeEqual(storedHashHex, newHashHex);
   }
 
   return false;
