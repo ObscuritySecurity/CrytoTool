@@ -20,7 +20,11 @@ export function isSafeImageUrl(url: string): boolean {
       return SAFE_DATA_IMG_PREFIXES.some(p => url.startsWith(p));
     }
     const parsed = new URL(url);
-    if (parsed.protocol === 'javascript:' || parsed.protocol === 'data:') return false;
+    if (
+      parsed.protocol === 'javascript:' ||
+      parsed.protocol === 'data:' ||
+      parsed.protocol === 'vbscript:'
+    ) return false;
     return SAFE_IMG_SCHEMES.includes(parsed.protocol);
   } catch {
     return false;
