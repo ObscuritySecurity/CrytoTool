@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Folder, FolderOpen, ArrowLeft, ArrowRight, Copy, Move, Check } from 'lucide-react';
 import { FileSystemItem } from '../types';
+import { isSafeImageUrl } from '../utils/sanitize';
 import { useI18n } from '../locales/i18nContext';
 import { db, DBItem } from '../utils/db';
 
@@ -182,7 +183,7 @@ export const CopyMoveModal: React.FC<CopyMoveModalProps> = ({
                     }}
                     className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all ${selectedFolderId === folder.id ? 'bg-neon-green/10 border-neon-green' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-600'}`}
                   >
-                    {folder.customIcon && folder.customIcon.startsWith('data:') ? (
+                    {folder.customIcon && isSafeImageUrl(folder.customIcon) ? (
                       <img src={folder.customIcon} className="w-8 h-8 rounded-lg object-cover" />
                     ) : (
                       <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">

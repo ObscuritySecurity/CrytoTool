@@ -3,6 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Music, Disc, User, ListMusic, Play, Pause, Shuffle, Heart, MoreHorizontal } from 'lucide-react';
 import { FileSystemItem, AppTheme } from '../../types';
+import { isSafeImageUrl } from '../../utils/sanitize';
 import { useI18n } from '../../locales/i18nContext';
 
 type MusicSubTab = 'songs' | 'albums' | 'artists' | 'playlists';
@@ -78,7 +79,7 @@ export const MusicView: React.FC<MusicViewProps> = ({ items, onPlay, currentSong
                   <div className="w-[140px] h-[140px] rounded-2xl overflow-hidden relative shadow-lg">
                     {(() => {
                       const src = (item as any).decryptedCustomIcon || (item as any).decryptedCoverUrl || item.customIcon || item.coverUrl;
-                      return src && !src.startsWith('data:image/svg');
+                      return src && isSafeImageUrl(src);
                     })() ? (
                       <img src={(item as any).decryptedCustomIcon || (item as any).decryptedCoverUrl || item.customIcon || item.coverUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : (
@@ -135,7 +136,7 @@ export const MusicView: React.FC<MusicViewProps> = ({ items, onPlay, currentSong
                   <div className="w-12 h-12 rounded-lg bg-zinc-900 flex items-center justify-center shrink-0 overflow-hidden relative shadow-sm">
                     {(() => {
                       const src = (item as any).decryptedCustomIcon || (item as any).decryptedCoverUrl || item.customIcon || item.coverUrl;
-                      return src && !src.startsWith('data:image/svg');
+                      return src && isSafeImageUrl(src);
                     })() ? (
                         <>
                           <img src={(item as any).decryptedCustomIcon || (item as any).decryptedCoverUrl || item.customIcon || item.coverUrl} className={`w-full h-full object-cover transition-opacity ${isCurrent && isPlaying ? 'opacity-40' : 'opacity-100'}`} alt="Art" />

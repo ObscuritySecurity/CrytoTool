@@ -7,6 +7,7 @@ import {
   MoreHorizontal, Eye, Archive, FolderInput, Move, Square
 } from 'lucide-react';
 import { FileSystemItem } from '../types';
+import { isSafeImageUrl } from '../utils/sanitize';
 import { useI18n } from '../locales/i18nContext';
 
 interface FileActionMenuProps {
@@ -105,8 +106,8 @@ export const FileActionMenu: React.FC<FileActionMenuProps> = ({ isOpen, onClose,
             <div className="px-5 pb-3">
                 <div className="flex items-center gap-3 p-3 rounded-2xl glass-card">
                     <div className="w-12 h-12 rounded-xl glass-card border border-border flex items-center justify-center shrink-0 overflow-hidden">
-                         {item.customIcon && item.customIcon.startsWith('data:') ? (
-                             <img src={item.customIcon} className="w-full h-full object-cover" />
+                     {item.customIcon && isSafeImageUrl(item.customIcon) ? (
+                              <img src={item.customIcon} className="w-full h-full object-cover" />
                          ) : (
                              <FolderOpen size={22} className="text-neon-green" />
                          )}

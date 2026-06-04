@@ -3,6 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown, SkipBack, SkipForward, Play, Pause, Music } from 'lucide-react';
 import { FileSystemItem } from '../types';
+import { isSafeImageUrl } from '../utils/sanitize';
 
 interface FullPlayerProps {
   currentPlayingItem: FileSystemItem | null;
@@ -56,7 +57,7 @@ export const FullPlayer: React.FC<FullPlayerProps> = ({
           }}
           className="w-64 h-64 rounded-full overflow-hidden shadow-2xl border-4 border-zinc-800 shrink-0"
         >
-          {currentPlayingItem.customIcon || currentPlayingItem.coverUrl ? (
+          {(currentPlayingItem.customIcon || currentPlayingItem.coverUrl) && isSafeImageUrl(currentPlayingItem.customIcon || currentPlayingItem.coverUrl || '') ? (
             <img
               src={
                 currentPlayingItem.customIcon || currentPlayingItem.coverUrl

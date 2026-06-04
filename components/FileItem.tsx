@@ -12,6 +12,7 @@ import * as TbIcons from 'react-icons/tb';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileSystemItem, AppTheme } from '../types';
+import { isSafeImageUrl } from '../utils/sanitize';
 
 // Map namespaces
 const ICON_PACKS: Record<string, any> = {
@@ -73,11 +74,11 @@ export const FileItem: React.FC<{
   if (hasCustomIcon) {
      const iconStr = item.customIcon || '';
 
-     // 1. Image URL
-      if ((iconStr.startsWith('data:') && !iconStr.startsWith('data:image/svg')) || iconStr.startsWith('http') || iconStr.startsWith('blob:')) {
-         RenderedIcon = <img src={iconStr} className="w-full h-full object-cover" />;
-         iconBgClass = "border border-border bg-surface p-0 overflow-hidden";
-     } 
+      // 1. Image URL (sanitized)
+       if (isSafeImageUrl(iconStr)) {
+          RenderedIcon = <img src={iconStr} className="w-full h-full object-cover" />;
+          iconBgClass = "border border-border bg-surface p-0 overflow-hidden";
+      } 
      // 2. Emoji
      else if (iconStr.startsWith('emoji:')) {
          const emojiChar = iconStr.replace('emoji:', '');

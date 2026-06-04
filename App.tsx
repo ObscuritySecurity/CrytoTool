@@ -111,7 +111,7 @@ const App: React.FC = () => {
   });
 
   const [newlyGeneratedCodes, setNewlyGeneratedCodes] = useState<string[] | null>(null);
-  const mvkBytesRef = useRef<Uint8Array | null>(null);
+  const masterKeyRef = useRef<CryptoKey | null>(null);
   const [recoveryWrappersCount, setRecoveryWrappersCount] = useState(() => {
     const raw = localStorage.getItem('crytotool_vault_wrappers');
     if (!raw) return 0;
@@ -263,10 +263,7 @@ const App: React.FC = () => {
     setIsAuthenticated(false);
     setIsBlurred(false);
     cryptoService.clearKeys();
-    if (mvkBytesRef.current) {
-      mvkBytesRef.current.fill(0);
-    }
-    mvkBytesRef.current = null;
+    masterKeyRef.current = null;
   };
 
   useEffect(() => {
@@ -348,11 +345,11 @@ const App: React.FC = () => {
         'raw',
         mvkBytes as unknown as BufferSource,
         { name: 'AES-GCM' },
-        true,
+        false,
         ['encrypt', 'decrypt']
       );
       cryptoService.setVaultKey(mvk);
-      mvkBytesRef.current = mvkBytes;
+      masterKeyRef.current = newMasterKey;
       syncRecoveryCount();
 
       return { success: true };
@@ -362,8 +359,21 @@ const App: React.FC = () => {
   };
 
   const generateNewRecoveryCodes = async () => {
-    if (!mvkBytesRef.current) return;
-    const mvkBytes = mvkBytesRef.current;
+    const wrappersRaw = localStorage.getItem('crytotool_vault_wrappers');
+    const metadataRaw = localStorage.getItem('crytotool_crypto_metadata');
+    if (!wrappersRaw || !metadataRaw) return;
+    if (!masterKeyRef.current) return;
+
+    const wrappers: VaultWrappers = JSON.parse(wrappersRaw);
+    if (!wrappers.master) return;
+    const meta: CryptoMetadata = JSON.parse(metadataRaw);
+
+    let mvkBytes: Uint8Array;
+    try {
+      mvkBytes = await unwrapRawKey(wrappers.master, masterKeyRef.current);
+    } catch {
+      return;
+    }
 
     const codes = generateRecoveryCodes();
     const salts: string[] = [];
@@ -377,15 +387,10 @@ const App: React.FC = () => {
       recoveryWrappers[paddedIdx] = await wrapRawKey(mvkBytes, key);
     }
 
-    const metaRaw = localStorage.getItem('crytotool_crypto_metadata');
-    if (!metaRaw) return;
-    const meta: CryptoMetadata = JSON.parse(metaRaw);
+    mvkBytes.fill(0);
+
     meta.recovery_salts = salts;
     localStorage.setItem('crytotool_crypto_metadata', JSON.stringify(meta));
-
-    const wrappersRaw = localStorage.getItem('crytotool_vault_wrappers');
-    if (!wrappersRaw) return;
-    const wrappers: VaultWrappers = JSON.parse(wrappersRaw);
     wrappers.recovery = recoveryWrappers;
     localStorage.setItem('crytotool_vault_wrappers', JSON.stringify(wrappers));
 
@@ -411,7 +416,7 @@ const App: React.FC = () => {
                 count: recoveryWrappersCount
               }}
               onResetWithRecovery={resetMasterPasswordWithRecovery}
-              onStoreMvkBytes={(bytes) => { mvkBytesRef.current = bytes; }}
+              onStoreMasterKey={(key) => { masterKeyRef.current = key; }}
               destructCountdown={destructCountdown}
               onNewCodes={(codes) => {
                 setNewlyGeneratedCodes(codes);
