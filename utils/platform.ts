@@ -4,7 +4,7 @@ export interface ArgonParams {
   parallelism: number;
 }
 
-export type ArgonPurpose = 'master' | 'recovery';
+export type ArgonPurpose = 'master' | 'recovery' | 'pin';
 
 export async function getArgonParams(purpose: ArgonPurpose = 'master'): Promise<ArgonParams> {
   const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
@@ -12,12 +12,14 @@ export async function getArgonParams(purpose: ArgonPurpose = 'master'): Promise<
     const isMobile = typeof navigator !== 'undefined' && /android|iphone|ipad|ipod/i.test(navigator.userAgent);
     if (isMobile) {
       switch (purpose) {
+        case 'pin': return { iterations: 2, memorySize: 32768, parallelism: 4 };
         case 'recovery': return { iterations: 2, memorySize: 65536, parallelism: 4 };
         default: return { iterations: 3, memorySize: 65536, parallelism: 4 };
       }
     }
   }
   switch (purpose) {
+    case 'pin': return { iterations: 2, memorySize: 32768, parallelism: 4 };
     case 'recovery': return { iterations: 10, memorySize: 131072, parallelism: 4 };
     default: return { iterations: 19, memorySize: 131072, parallelism: 4 };
   }

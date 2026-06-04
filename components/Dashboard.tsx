@@ -18,6 +18,7 @@ import { FullPlayer } from './FullPlayer';
 import { FileItem } from './FileItem';
 import { timingSafeEqual } from '../utils/security';
 import { CustomizeModal } from './CustomizeModal';
+import { isSafeImageUrl } from '../utils/sanitize';
 import { FileActionMenu } from './FileActionMenu';
 import { TopActions } from './TopActions';
 import { PinModal } from './PinModal';
@@ -326,11 +327,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
           
           const sourceName = (item as any).decryptedName || item.name;
           const ext = sourceName.split('.').pop()?.toLowerCase() || '';
-          const mimeType = ext === 'gif' ? 'image/gif' :
+          const mimeType = ext === 'svg' ? 'application/octet-stream' :
+                           ext === 'gif' ? 'image/gif' :
                            ext === 'png' ? 'image/png' :
                            ext === 'webp' ? 'image/webp' :
                            ext === 'jpg' || ext === 'jpeg' || ext === 'jfif' ? 'image/jpeg' :
-                           ext === 'svg' ? 'image/svg+xml' :
                            ext === 'avif' ? 'image/avif' :
                            ext === 'bmp' ? 'image/bmp' :
                            ext === 'ico' ? 'image/x-icon' :
@@ -1041,14 +1042,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           {/* Mini Player UI */}
                            <div className="glass-card rounded-full p-3 pr-4 flex items-center gap-3 relative overflow-hidden group">
                             <div className="w-14 h-14 rounded-full bg-black border border-border flex items-center justify-center shrink-0 overflow-hidden relative z-10">
-                               {(() => {
-                                  const src = currentPlayingItem.customIcon || currentPlayingItem.coverUrl;
-                                  return src && !src.startsWith('data:image/svg');
-                                })() ? (
-                                    <img src={currentPlayingItem.customIcon || currentPlayingItem.coverUrl} className={`w-full h-full object-cover ${isPlaying ? 'animate-[spin_4s_linear_infinite]' : ''}`} />
-                                ) : (
-                                    <Music size={18} className="text-muted" />
-                                )}
+                                {(() => {
+                                   const src = currentPlayingItem.customIcon || currentPlayingItem.coverUrl;
+                                   return src && isSafeImageUrl(src);
+                                 })() ? (
+                                     <img src={currentPlayingItem.customIcon || currentPlayingItem.coverUrl} className={`w-full h-full object-cover ${isPlaying ? 'animate-[spin_4s_linear_infinite]' : ''}`} />
+                                 ) : (
+                                     <Music size={18} className="text-muted" />
+                                 )}
                             </div>
                             <div className="flex-1 min-w-0 flex flex-col justify-center z-10">
                                <h4 className="text-sm font-bold text-primary truncate">{currentPlayingItem.name}</h4>

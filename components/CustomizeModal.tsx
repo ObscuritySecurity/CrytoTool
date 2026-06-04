@@ -16,6 +16,7 @@ import { Tag } from '../utils/db';
 import { FileItem } from './FileItem';
 import { CustomColorPicker } from './CustomColorPicker';
 import { useI18n } from '../locales/i18nContext';
+import { isSafeImageUrl } from '../utils/sanitize';
 
 // --- CONFIG & UTILS ---
 
@@ -224,8 +225,8 @@ export const CustomizeModal: React.FC<{
     const RenderSelectedIconPreview = () => {
         if (!selectedIcon) return <span className="text-muted text-xs">Implicit</span>;
         
-        // Handle Images
-        if ((selectedIcon.startsWith('data:') && !selectedIcon.startsWith('data:image/svg')) || selectedIcon.startsWith('http')) {
+        // Handle Images (sanitized)
+        if (isSafeImageUrl(selectedIcon)) {
             return <img src={selectedIcon} className="w-6 h-6 rounded object-cover" />;
         }
         

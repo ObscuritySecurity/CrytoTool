@@ -24,10 +24,10 @@ interface AuthScreenProps {
   onResetWithRecovery: (code: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
   destructCountdown?: number | null;
   onNewCodes?: (codes: string[]) => void;
-  onStoreMvkBytes?: (bytes: Uint8Array) => void;
+  onStoreMasterKey?: (key: CryptoKey) => void;
 }
 
-export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockUntil, onFailedAttempt, recoverySettings, onResetWithRecovery, onNewCodes, onStoreMvkBytes }) => {
+export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockUntil, onFailedAttempt, recoverySettings, onResetWithRecovery, onNewCodes, onStoreMasterKey }) => {
   const { t } = useI18n();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -126,7 +126,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
         localStorage.setItem('crytotool_vault_wrappers', JSON.stringify(wrappers));
 
         cryptoService.setVaultKey(mvk);
-        onStoreMvkBytes?.(mvkBytes);
+        mvkBytes.fill(0);
+        onStoreMasterKey?.(masterKey);
         onNewCodes?.(codes);
         onUnlock();
       } else {
@@ -151,12 +152,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
               'raw',
               mvkBytes as unknown as BufferSource,
               { name: 'AES-GCM' },
-              true,
+              false,
               ['encrypt', 'decrypt']
             );
 
             cryptoService.setVaultKey(mvk);
-            onStoreMvkBytes?.(mvkBytes);
+            mvkBytes.fill(0);
+            onStoreMasterKey?.(masterKey);
             onUnlock();
           } catch (err) {
             setError(t('wrongPassword'));
@@ -186,11 +188,12 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
               'raw',
               rawVaultKey.buffer as ArrayBuffer,
               { name: 'AES-GCM' },
-              true,
+              false,
               ['encrypt', 'decrypt']
             );
 
             cryptoService.setVaultKey(vaultKey);
+            onStoreMasterKey?.(masterKey);
             onUnlock();
           } catch (err) {
             setError(t('wrongPassword'));
