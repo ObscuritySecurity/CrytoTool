@@ -115,9 +115,12 @@ export const MusicView: React.FC<MusicViewProps> = ({ items, onPlay, currentSong
         {/* Song List */}
         <div className="space-y-1">
           {filteredItems.length === 0 ? (
-             <div className="flex flex-col items-center justify-center h-48 text-muted">
-               <Music size={48} className="mb-2 opacity-20" />
-               <p className="text-xs">Library empty.</p>
+             <div className="flex flex-col items-center justify-center h-64 text-muted">
+               <div className="w-20 h-20 rounded-full bg-surface border border-border flex items-center justify-center mb-5">
+                 <Music size={36} className="opacity-30" />
+               </div>
+               <h4 className="text-sm font-bold text-primary text-center mb-2">{t('musicComingSoon')}</h4>
+               <p className="text-[11px] text-zinc-500 text-center leading-relaxed max-w-xs">{t('musicComingSoonDesc')}</p>
              </div>
           ) : (
             filteredItems.map((item, index) => {
