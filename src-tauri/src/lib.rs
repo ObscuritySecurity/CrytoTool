@@ -7,10 +7,20 @@ fn greet(name: &str) -> String {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    // Fix blank screen on Wayland/Hyprland: WebKitGTK DMABUF renderer
-    // causes empty windows on many Wayland compositors (Hyprland, Sway, etc.)
-    if std::env::var("WEBKIT_DISABLE_DMABUF_RENDERER").is_err() {
-        std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+    // WebKitGTK runtime workarounds for Linux AppImage + Wayland EGL issues.
+    // Belt-and-suspenders alongside the truly-portable AppImage built by
+    // quick-sharun in .github/workflows/tauri-linux.yml. See:
+    //   https://github.com/tauri-apps/tauri/issues/11994
+    //   https://github.com/tauri-apps/tauri/issues/15050
+    //   https://bugs.webkit.org/show_bug.cgi?id=280239
+    #[cfg(target_os = "linux")]
+    {
+        if std::env::var("WEBKIT_DISABLE_DMABUF_RENDERER").is_err() {
+            std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+        }
+        if std::env::var("WEBKIT_DISABLE_COMPOSITING_MODE").is_err() {
+            std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
+        }
     }
 
     tauri::Builder::default()

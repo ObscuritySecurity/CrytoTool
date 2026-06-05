@@ -10,15 +10,25 @@ jobs:
   publish-tauri:
     permissions:
       contents: write
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libssl-dev \
+            file \
+            wget \
+            curl \
+            xz-utils
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -34,16 +44,73 @@ jobs:
         with:
           workspaces: './src-tauri -> target'
 
-      - name: Install dependencies
+      - name: Install npm dependencies
         run: npm ci
 
-      - name: Build and Release
-        uses: tauri-apps/tauri-action@v0.6
+      - name: Build frontend
+        run: npm run build
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Build Tauri binary (no bundle)
+        run: npx tauri build --no-bundle
+
+      - name: Locate built binary
+        id: locate
+        run: |
+          set -e
+          BIN=$(find src-tauri/target/release -maxdepth 1 -type f -executable \
+            -not -name '*.so' -not -name '*.d' -not -name 'build-*' | head -1)
+          if [ -z "$BIN" ]; then
+            echo "::error::Could not locate built binary in src-tauri/target/release/"
+            ls -la src-tauri/target/release/ || true
+            exit 1
+          fi
+          echo "binary=$(realpath $BIN)" >> "$GITHUB_OUTPUT"
+          echo "Located binary: $BIN"
+
+      - name: Install quick-sharun
+        run: |
+          wget -q https://raw.githubusercontent.com/pkgforge-dev/Anylinux-AppImages/main/useful-tools/quick-sharun.sh
+          chmod +x quick-sharun.sh
+          ./quick-sharun.sh --help | head -3
+
+      - name: Build truly-portable AppImage with quick-sharun
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEPLOY_GTK: 1
+          DEPLOY_OPENGL: 1
+          DEPLOY_VULKAN: 1
+          DEPLOY_GSTREAMER: 1
+          DEPLOY_PIPEWIRE: 1
+          DEPLOY_PULSE: 1
+          OUTPUT_APPIMAGE: 1
+          APPIMAGE_NAME: CrytoTool
+        run: |
+          set -e
+          ./quick-sharun.sh "${{ steps.locate.outputs.binary }}"
+          echo "---"
+          echo "Generated AppImage:"
+          ls -la *.AppImage
+          file *.AppImage
+
+      - name: Rename AppImage
+        run: |
+          set -e
+          TAG="${{ github.ref_name }}"
+          mv CrytoTool*.AppImage "CrytoTool_${TAG}_amd64.AppImage" 2>/dev/null || \
+            mv *.AppImage "CrytoTool_${TAG}_amd64.AppImage"
+          ls -la *.AppImage
+          echo "Final size:"
+          du -h *.AppImage
+
+      - name: Upload AppImage to release
+        uses: softprops/action-gh-release@v2
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'CrytoTool ${{ github.ref_name }}'
           releaseBody: 'CrytoTool ${{ github.ref_name }}'
           releaseDraft: true
           prerelease: false
+          files: |
+            *.AppImage
