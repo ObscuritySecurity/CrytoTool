@@ -67,6 +67,7 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
     const [region, setRegion] = useState('Bucharest');
     const [isLangOpen, setIsLangOpen] = useState(false);
     const [isRegionOpen, setIsRegionOpen] = useState(false);
+    const [lockedLang, setLockedLang] = useState<string | null>(null);
     // State for settings password modification
     const [isSettingPassword, setIsSettingPassword] = useState(false);
     const [newSettingsPwd, setNewSettingsPwd] = useState('');
@@ -137,11 +138,46 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
     }));
 
     const handleLanguageChange = (val: string) => {
-        setLanguage(val);
         const foundLang = languageOptions.find(l => l.value === val);
+        if (foundLang?.locked) return;
+        setLanguage(val);
         if (foundLang) {
             setRegion(foundLang.capital);
         }
+    };
+
+    const renderLockedDialog = () => {
+      if (!lockedLang) return null;
+      return (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div
+            onClick={() => setLockedLang(null)}
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+          />
+          <div className="relative w-full max-w-sm glass-card rounded-[32px] overflow-hidden p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-lg">
+                <Lock size={20} />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-primary">{t('translationLocked')}</h3>
+                <p className="text-[11px] text-muted">{lockedLang}</p>
+              </div>
+            </div>
+            <p className="text-sm text-zinc-400 leading-relaxed">
+              {t('translationLockedDesc')}
+            </p>
+            <div className="mt-6 flex gap-3 justify-end">
+              <button
+                onClick={() => setLockedLang(null)}
+                className="px-5 py-2.5 rounded-xl bg-neon-green text-black font-bold text-sm hover:bg-neon-green/90 transition-all"
+              >
+                {t('close')}
+              </button>
+            </div>
+          </div>
+        </div>
+      );
     };
 
     return (
@@ -254,8 +290,10 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                                     {languageOptions.map((lang) => (
                                         <button
                                             key={lang.value}
-                                            onClick={() => { handleLanguageChange(lang.value); setIsLangOpen(false); }}
+                                            onClick={() => { if (lang.locked) { setLockedLang(lang.label); setIsLangOpen(false); } else { handleLanguageChange(lang.value); setIsLangOpen(false); } }}
                                             className={`w-full p-3 rounded-xl border flex items-center justify-between transition-all ${
+                                                lang.locked ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
+                                            } ${
                                                 language === lang.value 
                                                 ? 'bg-neon-green/10 border-neon-green' 
                                                 : 'bg-surface/50 border-border hover:bg-surface hover:border-zinc-600'
@@ -271,10 +309,17 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                                                 </div>
                                                 <div className="text-left">
                                                     <div className={`text-sm font-bold ${language === lang.value ? 'text-white' : 'text-primary'}`}>{lang.label}</div>
-                                                    <div className="text-[10px] text-muted">{lang.desc}</div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[10px] text-muted">{lang.desc}</span>
+                                                        <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded-full ${
+                                                            lang.locked ? 'bg-zinc-800 text-zinc-500' : 'bg-neon-green/20 text-neon-green'
+                                                        }`}>
+                                                            {lang.completion}%
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            {language === lang.value && (
+                                            {!lang.locked && language === lang.value && (
                                                 <motion.div 
                                                     initial={{ scale: 0 }} animate={{ scale: 1 }}
                                                     className="w-5 h-5 rounded-full bg-neon-green flex items-center justify-center text-black"
@@ -282,13 +327,18 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                                                     <Check size={12} strokeWidth={3} />
                                                 </motion.div>
                                             )}
+                                            {lang.locked && (
+                                                <div className="w-5 h-5 flex items-center justify-center text-zinc-600">
+                                                    <Lock size={12} />
+                                                </div>
+                                            )}
                                         </button>
                                     ))}
                                 </div>
                             </motion.div>
                         )}
                     </AnimatePresence>
-                    
+
                     <div className="h-px bg-border mx-4 opacity-50" />
                     
                     {/* Region Trigger */}
@@ -652,6 +702,8 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                 </div>
             </section>
         </div>
+
+      {renderLockedDialog()}
     </motion.div>
     );
 };
@@ -1081,12 +1133,12 @@ export const AboutView: React.FC<{
                   </div>
               </section>
 
-              {/* Footer */}
+               {/* Footer */}
               <div className="pt-6 text-center">
                   <p className="text-[9px] text-zinc-700">
                       Open Source - Contributions welcome on GitHub
                   </p>
-              </div>
+               </div>
           </div>
       </div>
     </motion.div>
