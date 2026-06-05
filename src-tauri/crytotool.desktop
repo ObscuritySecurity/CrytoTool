@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Version=1.5
+Name=CrytoTool
+GenericName=Privacy Vault
+Comment=All-in-one encrypted vault with Argon2id, AES-256-GCM and zero telemetry
+Exec=crytotool
+Icon=icon
+Terminal=false
+Categories=Utility;Security;Privacy;
+StartupNotify=true
+StartupWMClass=crytotool
+Keywords=encryption;vault;privacy;security;password;argon2;aes;

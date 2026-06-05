@@ -86,9 +86,14 @@ jobs:
           DEPLOY_PULSE: 1
           OUTPUT_APPIMAGE: 1
           APPIMAGE_NAME: CrytoTool
+          DESKTOP: ${{ github.workspace }}/src-tauri/crytotool.desktop
+          ICON: ${{ github.workspace }}/src-tauri/icons/icon.png
         run: |
           set -e
-          ./quick-sharun.sh "${{ steps.locate.outputs.binary }}"
+          STDERR_LOG=$(mktemp)
+          ./quick-sharun.sh "${{ steps.locate.outputs.binary }}" 2> "$STDERR_LOG"
+          grep -v "tr: write error: Broken pipe" "$STDERR_LOG" >&2 || true
+          rm -f "$STDERR_LOG"
           echo "---"
           echo "Generated AppImage:"
           ls -la *.AppImage
