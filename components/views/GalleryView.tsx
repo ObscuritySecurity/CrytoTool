@@ -137,13 +137,16 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ items, onNavigate, the
         ))}
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-20 px-1">
-        {filteredItems.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-48 text-muted">
-            <Image size={48} className="mb-2 opacity-20" />
-            <p className="text-xs">{t('noMediaFound') || 'No media files found.'}</p>
+      {filteredItems.length === 0 ? (
+        <div className="flex-1 flex flex-col items-center justify-center text-muted px-8 pt-56">
+          <div className="w-20 h-20 rounded-full bg-surface border border-border flex items-center justify-center mb-5">
+            <Image size={36} className="opacity-30" />
           </div>
-        ) : (
+          <h4 className="text-sm font-bold text-primary text-center mb-2">{t('galleryComingSoon')}</h4>
+          <p className="text-[11px] text-zinc-500 text-center leading-relaxed max-w-xs">{t('galleryComingSoonDesc')}</p>
+        </div>
+      ) : (
+        <div className="flex-1 overflow-y-auto pb-20 px-1">
           <div className="grid grid-cols-2 gap-3 p-3">
             {filteredItems.map((item) => (
               <motion.div 
@@ -197,8 +200,8 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ items, onNavigate, the
               </motion.div>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

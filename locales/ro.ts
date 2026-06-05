@@ -171,6 +171,8 @@ export const translations: Translations = {
   libraryEmpty: 'Biblioteca e goală.',
   favorite: 'Favorit',
   noMediaFound: 'Niciun fișier media găsit.',
+  galleryComingSoon: 'Îmbunătățiri Galerie în Curând',
+  galleryComingSoonDesc: 'Modulul galerie este în lucru în versiunea 2.5.0-beta. Versiunile viitoare cu ajutorul comunității vor aduce: editor video, editor foto și o experiență media mai bogată.',
   musicComingSoon: 'Îmbunătățiri Player Muzică în Curând',
   musicComingSoonDesc: 'Modulul muzică este în lucru în versiunea 2.5.0-beta. Versiunile viitoare cu ajutorul comunității vor aduce: gestionare playlisturi, egalizator, sincronizare versuri și o experiență audio mai bogată.',
   documentsComingSoonDesc: 'Vizualizatorul de documente este în dezvoltare pentru versiunea 2.5.0-beta. Versiunile viitoare cu ajutorul comunității vor aduce: vizualizator PDF, editor text, semnare documente și o experiență document mai bogată.',
