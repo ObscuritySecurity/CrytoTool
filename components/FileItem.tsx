@@ -13,6 +13,7 @@ import * as TbIcons from 'react-icons/tb';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileSystemItem, AppTheme } from '../types';
 import { isSafeImageUrl } from '../utils/sanitize';
+import { useI18n } from '../locales/i18nContext';
 
 // Map namespaces
 const ICON_PACKS: Record<string, any> = {
@@ -41,12 +42,13 @@ export const FileItem: React.FC<{
   onRenameCancel?: () => void;
   isSelected?: boolean;
   onSelect?: (id: string, selected: boolean) => void;
-}> = ({ 
-    item, onAction, onClick, theme, minimal, onOpenMenu, 
+}> = ({
+    item, onAction, onClick, theme, minimal, onOpenMenu,
     isRenaming, renameValue, onRenameChange, onRenameConfirm, onRenameCancel,
     isSelected, onSelect
 }) => {
-  
+
+  const { t } = useI18n();
   const renameInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -222,7 +224,7 @@ export const FileItem: React.FC<{
              <div className="flex items-center gap-2 text-xs text-muted font-mono">
                  <span>{item.date}</span>
                  <span>•</span>
-                 <span>{item.size || 'FOLDER'}</span>
+                 <span>{item.size || t('folder')}</span>
              </div>
 
               {/* ENCRYPTION BADGE - Only show for manual encryption (has salt) */}

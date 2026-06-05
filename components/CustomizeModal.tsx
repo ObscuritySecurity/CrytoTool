@@ -33,20 +33,20 @@ interface PackDef {
 
 // SAFE CONFIG: Using Lucide icons for the UI representation ensures we don't crash
 // if 'react-icons/*' or '@heroicons/*' exports vary or fail to load specific named exports.
-const PACK_DEFS: PackDef[] = [
-    { key: 'lucide', name: 'Lucide', desc: 'Vector, Clean', icon: <LucideIcons.Zap size={28} />, map: LucideIcons, prefix: 'lucide' },
-    { key: 'hero', name: 'Hero', desc: 'Solid, Bold', icon: <LucideIcons.Star size={28} />, map: HeroIcons, prefix: 'hero' },
-    { key: 'fa', name: 'FontAwesome', desc: 'Classic, Robust', icon: <LucideIcons.Flag size={28} />, map: FaIcons, prefix: 'fa' },
-    { key: 'md', name: 'Material', desc: 'Google, Geometric', icon: <LucideIcons.LayoutDashboard size={28} />, map: MdIcons, prefix: 'md' },
-    { key: 'bs', name: 'Bootstrap', desc: 'Web, Simple', icon: <LucideIcons.AppWindow size={28} />, map: BsIcons, prefix: 'bs' },
-    { key: 'bi', name: 'BoxIcons', desc: 'Boxy, Sharp', icon: <LucideIcons.Box size={28} />, map: BiIcons, prefix: 'bi' },
-    { key: 'io', name: 'Ionicons', desc: 'Mobile, OS', icon: <LucideIcons.Smartphone size={28} />, map: IoIcons, prefix: 'io' },
-    { key: 'ri', name: 'Remix', desc: 'Neutral, Soft', icon: <LucideIcons.Repeat size={28} />, map: RiIcons, prefix: 'ri' },
-    { key: 'tb', name: 'Tabler', desc: 'Tech, Precise', icon: <LucideIcons.Grid3X3 size={28} />, map: TbIcons, prefix: 'tb' },
-    { key: 'emoji', name: 'Emojis', desc: 'Color, Fun', icon: <span className="text-3xl">🎨</span>, prefix: 'emoji' },
+const getPackDefs = (t: (key: any) => string): PackDef[] => [
+    { key: 'lucide', name: t('packLucide'), desc: t('packLucideDesc'), icon: <LucideIcons.Zap size={28} />, map: LucideIcons, prefix: 'lucide' },
+    { key: 'hero', name: t('packHero'), desc: t('packHeroDesc'), icon: <LucideIcons.Star size={28} />, map: HeroIcons, prefix: 'hero' },
+    { key: 'fa', name: t('packFontAwesome'), desc: t('packFontAwesomeDesc'), icon: <LucideIcons.Flag size={28} />, map: FaIcons, prefix: 'fa' },
+    { key: 'md', name: t('packMaterial'), desc: t('packMaterialDesc'), icon: <LucideIcons.LayoutDashboard size={28} />, map: MdIcons, prefix: 'md' },
+    { key: 'bs', name: t('packBootstrap'), desc: t('packBootstrapDesc'), icon: <LucideIcons.AppWindow size={28} />, map: BsIcons, prefix: 'bs' },
+    { key: 'bi', name: t('packBoxIcons'), desc: t('packBoxIconsDesc'), icon: <LucideIcons.Box size={28} />, map: BiIcons, prefix: 'bi' },
+    { key: 'io', name: t('packIonicons'), desc: t('packIoniconsDesc'), icon: <LucideIcons.Smartphone size={28} />, map: IoIcons, prefix: 'io' },
+    { key: 'ri', name: t('packRemix'), desc: t('packRemixDesc'), icon: <LucideIcons.Repeat size={28} />, map: RiIcons, prefix: 'ri' },
+    { key: 'tb', name: t('packTabler'), desc: t('packTablerDesc'), icon: <LucideIcons.Grid3X3 size={28} />, map: TbIcons, prefix: 'tb' },
+    { key: 'emoji', name: t('packEmojis'), desc: t('packEmojisDesc'), icon: <span className="text-3xl">🎨</span>, prefix: 'emoji' },
 ];
 
-const EMOJI_CATEGORIES: Record<string, string[]> = {
+const EMOJI_CATEGORIES_DATA: Record<string, string[]> = {
     'Folder': ['📁', '📂', '🗂️', '🗃️', '💼', '👜', '🎒', '📦', '🎁', '📫', '📪', '📭', '📬'],
     'Status': ['✅', '❌', '⚠️', '🔥', '⭐', '❤️', '🟢', '🔴', '🔒', '🔓', '🛡️', '🔑', '🧿', '🚫', '💯', '💢'],
     'Tech': ['💻', '🖥️', '🖨️', '🖱️', '📱', '🔋', '🔌', '📡', '💾', '💿', '📀', '📷', '📹', '🕹️', '🎙️', '🎚️', '🎛️', '⏱️', '💡'],
@@ -56,11 +56,21 @@ const EMOJI_CATEGORIES: Record<string, string[]> = {
     'Fun': ['🚀', '🛸', '🎮', '🎲', '👾', '🤖', '🎃', '👻', '🍕', '🍺', '🍔', '🍟', '🌭', '🍿', '🍩', '🍪', '🎂', '🍷', '🥂']
 };
 
-const getKeysForPack = (packKey: PackKey) => {
+const EMOJI_CAT_KEYS: Record<string, string> = {
+    'Folder': 'emojiCategoryFolder',
+    'Status': 'emojiCategoryStatus',
+    'Tech': 'emojiCategoryTech',
+    'Media': 'emojiCategoryMedia',
+    'Nature': 'emojiCategoryNature',
+    'Work': 'emojiCategoryWork',
+    'Fun': 'emojiCategoryFun',
+};
+
+const getKeysForPack = (packKey: PackKey, packDefs: PackDef[]) => {
     if (packKey === 'emoji') return [];
-    const def = PACK_DEFS.find(p => p.key === packKey);
+    const def = packDefs.find(p => p.key === packKey);
     if (!def || !def.map) return [];
-    
+
     // Filter valid React Components from the module exports
     return Object.keys(def.map).filter(k => {
         // Basic heuristic for react-icons and lucide
@@ -71,37 +81,51 @@ const getKeysForPack = (packKey: PackKey) => {
     });
 };
 
-const getIconCategories = (pack: PackKey) => {
-    if (pack === 'emoji') return EMOJI_CATEGORIES;
-    
-    const keys = getKeysForPack(pack);
-    
-    // Define Categories
+const getIconCategories = (pack: PackKey, packDefs: PackDef[]): Record<string, string[]> => {
+    if (pack === 'emoji') {
+        const out: Record<string, string[]> = {};
+        Object.keys(EMOJI_CATEGORIES_DATA).forEach(k => {
+            out[EMOJI_CAT_KEYS[k] || k] = EMOJI_CATEGORIES_DATA[k];
+        });
+        return out;
+    }
+
+    const keys = getKeysForPack(pack, packDefs);
+
+    // Define Categories - keys are translation keys, displayed via t()
+    const catEssential = 'iconCategoryEssential';
+    const catMedia = 'media';
+    const catTech = 'tech';
+    const catOffice = 'iconCategoryOffice';
+    const catSecurity = 'iconCategorySecurityCat';
+    const catWeather = 'iconCategoryWeather';
+    const catArrows = 'iconCategoryArrows';
+    const catAll = 'iconCategoryAll';
+
     const categories: Record<string, string[]> = {
-        'Esential': [], 
-        'Media': [], 
-        'Tech': [], 
-        'Office': [], 
-        'Security': [],
-        'Weather': [],
-        'Arrows': [],
-        'Toate': keys 
+        [catEssential]: [],
+        [catMedia]: [],
+        [catTech]: [],
+        [catOffice]: [],
+        [catSecurity]: [],
+        [catWeather]: [],
+        [catArrows]: [],
+        [catAll]: keys
     };
 
     keys.forEach(key => {
         const lower = key.toLowerCase();
-        
-        // --- Shared Categorization Logic ---
-        if (['user', 'home', 'settings', 'menu', 'search', 'check', 'x', 'plus', 'minus', 'edit', 'trash', 'save', 'filter', 'grid', 'more', 'loader', 'flag', 'star', 'heart'].some(k => lower.includes(k))) categories['Esential'].push(key);
-        if (['video', 'music', 'audio', 'image', 'camera', 'film', 'mic', 'volume', 'play', 'pause', 'stop', 'cast'].some(k => lower.includes(k))) categories['Media'].push(key);
-        if (['cpu', 'wifi', 'battery', 'code', 'database', 'server', 'laptop', 'phone', 'monitor', 'keyboard', 'mouse', 'bug', 'git', 'usb', 'bluetooth'].some(k => lower.includes(k))) categories['Tech'].push(key);
-        if (['file', 'folder', 'book', 'clip', 'paper', 'archive', 'calendar', 'chart', 'mail', 'inbox', 'printer', 'briefcase', 'pen'].some(k => lower.includes(k))) categories['Office'].push(key);
-        if (['lock', 'key', 'shield', 'eye', 'scan', 'alert', 'warning', 'info'].some(k => lower.includes(k))) categories['Security'].push(key);
-        if (['sun', 'moon', 'cloud', 'rain', 'snow', 'wind', 'storm', 'zap', 'thermometer'].some(k => lower.includes(k))) categories['Weather'].push(key);
-        if (['arrow', 'chevron', 'caret', 'corner', 'move', 'refresh', 'sync', 'loop', 'undo', 'redo'].some(k => lower.includes(k))) categories['Arrows'].push(key);
+
+        if (['user', 'home', 'settings', 'menu', 'search', 'check', 'x', 'plus', 'minus', 'edit', 'trash', 'save', 'filter', 'grid', 'more', 'loader', 'flag', 'star', 'heart'].some(k => lower.includes(k))) categories[catEssential].push(key);
+        if (['video', 'music', 'audio', 'image', 'camera', 'film', 'mic', 'volume', 'play', 'pause', 'stop', 'cast'].some(k => lower.includes(k))) categories[catMedia].push(key);
+        if (['cpu', 'wifi', 'battery', 'code', 'database', 'server', 'laptop', 'phone', 'monitor', 'keyboard', 'mouse', 'bug', 'git', 'usb', 'bluetooth'].some(k => lower.includes(k))) categories[catTech].push(key);
+        if (['file', 'folder', 'book', 'clip', 'paper', 'archive', 'calendar', 'chart', 'mail', 'inbox', 'printer', 'briefcase', 'pen'].some(k => lower.includes(k))) categories[catOffice].push(key);
+        if (['lock', 'key', 'shield', 'eye', 'scan', 'alert', 'warning', 'info'].some(k => lower.includes(k))) categories[catSecurity].push(key);
+        if (['sun', 'moon', 'cloud', 'rain', 'snow', 'wind', 'storm', 'zap', 'thermometer'].some(k => lower.includes(k))) categories[catWeather].push(key);
+        if (['arrow', 'chevron', 'caret', 'corner', 'move', 'refresh', 'sync', 'loop', 'undo', 'redo'].some(k => lower.includes(k))) categories[catArrows].push(key);
     });
 
-    if (categories['Esential'].length < 20) categories['Esential'] = keys.slice(0, 50);
+    if (categories[catEssential].length < 20) categories[catEssential] = keys.slice(0, 50);
 
     return categories;
 };
@@ -143,11 +167,13 @@ export const CustomizeModal: React.FC<{
     };
 
     // --- COMPUTED ---
-    const activeCategories = useMemo(() => getIconCategories(selectedPack), [selectedPack]);
-    
+    const packDefs = useMemo(() => getPackDefs(t), [t]);
+
+    const activeCategories = useMemo(() => getIconCategories(selectedPack, packDefs), [selectedPack, packDefs]);
+
     const visibleLibraryIcons = useMemo(() => {
         let icons = activeCategories[iconCategory] || [];
-        
+
         if (librarySearch.trim()) {
             const searchLower = librarySearch.toLowerCase();
             if (selectedPack === 'emoji') {
@@ -158,8 +184,8 @@ export const CustomizeModal: React.FC<{
             }
         }
 
-        // Limit for 'Toate' to prevent crash with huge packs like MD
-        if (iconCategory === 'Toate' && !librarySearch) return icons.slice(0, 500);
+        // Limit for 'iconCategoryAll' to prevent crash with huge packs like MD
+        if (iconCategory === 'iconCategoryAll' && !librarySearch) return icons.slice(0, 500);
         return icons;
     }, [iconCategory, librarySearch, selectedPack, activeCategories]);
 
@@ -167,8 +193,8 @@ export const CustomizeModal: React.FC<{
 
     const handlePackSelect = (pack: PackKey) => {
         setSelectedPack(pack);
-        const cats = getIconCategories(pack);
-        const firstCat = Object.keys(cats).includes('Esential') ? 'Esential' : Object.keys(cats)[0];
+        const cats = getIconCategories(pack, packDefs);
+        const firstCat = Object.keys(cats).includes('iconCategoryEssential') ? 'iconCategoryEssential' : Object.keys(cats)[0];
         setIconCategory(firstCat);
         setView('library');
     };
@@ -223,13 +249,13 @@ export const CustomizeModal: React.FC<{
     // --- RENDER HELPERS ---
     
     const RenderSelectedIconPreview = () => {
-        if (!selectedIcon) return <span className="text-muted text-xs">Implicit</span>;
-        
+        if (!selectedIcon) return <span className="text-muted text-xs">{t('default')}</span>;
+
         // Handle Images (sanitized)
         if (isSafeImageUrl(selectedIcon)) {
             return <img src={selectedIcon} className="w-6 h-6 rounded object-cover" />;
         }
-        
+
         // Handle Emoji
         if (selectedIcon.startsWith('emoji:')) {
              return <span className="text-xl">{selectedIcon.replace('emoji:', '')}</span>;
@@ -238,7 +264,7 @@ export const CustomizeModal: React.FC<{
         // Handle Dynamic Packs
         if (selectedIcon.includes(':')) {
             const [prefix, name] = selectedIcon.split(':');
-            const def = PACK_DEFS.find(p => p.key === prefix);
+            const def = packDefs.find(p => p.key === prefix);
             if (def && def.map && def.map[name]) {
                 const Icon = def.map[name];
                 // Check if component exists
@@ -310,8 +336,8 @@ export const CustomizeModal: React.FC<{
                                     >
                                         {/* TABS HEADER */}
                                         <div className="flex border-b border-border shrink-0">
-                                            <button onClick={() => setActiveTab('icon')} className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-colors ${activeTab === 'icon' ? 'bg-surface text-neon-green border-b-2 border-neon-green' : 'text-muted hover:text-primary'}`}>Icon Studio</button>
-                                            <button onClick={() => setActiveTab('tags')} className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-colors ${activeTab === 'tags' ? 'bg-surface text-neon-green border-b-2 border-neon-green' : 'text-muted hover:text-primary'}`}>Tag Engine</button>
+                                            <button onClick={() => setActiveTab('icon')} className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-colors ${activeTab === 'icon' ? 'bg-surface text-neon-green border-b-2 border-neon-green' : 'text-muted hover:text-primary'}`}>{t('iconStudio')}</button>
+                                            <button onClick={() => setActiveTab('tags')} className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-colors ${activeTab === 'tags' ? 'bg-surface text-neon-green border-b-2 border-neon-green' : 'text-muted hover:text-primary'}`}>{t('tagEngine')}</button>
                                         </div>
 
                                         {/* SCROLLABLE CONTENT */}
@@ -346,14 +372,14 @@ export const CustomizeModal: React.FC<{
                                                         </div>
                                                         <div className="text-center relative z-10">
                                                             <span className="text-sm font-bold text-primary block">{t('uploadImage' as any) || 'Upload Image'}</span>
-                                                            <span className="text-[10px] text-muted">JPG, PNG, SVG (Max 2MB)</span>
+                                                            <span className="text-[10px] text-muted">{t('jpgPngSvg')}</span>
                                                         </div>
                                                         <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleIconUpload} />
                                                     </div>
 
                                                     <div className="flex items-center gap-4 py-2 opacity-50">
                                                         <div className="h-px bg-border flex-1" />
-                                                        <span className="text-[10px] font-bold text-muted uppercase">SAU</span>
+                                                        <span className="text-[10px] font-bold text-muted uppercase">{t('or')}</span>
                                                         <div className="h-px bg-border flex-1" />
                                                     </div>
 
@@ -435,7 +461,7 @@ export const CustomizeModal: React.FC<{
                                         
                                         <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                {PACK_DEFS.map(pack => (
+                                                {packDefs.map(pack => (
                                                     <button 
                                                         key={pack.key}
                                                         onClick={() => handlePackSelect(pack.key)} 
@@ -487,8 +513,8 @@ export const CustomizeModal: React.FC<{
                                                         <LucideIcons.ArrowLeft size={20} />
                                                     </button>
                                                     <div>
-                                                        <h3 className="text-lg font-bold text-primary">Library</h3>
-                                                        <p className="text-[10px] text-muted uppercase tracking-widest">{PACK_DEFS.find(p => p.key === selectedPack)?.name}</p>
+                                                        <h3 className="text-lg font-bold text-primary">{t('librarySectionTitle')}</h3>
+                                                        <p className="text-[10px] text-muted uppercase tracking-widest">{packDefs.find(p => p.key === selectedPack)?.name}</p>
                                                     </div>
                                                 </div>
                                                 <div className="bg-neon-green/10 border border-neon-green/20 text-neon-green px-3 py-1 rounded-full text-[10px] font-black uppercase">
@@ -520,12 +546,12 @@ export const CustomizeModal: React.FC<{
                                         <div className="px-5 py-3 border-b border-border bg-background shrink-0">
                                             <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
                                                 {Object.keys(activeCategories).map(cat => (
-                                                    <button 
-                                                        key={cat} 
-                                                        onClick={() => { setIconCategory(cat); setLibrarySearch(''); }} 
+                                                    <button
+                                                        key={cat}
+                                                        onClick={() => { setIconCategory(cat); setLibrarySearch(''); }}
                                                         className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase border transition-all whitespace-nowrap flex-shrink-0 ${iconCategory === cat ? 'bg-primary text-background border-primary' : 'bg-surface text-muted border-border hover:border-primary hover:text-primary'}`}
                                                     >
-                                                        {cat}
+                                                        {t(cat as any)}
                                                     </button>
                                                 ))}
                                             </div>
@@ -543,7 +569,7 @@ export const CustomizeModal: React.FC<{
                                                         // Render content based on pack
                                                         let Content = null;
                                                         
-                                                        const def = PACK_DEFS.find(p => p.key === selectedPack);
+                                                        const def = packDefs.find(p => p.key === selectedPack);
                                                         
                                                         if (selectedPack === 'emoji') {
                                                             Content = <span className="text-2xl">{iconName}</span>;
@@ -577,7 +603,7 @@ export const CustomizeModal: React.FC<{
                                                 </div>
                                             )}
                                             
-                                            {iconCategory === 'Toate' && !librarySearch && visibleLibraryIcons.length === 500 && (
+                                            {iconCategory === 'iconCategoryAll' && !librarySearch && visibleLibraryIcons.length === 500 && (
                                                 <div className="py-4 text-center text-[10px] text-muted uppercase font-bold">
                                                     {t('showingTop500' as any) || 'Showing first 500. Use search for all.'}
                                                 </div>

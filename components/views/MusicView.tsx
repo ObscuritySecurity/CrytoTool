@@ -74,7 +74,7 @@ export const MusicView: React.FC<MusicViewProps> = ({ items, onPlay, currentSong
           {quickPicks.length > 0 && (
             <div className="mb-8 pl-1">
               <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                Quick picks <span className="text-xs font-normal text-zinc-500 bg-zinc-900 px-2 py-0.5 rounded-full border border-zinc-800">History</span>
+                {t('quickPicksLabel')} <span className="text-xs font-normal text-zinc-500 bg-zinc-900 px-2 py-0.5 rounded-full border border-zinc-800">{t('historyLabel')}</span>
               </h3>
               <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4 pr-4">
                 {quickPicks.map((item) => (
@@ -104,7 +104,7 @@ export const MusicView: React.FC<MusicViewProps> = ({ items, onPlay, currentSong
                     </div>
                     <div>
                       <h4 className="text-sm font-bold text-white truncate">{(item as any).decryptedName || item.name}</h4>
-                      <p className="text-xs text-zinc-500 truncate">{(item as any).decryptedArtist || item.artist || 'Unknown'}</p>
+                      <p className="text-xs text-zinc-500 truncate">{(item as any).decryptedArtist || item.artist || t('unknown')}</p>
                     </div>
                   </motion.div>
                 ))}
@@ -114,7 +114,7 @@ export const MusicView: React.FC<MusicViewProps> = ({ items, onPlay, currentSong
 
           {/* Action Header */}
           <div className="flex items-center justify-between mb-4 px-1">
-            <h3 className="text-xl font-bold text-white">Keep listening</h3>
+            <h3 className="text-xl font-bold text-white">{t('keepListening')}</h3>
             <button className="w-10 h-10 rounded-full bg-neon-green text-black flex items-center justify-center hover:scale-105 transition-transform shadow-[0_0_15px_rgba(57,255,20,0.3)]">
                <Shuffle size={20} />
             </button>
@@ -156,7 +156,7 @@ export const MusicView: React.FC<MusicViewProps> = ({ items, onPlay, currentSong
                   {/* Info */}
                   <div className="flex-1 min-w-0 flex flex-col justify-center">
                     <h4 className={`text-sm font-bold truncate mb-0.5 ${isCurrent ? 'text-neon-green' : 'text-zinc-200'}`}>{(item as any).decryptedName || item.name}</h4>
-                    <p className="text-xs text-zinc-500 truncate">{(item as any).decryptedArtist || item.artist || 'Unknown Artist'}</p>
+                    <p className="text-xs text-zinc-500 truncate">{(item as any).decryptedArtist || item.artist || t('unknownArtist')}</p>
                   </div>
 
                   {/* Actions */}

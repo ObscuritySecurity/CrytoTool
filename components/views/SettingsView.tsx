@@ -64,7 +64,11 @@ interface SettingsViewProps {
 
 export const SettingsView: React.FC<SettingsViewProps> = (props) => {
     const { t, language, setLanguage, languageOptions } = useI18n();
-    const [region, setRegion] = useState('Bucharest');
+    const [region, setRegion] = useState(() => {
+        const langCode = (typeof window !== 'undefined' && localStorage.getItem('app_language')) || 'en';
+        const foundLang = LANGUAGES.find(l => l.code === langCode);
+        return foundLang ? foundLang.capital : 'Bucharest';
+    });
     const [isLangOpen, setIsLangOpen] = useState(false);
     const [isRegionOpen, setIsRegionOpen] = useState(false);
     const [lockedLang, setLockedLang] = useState<string | null>(null);
@@ -225,7 +229,7 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                   const lightTheme = THEME_COLLECTIONS.Light[0];
                   props.applyFullTheme(lightTheme);
                 }} className={`py-2.5 rounded-lg flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-all ${props.appTheme === 'light' ? 'glass-pressed text-primary' : 'text-muted hover:text-primary'}`}><Sun size={12} />{t('lightMode')}</button>
-                <button onClick={() => props.setAppTheme('system')} className={`py-2.5 rounded-lg flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-all ${props.appTheme === 'system' ? 'glass-pressed text-primary' : 'text-muted hover:text-primary'}`}><Monitor size={12} />System</button>
+                <button onClick={() => props.setAppTheme('system')} className={`py-2.5 rounded-lg flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-all ${props.appTheme === 'system' ? 'glass-pressed text-primary' : 'text-muted hover:text-primary'}`}><Monitor size={12} />{t('systemButton')}</button>
                 </div>
                 <div className="mt-4 p-4 rounded-2xl glass-card">
                 <div className="flex items-center gap-2 mb-3">
@@ -239,7 +243,7 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                   <button
                     onClick={props.clearManualAccent}
                     className="px-4 py-3 rounded-xl border border-border text-[10px] font-black uppercase tracking-widest text-muted hover:text-white hover:border-red-500/50 hover:bg-red-500/10 transition-all shrink-0"
-                    title="Reset to theme accent"
+                    title={t('resetAccentTitle')}
                   >
                     {t('reset')}
                   </button>
@@ -583,12 +587,12 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                 </div>
 
                 <div className="space-y-4">
-                    <div className="flex justify-between items-center"><label className="text-sm font-bold uppercase tracking-wider text-primary">Auto Blur</label><span className="text-xs font-mono text-neon-green font-bold">{props.autoBlurSettings.value}s</span></div>
+                    <div className="flex justify-between items-center"><label className="text-sm font-bold uppercase tracking-wider text-primary">{t('autoBlurLabel')}</label><span className="text-xs font-mono text-neon-green font-bold">{props.autoBlurSettings.value}s</span></div>
                     <input type="range" min="5" max="60" step="5" value={props.autoBlurSettings.value} onChange={(e) => props.autoBlurSettings.setValue(parseInt(e.target.value))} className="w-full accent-neon-green h-1.5 bg-surface rounded-lg appearance-none cursor-pointer" />
                     <p className="text-[10px] text-muted">{t('autoBlurDesc')}</p>
                 </div>
                 <div className="space-y-4 border-t border-border pt-6">
-                    <div className="flex justify-between items-center"><label className="text-sm font-bold uppercase tracking-wider text-primary">Auto Lock</label><span className="text-xs font-mono text-neon-green font-bold">{props.autoLockSettings.value}s</span></div>
+                    <div className="flex justify-between items-center"><label className="text-sm font-bold uppercase tracking-wider text-primary">{t('autoLockLabel')}</label><span className="text-xs font-mono text-neon-green font-bold">{props.autoLockSettings.value}s</span></div>
                     <input type="range" min="5" max="120" step="5" value={props.autoLockSettings.value} onChange={(e) => props.autoLockSettings.setValue(parseInt(e.target.value))} className="w-full accent-neon-green h-1.5 bg-surface rounded-lg appearance-none cursor-pointer" />
                     <p className="text-[10px] text-muted">{t('autoLockDesc')}</p>
                 </div>
@@ -631,34 +635,34 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                     {/* RECOVERY CODES SECTION */}
                 <div className="border-t border-border pt-6 mt-4">
                     <h4 className="text-[10px] font-black uppercase tracking-widest text-neon-green flex items-center gap-2 mb-4">
-                        <KeyRound size={14} /> Password Recovery
+                        <KeyRound size={14} /> {t('recoverySectionTitle')}
                     </h4>
-                    
+
                     <div className="p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800 mb-4">
                         <div className="flex items-center justify-between mb-3">
                             <div>
-                                <p className="text-xs font-bold text-white">Recovery Codes</p>
-                                <p className="text-[10px] text-zinc-500">{props.recoverySettings.count}/10 codes available</p>
+                                <p className="text-xs font-bold text-white">{t('recoveryCodesTitle')}</p>
+                                <p className="text-[10px] text-zinc-500">{t('recoveryCodesAvailable').replace('{{count}}', String(props.recoverySettings.count))}</p>
                             </div>
-                            <button 
+                            <button
                                 onClick={() => {
                                     props.recoverySettings.regenerate();
                                 }}
                                 className="px-3 py-1.5 rounded-lg bg-neon-green/10 border border-neon-green/30 text-neon-green text-[10px] font-bold hover:bg-neon-green/20 transition-colors"
                             >
-                                {props.recoverySettings.count === 0 ? 'Generate' : 'Regenerate'}
+                                {props.recoverySettings.count === 0 ? t('generateCode') : t('regenerateCode')}
                             </button>
                         </div>
 
                         <p className="text-[10px] text-zinc-500 text-center py-2">
                             {props.recoverySettings.count > 0
-                                ? `${props.recoverySettings.count}/10 codes remaining`
-                                : 'No recovery codes generated yet'}
+                                ? t('recoveryCodesRemaining').replace('{{count}}', String(props.recoverySettings.count))
+                                : t('recoveryCodesNone')}
                         </p>
                     </div>
 
                     <p className="text-[9px] text-zinc-600 leading-relaxed">
-                        Save these codes in a safe place. Each code can be used only once to reset your Master password without losing data.
+                        {t('recoveryCodesSaveWarning')}
                     </p>
                 </div>
 
@@ -686,7 +690,7 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                             </div>
                             <div className="text-left">
                                 <h4 className="text-sm font-bold text-primary">{t('aboutUs')}</h4>
-                                <p className="text-[10px] text-muted">ObscuritySecurity</p>
+                                <p className="text-[10px] text-muted">{t('obscuritySecurity')}</p>
                             </div>
                         </div>
                         <ArrowLeft className="rotate-180 text-muted group-hover:text-neon-green transition-colors" size={18} />
@@ -696,7 +700,7 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                 <div className="pt-2 text-center space-y-2">
                     <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface border border-border">
                         <span className="w-2 h-2 rounded-full bg-neon-green animate-pulse"></span>
-                        <span className="text-[10px] font-mono text-muted">v2.5.0-beta</span>
+                        <span className="text-[10px] font-mono text-muted">{t('versionLabel')}</span>
                     </div>
                 </div>
                 </div>
@@ -835,7 +839,7 @@ export const ThemesGalleryView: React.FC<{
                                  <div className="flex items-center gap-1.5 pt-0.5">
                                      <div className="h-5 flex-1 rounded-lg flex items-center justify-center gap-1" style={{ backgroundColor: theme.accent }}>
                                          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke={isLight ? theme.bgMain : '#000'} strokeWidth="3" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                                         <span className="text-[6px] font-bold" style={{ color: isLight ? theme.bgMain : '#000' }}>Upload</span>
+                                          <span className="text-[6px] font-bold" style={{ color: isLight ? theme.bgMain : '#000' }}>{t('upload')}</span>
                                      </div>
                                      <div className="h-5 w-5 rounded-lg flex items-center justify-center" style={{ backgroundColor: theme.bgSurface, border: `1px solid ${theme.border}` }}>
                                          <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke={theme.textMuted} strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -1046,9 +1050,9 @@ export const AboutView: React.FC<{
               <h1 className="text-4xl font-black text-primary mb-3 tracking-tight">
                   Cryto<span className="text-neon-green">Tool</span>
               </h1>
-              <p className="text-xs text-zinc-500 font-medium mb-4">Privacy-First File Vault</p>
+              <p className="text-xs text-zinc-500 font-medium mb-4">{t('privacyFirstVault')}</p>
               <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-900/80 border border-zinc-800">
-                  <span className="text-neon-green text-[10px] font-black uppercase tracking-widest">v2.5.0-beta</span>
+                  <span className="text-neon-green text-[10px] font-black uppercase tracking-widest">{t('versionLabel')}</span>
                   <span className="text-zinc-600 text-[8px]">•</span>
                   <span className="text-zinc-500 text-[10px]">Build 2026.04.07</span>
               </div>
@@ -1058,7 +1062,7 @@ export const AboutView: React.FC<{
           <div className="flex justify-center mb-8">
               <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-red-600 via-yellow-500 to-blue-600 text-white text-xs font-bold shadow-lg">
                   <span className="text-lg">🇷🇴</span>
-                  <span>Made in Romania</span>
+                  <span>{t('madeInRomania')}</span>
               </div>
           </div>
 
@@ -1069,45 +1073,45 @@ export const AboutView: React.FC<{
                       <div className="w-8 h-8 rounded-lg bg-neon-green/10 flex items-center justify-center">
                           <Target size={16} className="text-neon-green" />
                       </div>
-                       <h4 className="text-xs font-black uppercase tracking-[0.2em] text-neon-green">Our Mission</h4>
+                       <h4 className="text-xs font-black uppercase tracking-[0.2em] text-neon-green">{t('ourMission')}</h4>
                    </div>
                    <p className="text-sm text-zinc-300 leading-relaxed">
-                       We believe privacy is a fundamental right. CrytoTool is built with a single mission: to protect your data without compromise — no tracking, no data collection.
+                       {t('missionStatement')}
                    </p>
               </section>
 
               {/* Features Grid */}
               <section>
-                   <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-4">Main Features</h4>
+                   <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-4">{t('mainFeatures')}</h4>
                   <div className="grid grid-cols-2 gap-3">
                       <div className="p-4 bg-zinc-900/60 border border-zinc-800/50 rounded-xl hover:border-neon-green/30 transition-colors">
                           <Lock size={20} className="text-neon-green mb-2" />
-                          <div className="text-white font-bold text-xs mb-1">End-to-End Encryption</div>
-                           <div className="text-[10px] text-zinc-500">6 modern algorithms</div>
+                          <div className="text-white font-bold text-xs mb-1">{t('endToEndEncryption')}</div>
+                           <div className="text-[10px] text-zinc-500">{t('sixModernAlgorithms')}</div>
                       </div>
                       <div className="p-4 bg-zinc-900/60 border border-zinc-800/50 rounded-xl hover:border-neon-green/30 transition-colors">
                           <EyeOff size={20} className="text-neon-green mb-2" />
-                          <div className="text-white font-bold text-xs mb-1">Zero Data Collection</div>
-                           <div className="text-[10px] text-zinc-500">100% local & private</div>
+                          <div className="text-white font-bold text-xs mb-1">{t('zeroDataCollection')}</div>
+                           <div className="text-[10px] text-zinc-500">{t('localPrivate')}</div>
                       </div>
                       <div className="p-4 bg-zinc-900/60 border border-zinc-800/50 rounded-xl hover:border-neon-green/30 transition-colors">
                           <Globe size={20} className="text-neon-green mb-2" />
-                          <div className="text-white font-bold text-xs mb-1">25+ Languages</div>
-                           <div className="text-[10px] text-zinc-500">Multilingual support</div>
+                          <div className="text-white font-bold text-xs mb-1">{t('languages25Plus')}</div>
+                           <div className="text-[10px] text-zinc-500">{t('multilingualSupport')}</div>
                       </div>
                       <div className="p-4 bg-zinc-900/60 border border-zinc-800/50 rounded-xl hover:border-neon-green/30 transition-colors">
                           <Github size={20} className="text-neon-green mb-2" />
-                          <div className="text-white font-bold text-xs mb-1">Open Source</div>
-                           <div className="text-[10px] text-zinc-500">Transparent & verifiable</div>
+                          <div className="text-white font-bold text-xs mb-1">{t('openSourceLabel')}</div>
+                           <div className="text-[10px] text-zinc-500">{t('transparentVerifiable')}</div>
                       </div>
                   </div>
               </section>
 
               {/* Tech Stack */}
               <section>
-                   <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-4">Technologies</h4>
+                   <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 mb-4">{t('technologiesLabel')}</h4>
                   <div className="flex flex-wrap gap-2">
-                      {['React 18', 'TypeScript', 'Framer Motion', 'Web Crypto API', 'IndexedDB', 'Tailwind CSS'].map((tech) => (
+                      {[t('techReact'), t('techTypeScript'), t('techFramerMotion'), t('techWebCryptoApi'), t('techIndexedDb'), t('techTailwind')].map((tech) => (
                           <span key={tech} className="px-3 py-1.5 bg-zinc-900 border border-zinc-800 rounded-full text-[10px] text-zinc-400 font-medium">
                               {tech}
                           </span>
@@ -1123,8 +1127,8 @@ export const AboutView: React.FC<{
                               <span className="text-neon-green font-black text-sm">OS</span>
                           </div>
                           <div>
-                              <h5 className="text-sm font-bold text-white">ObscuritySecurity</h5>
-                               <p className="text-[10px] text-zinc-500">Founder & Developer</p>
+                              <h5 className="text-sm font-bold text-white">{t('obscuritySecurity')}</h5>
+                               <p className="text-[10px] text-zinc-500">{t('founderDeveloper')}</p>
                           </div>
                       </div>
                       <button className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-white hover:text-neon-green hover:border-neon-green transition-all">
@@ -1136,7 +1140,7 @@ export const AboutView: React.FC<{
                {/* Footer */}
               <div className="pt-6 text-center">
                   <p className="text-[9px] text-zinc-700">
-                      Open Source - Contributions welcome on GitHub
+                      {t('openSourceFooter')}
                   </p>
                </div>
           </div>

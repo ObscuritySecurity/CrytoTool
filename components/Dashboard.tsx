@@ -354,8 +354,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
           return url;
       }
     } catch (e) {
-      console.error("Eroare la decriptarea Lazy:", e);
-      alert("Decriptare esuata. Cheia sau datele sunt incorecte.");
+      console.error("Lazy decryption error:", e);
+      alert(t('decryptionFailed'));
       return null;
     }
   };
@@ -460,8 +460,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
     try {
       const dbItems = await db.getAllItems();
       const systemItems: FileSystemItem[] = [
-        { id: 'sys-1', parentId: null, type: 'system', name: 'Vault', status: vaultSettings.enabled ? 'Active' : 'Disabled', date: 'System', category: 'other' },
-        { id: 'sys-2', parentId: null, type: 'system', name: 'Backup', status: 'Secure', date: 'System', category: 'other' },
+        { id: 'sys-1', parentId: null, type: 'system', name: t('systemFolderVault'), status: vaultSettings.enabled ? t('systemActive') : t('systemDisabled'), date: t('systemDate'), category: 'other' },
+        { id: 'sys-2', parentId: null, type: 'system', name: t('systemFolderBackup'), status: t('systemSecure'), date: t('systemDate'), category: 'other' },
       ];
 
       const loadedItems: FileSystemItem[] = await Promise.all(dbItems.map(async (i) => {
@@ -600,7 +600,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   const handleNavigate = (item: FileSystemItem) => {
-    if (item.name === 'Vault' && item.type === 'system') {
+    if (item.name === t('systemFolderVault') && item.type === 'system') {
         if (vaultSettings.enabled) {
             setPendingVaultAction('access');
             setPinModalMode('unlock');
@@ -613,7 +613,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         return;
     }
 
-    if (item.name === 'Backup' && item.type === 'system') {
+    if (item.name === t('systemFolderBackup') && item.type === 'system') {
         setCurrentView('backup');
         return;
     }
@@ -802,13 +802,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <RecoveryCodesModal
             codes={recoverySettings.codes}
             onDownload={() => {
-              const header = 'CrytoTool Recovery Codes\nGenerated: ' + new Date().toISOString().split('T')[0] + '\n\u2500'.repeat(30) + '\n\n';
+              const date = new Date().toISOString().split('T')[0];
+              const header = t('exportHeader').replace('{{date}}', date);
               const content = header + recoverySettings.codes!.join('\n');
               const blob = new Blob([content], { type: 'text/plain' });
               const url = URL.createObjectURL(blob);
               const a = document.createElement('a');
               a.href = url;
-              a.download = 'crytotool-recovery-codes.txt';
+              a.download = t('exportFilename');
               a.click();
               URL.revokeObjectURL(url);
             }}
@@ -962,10 +963,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                        initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
                        className="mb-4 p-4 rounded-2xl bg-neon-green/10 border border-neon-green/30 flex items-center justify-between"
                      >
-                       <div className="flex items-center gap-3">
-                         <span className="text-neon-green font-bold">{selectedItems.size}</span>
-                         <span className="text-zinc-400 text-sm">selectate</span>
-                       </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-neon-green font-bold">{selectedItems.size}</span>
+                          <span className="text-zinc-400 text-sm">{t('selectedCount')}</span>
+                        </div>
                        <div className="flex items-center gap-2">
                          <button onClick={handleCopySelected} className="p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700">
                            <Copy size={18} className="text-white" />
@@ -976,9 +977,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                          <button onClick={handleDeleteSelected} className="p-2 rounded-lg bg-red-500/20 hover:bg-red-500/30">
                            <Trash2 size={18} className="text-red-500" />
                          </button>
-                         <button onClick={() => { setIsSelectionMode(false); setSelectedItems(new Set()); }} className="px-3 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-bold">
-                            Cancel
-                         </button>
+                          <button onClick={() => { setIsSelectionMode(false); setSelectedItems(new Set()); }} className="px-3 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-bold">
+                            {t('cancel')}
+                          </button>
                        </div>
                      </motion.div>
                    )}
@@ -1063,7 +1064,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                             </div>
                             <div className="flex-1 min-w-0 flex flex-col justify-center z-10">
                                <h4 className="text-sm font-bold text-primary truncate">{currentPlayingItem.name}</h4>
-                               <p className="text-xs text-muted truncate">{currentPlayingItem.artist || 'Unknown'}</p>
+                               <p className="text-xs text-muted truncate">{currentPlayingItem.artist || t('unknownArtist')}</p>
                             </div>
                             <div className="flex items-center gap-2 z-10">
                                <button 

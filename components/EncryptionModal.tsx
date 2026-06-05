@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Shield, Zap, Cpu, Lock, Key, Copy, Check, ArrowRight, ArrowLeft, Loader2, HelpCircle, Smartphone, Monitor, Server, AlertTriangle } from 'lucide-react';
 import { FileSystemItem } from '../types';
@@ -17,122 +17,128 @@ interface EncryptionModalProps {
 import { streamCrypto } from '../utils/streamCrypto';
 import { vaultStorage } from '../utils/vaultStorage';
 
-const ALGORITHMS: { id: CryptoAlgorithm; name: string; desc: string; badge: string }[] = [
-  { id: 'AES-GCM-Stream', name: 'AES-GCM Stream', desc: 'Streaming — any size, any device.', badge: 'STREAM' },
-  { id: 'AES-GCM', name: 'AES-GCM', desc: 'Industry standard. Authenticated & Fast. Government recommended.', badge: 'NIST' },
-  { id: 'XChaCha20-Poly1305', name: 'XChaCha20-Poly1305', desc: 'Most modern. Extended 192-bit nonce. Ideal for cloud & storage.', badge: 'MODERN' },
-  { id: 'ChaCha20-Poly1305', name: 'ChaCha20-Poly1305', desc: 'Fast on mobile. Used by Google Chrome and WhatsApp.', badge: 'FAST' },
-  { id: 'AES-CTR', name: 'AES-CTR', desc: 'Classic + HMAC-SHA256. Secure and time-tested.', badge: 'HMAC' },
-  { id: 'Salsa20-Poly1305', name: 'Salsa20-Poly1305', desc: 'Grandfather of ChaCha20. Fast and secure. For enthusiasts.', badge: 'CLASSIC' },
-];
-
-const ALGO_INFO: Record<CryptoAlgorithm, { title: string; subtitle: string; body: string; analogy: string; useCase: string; strength: string }> = {
-  'AES-GCM-Stream': {
-    title: 'AES-GCM Stream',
-    subtitle: 'Streaming Encryption — Any Device',
-    body: 'AES-GCM Stream processes files in small 4MB chunks, so device memory is never overloaded. Works perfectly on old phones, entry-level tablets, or any device regardless of RAM. Each chunk is individually encrypted and authenticated with AES-GCM.',
-    analogy: 'Like a worker moving a house — not all at once, but brick by brick. Similarly, the app processes the file chunk by chunk without exhausting the device.',
-    useCase: 'For any type of file, regardless of size. Ideal for large videos, archives, or entire folders on resource-limited devices.',
-    strength: 'AES-GCM per chunk with 128-bit tag. Each chunk is verified individually — if one is corrupted, you know exactly which one.',
-  },
-  'AES-GCM': {
-    title: 'AES-GCM',
-    subtitle: 'The Gold Standard of Encryption',
-    body: 'AES-GCM is the most widely used encryption algorithm in the world. Recommended by the US government and used by banks, armies, and tech companies like Apple and Microsoft. Think of it as a steel safe with two doors: one hides the content, the other verifies that no one has opened it.',
-    analogy: 'Like a wax-sealed letter — if someone tries to open it, the seal breaks and you know immediately.',
-    useCase: 'Perfect for documents, photos, and personal files. Safe choice if you are unsure what to pick.',
-    strength: '256-bit key — would take billions of years to break with current technology.',
-  },
-  'XChaCha20-Poly1305': {
-    title: 'XChaCha20-Poly1305',
-    subtitle: 'The Most Modern Algorithm',
-    body: 'XChaCha20 is the improved version of ChaCha20, created by genius mathematician Daniel J. Bernstein. Used by Google Chrome and WhatsApp to protect communications. The difference from the normal version is it uses a much larger "fingerprint" (192-bit nonce), meaning the chance of repeating a combination is practically zero.',
-    analogy: 'Like a lock with a 192-digit combination — not just 96. Chances of guessing the combo are lower than winning the lottery 10 times in a row.',
-    useCase: 'Ideal for files stored in the cloud or sent over the internet. Best long-term protection.',
-    strength: 'Extended 192-bit nonce combination — most secure against accidental collisions.',
-  },
-  'ChaCha20-Poly1305': {
-    title: 'ChaCha20-Poly1305',
-    subtitle: 'Speed on Mobile Devices',
-    body: 'ChaCha20 was created specifically to be fast on phones and tablets where processors are not as powerful as on computers. Google chose it to protect internet traffic in Chrome and Android. Just as secure as AES-GCM, but runs more smoothly on older devices.',
-    analogy: 'Like a marathon runner — not the biggest or strongest, but runs consistently and efficiently without getting tired.',
-    useCase: 'Excellent for large files on phone or tablet. If you want speed without compromising security.',
-    strength: 'Just as secure as AES-GCM, but 2-3 times faster on phones.',
-  },
-  'AES-CTR': {
-    title: 'AES-CTR + HMAC',
-    subtitle: 'Reinforced Classic Combination',
-    body: 'AES-CTR is one of the oldest encryption modes. By itself, it does not verify if someone modified the file. That is why we added a "guardian" — HMAC-SHA256 — which verifies data integrity on each decryption. If the password is wrong or the file was tampered with, you will know immediately.',
-    analogy: 'Like a letter in a transparent envelope with a seal strip — the envelope hides the message, and the strip shows if someone touched it.',
-    useCase: 'For those who prefer classic, time-tested algorithms. Now just as secure as any other thanks to HMAC.',
-    strength: 'Combination of the most studied cipher (AES) and the most verified authentication system (HMAC).',
-  },
-  'Salsa20-Poly1305': {
-    title: 'Salsa20-Poly1305',
-    subtitle: 'Classic DJB Speedster',
-    body: 'Salsa20 is the "grandfather" of ChaCha20 — the original algorithm created by Daniel J. Bernstein in 2005. Was a finalist in the eSTREAM competition for the best encryption algorithm. Although replaced by ChaCha20 (a slightly improved version), it remains extremely fast and secure.',
-    analogy: 'Like a classic car — does not have the newest gadgets, but the engine is reliable and runs just as well as any other.',
-    useCase: 'For connoisseurs and encryption enthusiasts. A solid choice, tested for nearly 20 years.',
-    strength: 'eSTREAM finalist, audited by thousands of researchers. 256-bit key + Poly1305 for integrity.',
-  },
-};
-
-const HARDWARE_TIERS: Record<'low' | 'mid' | 'flagship', {
+type TierKey = 'low' | 'mid' | 'flagship';
+type AlgoEntry = { id: CryptoAlgorithm; name: string; desc: string; badge: string };
+type AlgoInfo = { title: string; subtitle: string; body: string; analogy: string; useCase: string; strength: string };
+type TierLimits = { type: string; max: string }[];
+type TierInfo = {
   label: string;
   subtitle: string;
   icon: typeof Smartphone;
   ram: string;
   cpu: string;
-  limits: { type: string; max: string }[];
+  limits: TierLimits;
   warning: string;
   time: string;
-}> = {
+};
+
+const buildAlgorithms = (t: (key: any) => string): AlgoEntry[] => [
+  { id: 'AES-GCM-Stream', name: t('algoAesGcmStreamTitle'), desc: t('streamingDesc'), badge: t('streamBadge') },
+  { id: 'AES-GCM', name: t('algoAesGcmTitle'), desc: t('industryStandardDesc'), badge: t('nistBadge') },
+  { id: 'XChaCha20-Poly1305', name: t('algoXChaCha20Title'), desc: t('modernExtendedNonceDesc'), badge: t('modernBadge') },
+  { id: 'ChaCha20-Poly1305', name: t('algoChaCha20Title'), desc: t('fastMobileDesc'), badge: t('fastBadge') },
+  { id: 'AES-CTR', name: t('algoAesCtrTitle'), desc: t('classicHmacDesc'), badge: t('hmacBadge') },
+  { id: 'Salsa20-Poly1305', name: t('algoSalsa20Title'), desc: t('salsa20Desc'), badge: t('classicBadge') },
+];
+
+const buildAlgoInfo = (t: (key: any) => string): Record<CryptoAlgorithm, AlgoInfo> => ({
+  'AES-GCM-Stream': {
+    title: t('algoAesGcmStreamTitle'),
+    subtitle: t('algoAesGcmStreamSubtitle'),
+    body: t('algoAesGcmStreamBody'),
+    analogy: t('algoAesGcmStreamAnalogy'),
+    useCase: t('algoAesGcmStreamUseCase'),
+    strength: t('algoAesGcmStreamStrength'),
+  },
+  'AES-GCM': {
+    title: t('algoAesGcmTitle'),
+    subtitle: t('algoAesGcmSubtitle'),
+    body: t('algoAesGcmBody'),
+    analogy: t('algoAesGcmAnalogy'),
+    useCase: t('algoAesGcmUseCase'),
+    strength: t('algoAesGcmStrength'),
+  },
+  'XChaCha20-Poly1305': {
+    title: t('algoXChaCha20Title'),
+    subtitle: t('algoXChaCha20Subtitle'),
+    body: t('algoXChaCha20Body'),
+    analogy: t('algoXChaCha20Analogy'),
+    useCase: t('algoXChaCha20UseCase'),
+    strength: t('algoXChaCha20Strength'),
+  },
+  'ChaCha20-Poly1305': {
+    title: t('algoChaCha20Title'),
+    subtitle: t('algoChaCha20Subtitle'),
+    body: t('algoChaCha20Body'),
+    analogy: t('algoChaCha20Analogy'),
+    useCase: t('algoChaCha20UseCase'),
+    strength: t('algoChaCha20Strength'),
+  },
+  'AES-CTR': {
+    title: t('algoAesCtrTitle'),
+    subtitle: t('algoAesCtrSubtitle'),
+    body: t('algoAesCtrBody'),
+    analogy: t('algoAesCtrAnalogy'),
+    useCase: t('algoAesCtrUseCase'),
+    strength: t('algoAesCtrStrength'),
+  },
+  'Salsa20-Poly1305': {
+    title: t('algoSalsa20Title'),
+    subtitle: t('algoSalsa20Subtitle'),
+    body: t('algoSalsa20Body'),
+    analogy: t('algoSalsa20Analogy'),
+    useCase: t('algoSalsa20UseCase'),
+    strength: t('algoSalsa20Strength'),
+  },
+});
+
+const buildHardwareTiers = (t: (key: any) => string): Record<TierKey, TierInfo> => ({
   low: {
-    label: 'Low-End',
-    subtitle: 'Old Phones / Entry-level',
+    label: t('tierLowLabel'),
+    subtitle: t('tierLowSubtitle'),
     icon: Smartphone,
-    ram: '2-4 GB RAM',
-    cpu: 'Weak dual-core / quad-core processor',
+    ram: t('tierLowRam'),
+    cpu: t('tierLowCpu'),
     limits: [
-      { type: '🖼️ Photos', max: 'Up to 50 MB per file' },
-      { type: '🎵 Audio', max: 'Up to 200 MB per file' },
-      { type: '🎬 Video', max: 'Up to 500 MB per file' },
-      { type: '📁 Folders', max: 'Max 5-10 files simultaneously' },
+      { type: '🖼️ ' + t('limitPhotos'), max: t('limit50mbPerFile') },
+      { type: '🎵 ' + t('limitAudio'), max: t('limit200mbPerFile') },
+      { type: '🎬 ' + t('limitVideo'), max: t('limit500mbPerFile') },
+      { type: '📁 ' + t('limitFolders'), max: t('limitFoldersLow') },
     ],
-    warning: 'These are just general estimates. You can try to encrypt larger files, but the app may crash if resources are insufficient.',
-    time: '~10-30 seconds per 10 MB file',
+    warning: t('tierWarning'),
+    time: t('tierLowTime'),
   },
   mid: {
-    label: 'Mid-Range',
-    subtitle: 'Recent Phones / Laptops',
+    label: t('tierMidLabel'),
+    subtitle: t('tierMidSubtitle'),
     icon: Monitor,
-    ram: '6-8 GB RAM',
-    cpu: 'Medium octa-core processor',
+    ram: t('tierMidRam'),
+    cpu: t('tierMidCpu'),
     limits: [
-      { type: '🖼️ Photos', max: 'No practical limit' },
-      { type: '🎵 Audio', max: 'Up to 500 MB per file' },
-      { type: '🎬 Video', max: 'Up to 1 GB per file' },
-      { type: '📁 Folders', max: 'Max 15-25 files simultaneously' },
+      { type: '🖼️ ' + t('limitPhotos'), max: t('limitNoPractical') },
+      { type: '🎵 ' + t('limitAudio'), max: t('limit500mbPerFile') },
+      { type: '🎬 ' + t('limitVideo'), max: t('limit1gbPerFile') },
+      { type: '📁 ' + t('limitFolders'), max: t('limitFoldersMid') },
     ],
-    warning: 'These are just general estimates. You can try to encrypt larger files, but the app may crash if resources are insufficient.',
-    time: '~5-15 seconds per 10 MB file',
+    warning: t('tierWarning'),
+    time: t('tierMidTime'),
   },
   flagship: {
-    label: 'Flagship',
-    subtitle: 'Powerful PCs / Premium Phones',
+    label: t('tierFlagshipLabel'),
+    subtitle: t('tierFlagshipSubtitle'),
     icon: Server,
-    ram: '16+ GB RAM',
-    cpu: 'Powerful multi-core processor',
+    ram: t('tierFlagshipRam'),
+    cpu: t('tierFlagshipCpu'),
     limits: [
-      { type: '🖼️ Photos', max: 'No practical limit' },
-      { type: '🎵 Audio', max: 'No practical limit' },
-      { type: '🎬 Video', max: 'Up to 4 GB per file' },
-      { type: '📁 Folders', max: 'Max 50+ files simultaneously' },
+      { type: '🖼️ ' + t('limitPhotos'), max: t('limitNoPractical') },
+      { type: '🎵 ' + t('limitAudio'), max: t('limitNoPractical') },
+      { type: '🎬 ' + t('limitVideo'), max: t('limit4gbPerFile') },
+      { type: '📁 ' + t('limitFolders'), max: t('limitFoldersFlagship') },
     ],
-    warning: 'These are just general estimates. You can try to encrypt larger files, but the app may crash if resources are insufficient.',
-    time: '~2-8 seconds per 10 MB file',
+    warning: t('tierWarning'),
+    time: t('tierFlagshipTime'),
   },
-};
+});
 
 interface EncryptionModalProps {
   isOpen: boolean;
@@ -147,7 +153,7 @@ export const EncryptionModal: React.FC<EncryptionModalProps> = ({ isOpen, onClos
   const { t } = useI18n();
   const [step, setStep] = useState<'algo' | 'key' | 'processing'>('algo');
   const [selectedAlgo, setSelectedAlgo] = useState<CryptoAlgorithm>('AES-GCM-Stream');
-  const [selectedTier, setSelectedTier] = useState<'low' | 'mid' | 'flagship'>('mid');
+  const [selectedTier] = useState<TierKey>('mid');
   const [generatedKey, setGeneratedKey] = useState('');
   const [copied, setCopied] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -156,6 +162,10 @@ export const EncryptionModal: React.FC<EncryptionModalProps> = ({ isOpen, onClos
   const [selectedVaultCategory, setSelectedVaultCategory] = useState<string>('');
   const [showPinSetup, setShowPinSetup] = useState(false);
   const [pinSetupComplete, setPinSetupComplete] = useState(false);
+
+  const ALGORITHMS = useMemo(() => buildAlgorithms(t), [t]);
+  const ALGO_INFO = useMemo(() => buildAlgoInfo(t), [t]);
+  const HARDWARE_TIERS = useMemo(() => buildHardwareTiers(t), [t]);
 
   const handleToggleSaveToVault = async () => {
     if (!saveToVault && !vaultPin) {
@@ -275,8 +285,8 @@ export const EncryptionModal: React.FC<EncryptionModalProps> = ({ isOpen, onClos
 
   const getHeaderTitle = () => {
     if (infoAlgo) return ALGO_INFO[infoAlgo].title;
-    if (step === 'key') return 'Encryption Key';
-    if (step === 'processing') return 'Encrypting...';
+    if (step === 'key') return t('encryptionKeyHeader');
+    if (step === 'processing') return t('encrypting');
     return t('manualEncryption');
   };
 
@@ -331,26 +341,26 @@ export const EncryptionModal: React.FC<EncryptionModalProps> = ({ isOpen, onClos
                                  onClick={() => setInfoAlgo(null)}
                                  className="text-[9px] md:text-sm font-bold text-zinc-500 hover:text-neon-green uppercase flex items-center gap-1"
                              >
-                                 ← Back
+                                 ← {t('backButton')}
                              </button>
 
                              <div className="p-2 md:p-4 rounded-lg md:rounded-xl bg-zinc-900/80 border border-zinc-800">
-                                 <h4 className="text-[10px] md:text-base font-bold text-white mb-1">What is this?</h4>
+                                 <h4 className="text-[10px] md:text-base font-bold text-white mb-1">{t('whatIsThis')}</h4>
                                  <p className="text-[9px] md:text-sm text-zinc-400 leading-tight">{ALGO_INFO[infoAlgo].body}</p>
                              </div>
-                             
+
                              <div className="p-2 md:p-4 rounded-lg md:rounded-xl bg-neon-green/5 border border-neon-green/20">
-                                 <h4 className="text-[10px] md:text-base font-bold text-neon-green mb-1">💡 Analogy</h4>
+                                 <h4 className="text-[10px] md:text-base font-bold text-neon-green mb-1">💡 {t('analogyLabel')}</h4>
                                  <p className="text-[9px] md:text-sm text-zinc-300 leading-tight italic">{ALGO_INFO[infoAlgo].analogy}</p>
                              </div>
-                             
+
                              <div className="p-2 md:p-4 rounded-lg md:rounded-xl bg-zinc-800/50 border border-zinc-700">
-                                 <h4 className="text-[10px] md:text-base font-bold text-zinc-300 mb-1">When to use it?</h4>
+                                 <h4 className="text-[10px] md:text-base font-bold text-zinc-300 mb-1">{t('whenToUse')}</h4>
                                  <p className="text-[9px] md:text-sm text-zinc-400 leading-tight">{ALGO_INFO[infoAlgo].useCase}</p>
                              </div>
-                             
+
                              <div className="p-2 md:p-4 rounded-lg md:rounded-xl bg-zinc-800/30 border border-zinc-700/50">
-                                 <h4 className="text-[10px] md:text-base font-bold text-zinc-400 mb-1">Security level</h4>
+                                 <h4 className="text-[10px] md:text-base font-bold text-zinc-400 mb-1">{t('securityLevel')}</h4>
                                  <p className="text-[9px] md:text-sm text-zinc-500 leading-tight">{ALGO_INFO[infoAlgo].strength}</p>
                              </div>
                         </motion.div>
@@ -365,7 +375,7 @@ export const EncryptionModal: React.FC<EncryptionModalProps> = ({ isOpen, onClos
                             exit={{ opacity: 0, x: -20 }}
                             className="space-y-2"
                         >
-                             <h4 className="text-[8px] font-black uppercase text-zinc-500">Algorithms</h4>
+                             <h4 className="text-[8px] font-black uppercase text-zinc-500">{t('algorithmsSection')}</h4>
 
                              <button
                                  onClick={() => setSelectedAlgo('AES-GCM-Stream')}
@@ -385,15 +395,15 @@ export const EncryptionModal: React.FC<EncryptionModalProps> = ({ isOpen, onClos
                                           >
                                                <HelpCircle size={8} className="md:size-4" />
                                            </span>
-                                          <span className="text-[7px] md:text-xs px-1.5 md:px-3 py-0.5 md:py-1.5 rounded md:rounded-full bg-neon-green/20 text-neon-green font-bold">Recommended</span>
+                                          <span className="text-[7px] md:text-xs px-1.5 md:px-3 py-0.5 md:py-1.5 rounded md:rounded-full bg-neon-green/20 text-neon-green font-bold">{t('recommendedBadge')}</span>
                                       </div>
                                   </div>
-                                  <p className="text-[7px] md:text-sm text-zinc-500 mt-1 md:mt-2">Streaming — any size, any device. Ideal for old phones and tablets.</p>
+                                  <p className="text-[7px] md:text-sm text-zinc-500 mt-1 md:mt-2">{t('streamingDesc')}</p>
                               </button>
 
                               <div className="flex items-center gap-2 md:gap-4 my-2 md:my-4">
                                  <div className="flex-1 h-px bg-zinc-800" />
-                                 <span className="text-[7px] md:text-xs font-black uppercase text-zinc-700">Other algorithms</span>
+                                 <span className="text-[7px] md:text-xs font-black uppercase text-zinc-700">{t('otherAlgorithms')}</span>
                                  <div className="flex-1 h-px bg-zinc-800" />
                              </div>
 
@@ -434,7 +444,7 @@ export const EncryptionModal: React.FC<EncryptionModalProps> = ({ isOpen, onClos
                          >
                              <div className="flex items-center gap-1.5 md:gap-3">
                                  <Key size={8} className="text-neon-green md:size-4" />
-                                 <h4 className="text-[8px] md:text-sm font-black text-zinc-300">Unique Key</h4>
+                                 <h4 className="text-[8px] md:text-sm font-black text-zinc-300">{t('uniqueKey')}</h4>
                              </div>
                              <div className="relative bg-black border border-zinc-800 rounded md:rounded-xl p-2 md:p-4 font-mono text-[8px] md:text-xs text-neon-green break-all">
                                  {generatedKey}
@@ -446,7 +456,7 @@ export const EncryptionModal: React.FC<EncryptionModalProps> = ({ isOpen, onClos
                                  </button>
                              </div>
                              <div className="p-2 md:p-4 bg-zinc-800/50 border border-zinc-700 rounded md:rounded-xl">
-                                 <p className="text-[7px] md:text-xs text-zinc-400">Save this key to Vault or copy it!</p>
+                                  <p className="text-[7px] md:text-xs text-zinc-400">{t('saveKeyToVaultOrCopy')}</p>
                              </div>
 
                              <button
@@ -457,7 +467,7 @@ export const EncryptionModal: React.FC<EncryptionModalProps> = ({ isOpen, onClos
                                      <div className={`w-5 h-5 md:w-8 md:h-8 rounded md:rounded-xl flex items-center justify-center ${saveToVault ? 'bg-neon-green/20' : 'bg-zinc-800'}`}>
                                          <Shield size={8} className="md:size-4" />
                                      </div>
-                                     <span className="text-[9px] md:text-sm font-bold text-zinc-400">Save to Vault</span>
+                                      <span className="text-[9px] md:text-sm font-bold text-zinc-400">{t('saveToVaultToggle')}</span>
                                  </div>
                                  <div className={`w-6 h-3 md:w-9 md:h-5 rounded-full flex items-center ${saveToVault ? 'bg-neon-green' : 'bg-zinc-700'}`}>
                                      <div className={`w-2.5 h-2.5 md:w-3.5 md:h-3.5 rounded-full bg-white transition-transform ${saveToVault ? 'translate-x-3 md:translate-x-4' : 'translate-x-0.5'}`} />
@@ -479,8 +489,8 @@ export const EncryptionModal: React.FC<EncryptionModalProps> = ({ isOpen, onClos
                                  <Loader2 size={64} className="text-neon-green animate-spin relative z-10" />
                              </div>
                              <div className="text-center">
-                                 <h4 className="text-xl font-bold text-white">Encrypting...</h4>
-                                 <p className="text-zinc-400 text-xs mt-2 font-mono">Applying {selectedAlgo}</p>
+                                  <h4 className="text-xl font-bold text-white">{t('encrypting')}</h4>
+                                  <p className="text-zinc-400 text-xs mt-2 font-mono">{t('applyingAlgorithm')} {selectedAlgo}</p>
                              </div>
                          </motion.div>
                      )}
@@ -492,31 +502,31 @@ export const EncryptionModal: React.FC<EncryptionModalProps> = ({ isOpen, onClos
             {step !== 'processing' && (
                 <div className="p-3 md:p-6 border-t border-zinc-800 bg-zinc-900/30 flex justify-between items-center gap-3 md:gap-6 shrink-0">
                      {step === 'key' ? (
-                         <button 
-                             onClick={() => setStep('algo')} 
-                             className="text-[9px] md:text-xs font-bold text-zinc-500 hover:text-white uppercase flex items-center gap-1"
-                         >
-                             ← Back
-                         </button>
+                          <button
+                              onClick={() => setStep('algo')}
+                              className="text-[9px] md:text-xs font-bold text-zinc-500 hover:text-white uppercase flex items-center gap-1"
+                          >
+                              ← {t('backButton')}
+                          </button>
                      ) : (
                          <div /> 
                      )}
 
-                     {step === 'algo' ? (
-                         <button 
-                             onClick={() => setStep('key')}
-                             className="px-5 md:px-10 py-2.5 md:py-3 rounded-lg md:rounded-xl bg-white text-black text-[10px] md:text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"
-                         >
-                             Continue →
-                         </button>
-                     ) : (
-                         <button 
-                             onClick={handleEncrypt}
-                             className="px-5 md:px-10 py-2.5 md:py-3 rounded-lg md:rounded-xl bg-white text-black text-[10px] md:text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"
-                         >
-                             Encrypt →
-                         </button>
-                     )}
+                      {step === 'algo' ? (
+                          <button
+                              onClick={() => setStep('key')}
+                              className="px-5 md:px-10 py-2.5 md:py-3 rounded-lg md:rounded-xl bg-white text-black text-[10px] md:text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"
+                          >
+                              {t('continueButton')} →
+                          </button>
+                      ) : (
+                          <button
+                              onClick={handleEncrypt}
+                              className="px-5 md:px-10 py-2.5 md:py-3 rounded-lg md:rounded-xl bg-white text-black text-[10px] md:text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"
+                          >
+                              {t('encrypt')} →
+                          </button>
+                      )}
                 </div>
             )}
         </motion.div>

@@ -150,7 +150,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
                     <h2 className="text-xl font-bold tracking-wide text-white flex items-center gap-2">
                         {activeCategory ? activeCategory.name : (t('keyStorage') || 'Stocare Chei')} 
                     </h2>
-                    {activeCategory && <p className="text-[10px] text-zinc-500 uppercase tracking-widest">{activeCategory.count} {t('entries') || 'Entries'}</p>}
+                    {activeCategory && <p className="text-[10px] text-zinc-500 uppercase tracking-widest">{activeCategory.count} {t('elementsLabel')}</p>}
                  </div>
              </div>
          </div>
@@ -158,7 +158,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
          <div className="mt-4 relative">
             <input 
                 type="text" 
-                placeholder={activeCategory ? `Search in ${activeCategory.name}...` : "Search in vault..."}
+                placeholder={activeCategory ? t('vaultSearchIn').replace('{{name}}', activeCategory.name) : t('vaultSearchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl py-3 pl-10 pr-4 text-sm font-bold text-white focus:outline-none focus:border-neon-green transition-all placeholder:text-zinc-600"
@@ -181,8 +181,8 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
                     className="space-y-6"
                 >
                     <div className="flex items-center justify-between">
-                        <h3 className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em]">Categorii</h3>
-                        <button 
+                        <h3 className="text-xs font-black text-zinc-500 uppercase tracking-[0.2em]">{t('categoriesLabel')}</h3>
+                        <button
                             onClick={() => setIsCreating(true)}
                             className="p-2 glass-button rounded-lg text-neon-green hover:text-black transition-colors"
                         >
@@ -193,10 +193,10 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
                     {isCreating && (
                         <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="mb-4">
                             <div className="flex gap-2">
-                                <input 
+                                <input
                                     autoFocus
-                                    type="text" 
-                                    placeholder="Nume categorie..." 
+                                    type="text"
+                                    placeholder={t('vaultNewCategoryPlaceholder')}
                                     value={newCatName}
                                     onChange={(e) => setNewCatName(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && handleCreateCategory()}
@@ -230,7 +230,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
 
                                 <div>
                                     <h4 className="font-bold text-white text-sm truncate">{cat.name}</h4>
-                                    <p className="text-[10px] text-zinc-500 font-mono mt-1">{cat.count} Elemente</p>
+                                    <p className="text-[10px] text-zinc-500 font-mono mt-1">{cat.count} {t('elementsLabel')}</p>
                                 </div>
                                 
                                 <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-2 group-hover:translate-x-0">
@@ -246,7 +246,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
                       <div className="pt-4 border-t border-zinc-800">
                         <button
                           onClick={async () => {
-                            if (confirm('Are you sure you want to delete all keys from the vault?')) {
+                            if (confirm(t('vaultDeleteAllConfirm'))) {
                               await vaultStorage.clear();
                               setCategories(prev => prev.map(c => ({ ...c, count: 0 })));
                               setTotalCount(0);
@@ -254,7 +254,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
                           }}
                           className="w-full p-3 rounded-xl bg-red-500/5 border border-red-500/20 text-red-400 text-xs font-bold hover:bg-red-500/10 transition-colors flex items-center justify-center gap-2"
                         >
-                          <Trash2 size={14} /> Delete all keys
+                          <Trash2 size={14} /> {t('vaultDeleteAll')}
                         </button>
                       </div>
                     )}
@@ -311,8 +311,8 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
                                         </button>
                                         {deleteConfirm === item.id ? (
                                           <div className="flex items-center gap-1 ml-1">
-                                            <button onClick={() => handleDelete(item.id)} className="px-2 py-1 rounded bg-red-500 text-white text-[9px] font-bold">Da</button>
-                                            <button onClick={() => setDeleteConfirm(null)} className="px-2 py-1 rounded bg-zinc-700 text-zinc-300 text-[9px] font-bold">Nu</button>
+                                            <button onClick={() => handleDelete(item.id)} className="px-2 py-1 rounded bg-red-500 text-white text-[9px] font-bold">{t('vaultDeleteYes')}</button>
+                                            <button onClick={() => setDeleteConfirm(null)} className="px-2 py-1 rounded bg-zinc-700 text-zinc-300 text-[9px] font-bold">{t('vaultDeleteNo')}</button>
                                           </div>
                                         ) : (
                                           <button 
@@ -325,11 +325,11 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2 bg-black/50 rounded-lg px-3 py-2 font-mono text-[10px] break-all">
-                                    <span className="text-zinc-600 shrink-0">ID:</span>
+                                    <span className="text-zinc-600 shrink-0">{t('vaultIdLabel')}:</span>
                                     <span className="text-zinc-500">{item.id}</span>
                                 </div>
                                 <div className="flex items-center gap-2 bg-black/50 rounded-lg px-3 py-2 font-mono text-[10px] break-all">
-                                    <span className="text-neon-green/60 shrink-0">Key:</span>
+                                    <span className="text-neon-green/60 shrink-0">{t('vaultKeyLabel')}:</span>
                                     <span className={visibleKeys.has(item.id) ? 'text-neon-green' : 'text-zinc-700 blur-sm select-none'}>
                                         {item.key}
                                     </span>
@@ -339,8 +339,8 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
                         {items.length === 0 && (
                             <div className="text-center py-16">
                                 <Lock size={32} className="mx-auto text-zinc-800 mb-3" />
-<p className="text-zinc-600 text-xs">No keys in this category.</p>
-                                 <p className="text-zinc-700 text-[10px] mt-1">Keys appear here when saved from the encryption dialog.</p>
+<p className="text-zinc-600 text-xs">{t('vaultNoKeysInCategory')}</p>
+                                 <p className="text-zinc-700 text-[10px] mt-1">{t('vaultKeysAppear')}</p>
                             </div>
                         )}
                     </div>

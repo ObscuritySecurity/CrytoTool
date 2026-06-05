@@ -42,7 +42,7 @@ export const TopActions: React.FC<TopActionsProps> = ({
               <path d="M42 61 L50 69 L62 53" stroke="var(--accent-color)" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" fill="none" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-primary">Cryto<span className="text-neon-green">Tool</span></h1>
+          <h1 className="text-2xl font-bold tracking-tight text-primary">{t('crytoPrefix')}<span className="text-neon-green">{t('toolSuffix')}</span></h1>
         </div>
       </header>
     );
@@ -59,7 +59,7 @@ export const TopActions: React.FC<TopActionsProps> = ({
             <path d="M42 61 L50 69 L62 53" stroke="var(--accent-color)" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" fill="none" />
           </svg>
         </div>
-        <h1 className="text-2xl font-bold tracking-tight text-primary">Cryto<span className="text-neon-green">Tool</span></h1>
+        <h1 className="text-2xl font-bold tracking-tight text-primary">{t('crytoPrefix')}<span className="text-neon-green">{t('toolSuffix')}</span></h1>
       </div>
 
       <div className="space-y-2.5">
@@ -126,7 +126,7 @@ export const TopActions: React.FC<TopActionsProps> = ({
           </button>
         </div>
 
-        <p className="text-xs text-muted font-medium pt-1 opacity-80">Browse and manage your files and folders.</p>
+        <p className="text-xs text-muted font-medium pt-1 opacity-80">{t('browseAndManage')}</p>
       </div>
     </header>
   );

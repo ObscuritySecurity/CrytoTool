@@ -231,10 +231,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
       <div className="flex flex-col items-center mb-2">
         <Logo />
         <div className="text-3xl font-bold tracking-tight mb-8">
-          <span className={`font-bold tracking-tight ${isLocked ? 'text-red-500' : 'text-white'}`}>Cryto</span>
-          <span style={{ color: isLocked ? '#ef4444' : accentColor }}>Tool</span>
+          <span className={`font-bold tracking-tight ${isLocked ? 'text-red-500' : 'text-white'}`}>{t('crytoPrefix')}</span>
+          <span style={{ color: isLocked ? '#ef4444' : accentColor }}>{t('toolSuffix')}</span>
         </div>
-        <p className="text-sm text-muted mb-6 tracking-wide">All-in-One Privacy</p>
+        <p className="text-sm text-muted mb-6 tracking-wide">{t('allInOnePrivacyTagline')}</p>
       </div>
 
       <motion.div
@@ -340,7 +340,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
               onClick={() => setIsRecoveryMode(true)}
               className="w-full py-2 text-xs text-zinc-500 hover:text-white transition-colors"
             >
-              Forgot password? Use a recovery code
+              {t('forgotPasswordLink')}
             </button>
           </div>
         )}
@@ -351,39 +351,39 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
             animate={{ opacity: 1, y: 0 }}
             className="mt-4 p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800"
           >
-            <h3 className="text-sm font-bold text-white mb-3">Reset with Recovery Code</h3>
+            <h3 className="text-sm font-bold text-white mb-3">{t('resetWithRecoveryCode')}</h3>
 
             <div className="space-y-3">
               <div>
-                <label className="text-[10px] text-zinc-500 uppercase tracking-wider">Recovery Code</label>
+                <label className="text-[10px] text-zinc-500 uppercase tracking-wider">{t('recoveryCodeLabel')}</label>
                 <input
                   type="text"
                   value={recoveryCode}
                   onChange={(e) => setRecoveryCode(e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, ''))}
-                  placeholder="CRYTO-XX-XXXX-XXXX-XXXX"
+                  placeholder={t('recoveryCodePlaceholder')}
                   className="w-full bg-black border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm font-mono mt-1"
                   maxLength={23}
                 />
               </div>
 
               <div>
-                <label className="text-[10px] text-zinc-500 uppercase tracking-wider">New Password (min 30 chars)</label>
+                <label className="text-[10px] text-zinc-500 uppercase tracking-wider">{t('newPasswordMin30')}</label>
                 <input
                   type="password"
                   value={newRecoveryPassword}
                   onChange={(e) => setNewRecoveryPassword(e.target.value)}
-                  placeholder="New password..."
+                  placeholder={t('newPasswordPlaceholder')}
                   className="w-full bg-black border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm mt-1"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] text-zinc-500 uppercase tracking-wider">Confirm Password</label>
+                <label className="text-[10px] text-zinc-500 uppercase tracking-wider">{t('confirmPassword')}</label>
                 <input
                   type="password"
                   value={confirmNewPassword}
                   onChange={(e) => setConfirmNewPassword(e.target.value)}
-                  placeholder="Confirm password..."
+                  placeholder={t('confirmPasswordPlaceholder')}
                   className="w-full bg-black border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm mt-1"
                 />
               </div>
@@ -403,16 +403,16 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
                   }}
                   className="flex-1 py-2 rounded-lg border border-zinc-700 text-zinc-400 text-sm hover:bg-zinc-800"
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button
                   onClick={async () => {
                     if (newRecoveryPassword.length < 30) {
-                      setError('Password must be at least 30 characters');
+                      setError(t('passwordTooShort'));
                       return;
                     }
                     if (newRecoveryPassword !== confirmNewPassword) {
-                      setError('Passwords do not match');
+                      setError(t('passwordsDoNotMatch'));
                       return;
                     }
 
@@ -423,14 +423,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
                     if (result.success) {
                       window.location.reload();
                     } else {
-                      setError(result.error || 'Reset error');
+                      setError(result.error || t('resetErrorLabel'));
                     }
                   }}
                   disabled={isProcessing || !recoveryCode || !newRecoveryPassword || !confirmNewPassword}
                   className="flex-1 py-2 rounded-lg text-black text-sm font-bold disabled:opacity-50"
                   style={{ backgroundColor: accentColor }}
                 >
-                  Reset
+                  {t('resetButton')}
                 </button>
               </div>
             </div>
