@@ -1022,7 +1022,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       (() => {
                         const docItems = items.filter(i => i.category === 'doc');
                         return docItems.length === 0 ? (
-                          <div className="flex-1 flex flex-col items-center justify-center text-muted px-8 pt-24 min-h-[400px]">
+                          <div className="flex-1 flex flex-col items-center justify-center text-muted px-8 pt-56">
                             <div className="w-20 h-20 rounded-full bg-surface border border-border flex items-center justify-center mb-5">
                               <FileText size={36} className="opacity-30" />
                             </div>
