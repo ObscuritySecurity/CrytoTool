@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ShieldAlert, Download, X, KeyRound } from 'lucide-react';
+import { useI18n } from '../locales/i18nContext';
 
 interface RecoveryCodesModalProps {
   codes: string[];
@@ -9,6 +10,7 @@ interface RecoveryCodesModalProps {
 }
 
 export const RecoveryCodesModal: React.FC<RecoveryCodesModalProps> = ({ codes, onDownload, onDismiss }) => {
+  const { t } = useI18n();
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-xl p-4">
       <motion.div
@@ -21,16 +23,16 @@ export const RecoveryCodesModal: React.FC<RecoveryCodesModalProps> = ({ codes, o
           <div className="w-16 h-16 rounded-2xl bg-yellow-500/10 text-yellow-500 flex items-center justify-center mb-4">
             <KeyRound size={32} />
           </div>
-          <h2 className="text-xl font-bold text-white mb-1">Recovery Codes</h2>
+          <h2 className="text-xl font-bold text-white mb-1">{t('recoveryCodesTitle')}</h2>
           <p className="text-xs text-zinc-500 text-center px-4">
-            Save these codes in a safe place. Each code can be used only once to reset your Master password without losing data.
+            {t('recoveryCodesDescription')}
           </p>
         </div>
 
         <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-3 mb-4">
           <p className="text-[11px] text-yellow-500 font-bold text-center flex items-center justify-center gap-2">
             <ShieldAlert size={14} />
-            These codes will only be shown once. Download them now.
+            {t('recoveryCodesWarning')}
           </p>
         </div>
 
@@ -51,14 +53,14 @@ export const RecoveryCodesModal: React.FC<RecoveryCodesModalProps> = ({ codes, o
             className="flex-1 py-3 rounded-2xl bg-neon-green text-black text-xs font-bold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
           >
             <Download size={16} />
-            Download
+            {t('downloadAction')}
           </button>
           <button
             onClick={onDismiss}
             className="flex-1 py-3 rounded-2xl border border-zinc-700 text-zinc-400 text-xs font-bold hover:bg-zinc-800 transition-colors flex items-center justify-center gap-2"
           >
             <X size={16} />
-            Dismiss
+            {t('dismissAction')}
           </button>
         </div>
       </motion.div>

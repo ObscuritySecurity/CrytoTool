@@ -39,7 +39,7 @@ export const CopyMoveModal: React.FC<CopyMoveModalProps> = ({
   }, [allItems, item]);
 
   const breadcrumbs = useMemo(() => {
-    const crumbs: { id: string | null; name: string }[] = [{ id: null, name: 'Root' }];
+    const crumbs: { id: string | null; name: string }[] = [{ id: null, name: t('rootFolder') }];
     let current = currentFolderId;
     while (current) {
       const folder = allItems.find(i => i.id === current);
@@ -51,7 +51,7 @@ export const CopyMoveModal: React.FC<CopyMoveModalProps> = ({
       }
     }
     return crumbs.reverse();
-  }, [currentFolderId, allItems]);
+  }, [currentFolderId, allItems, t]);
 
   const currentFolders = useMemo(() => {
     return folders.filter(f => f.parentId === currentFolderId);
@@ -145,9 +145,9 @@ export const CopyMoveModal: React.FC<CopyMoveModalProps> = ({
               </div>
               <div>
                 <h3 className="text-lg font-bold text-white">
-                  {mode === 'copy' ? t('copyFile') || 'Copy File' : 'Move'}
+                  {mode === 'copy' ? t('copyFile') : t('moveAction')}
                 </h3>
-                <p className="text-[10px] text-zinc-400 uppercase tracking-wider">Select destination folder</p>
+                <p className="text-[10px] text-zinc-400 uppercase tracking-wider">{t('selectDestination')}</p>
               </div>
             </div>
           </div>
@@ -171,7 +171,7 @@ export const CopyMoveModal: React.FC<CopyMoveModalProps> = ({
               {currentFolders.length === 0 ? (
                 <div className="text-center py-8 text-zinc-500">
                   <Folder size={40} className="mx-auto mb-2 opacity-30" />
-                  <p className="text-xs">Niciun folder aici</p>
+                  <p className="text-xs">{t('noFolderHere')}</p>
                 </div>
               ) : (
                 currentFolders.map(folder => (
@@ -222,7 +222,7 @@ export const CopyMoveModal: React.FC<CopyMoveModalProps> = ({
               ) : (
                 <>
                   {mode === 'copy' ? <Copy size={16} /> : <Move size={16} />}
-                  {mode === 'copy' ? 'Copy' : 'Move'}
+                  {mode === 'copy' ? t('copyFile') : t('moveAction')}
                 </>
               )}
             </button>

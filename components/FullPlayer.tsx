@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { ChevronDown, SkipBack, SkipForward, Play, Pause, Music } from 'lucide-react';
 import { FileSystemItem } from '../types';
 import { isSafeImageUrl } from '../utils/sanitize';
+import { useI18n } from '../locales/i18nContext';
 
 interface FullPlayerProps {
   currentPlayingItem: FileSystemItem | null;
@@ -24,6 +25,7 @@ export const FullPlayer: React.FC<FullPlayerProps> = ({
   onTogglePlay,
   onSeek,
 }) => {
+  const { t } = useI18n();
   if (!currentPlayingItem) return null;
 
   return (
@@ -42,7 +44,7 @@ export const FullPlayer: React.FC<FullPlayerProps> = ({
           <ChevronDown size={24} />
         </button>
         <span className="text-xs text-zinc-500 font-medium uppercase tracking-widest">
-          Now Playing
+          {t('nowPlaying')}
         </span>
         <div className="w-10" />
       </div>
@@ -79,7 +81,7 @@ export const FullPlayer: React.FC<FullPlayerProps> = ({
           <p className="text-sm text-zinc-400 truncate mt-1">
             {(currentPlayingItem as any).decryptedArtist ||
               currentPlayingItem.artist ||
-              "Unknown Artist"}
+              t('unknownArtist')}
           </p>
         </div>
 

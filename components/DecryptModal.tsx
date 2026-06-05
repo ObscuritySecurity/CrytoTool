@@ -41,13 +41,13 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
 
   const handleVaultAutoFill = async (pin: string) => {
     if (!vaultPin) {
-      setPinError('Vault PIN nu este configurat.');
+      setPinError(t('vaultPinNotConfigured'));
       return;
     }
 
     const isValid = await verifyPin(pin, vaultPin);
     if (!isValid) {
-      setPinError('PIN incorect.');
+      setPinError(t('wrongPin'));
       return;
     }
 
@@ -58,24 +58,24 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
       setShowPinModal(false);
       setPinError(null);
     } else {
-      setPinError('No key found for this file in Vault.');
+      setPinError(t('noKeyInVault'));
       setShowPinModal(false);
     }
   };
 
   const handleDecrypt = async () => {
     if (!passphrase.trim()) {
-      setError('Introdu o cheie de decriptare.');
+      setError(t('enterDecryptionKeyRequired'));
       return;
     }
 
     if (!item.rawBlob) {
-      setError('Datele fisierului sunt corupte sau lipsesc.');
+      setError(t('fileDataCorrupted'));
       return;
     }
 
     if (item.algorithm !== 'AES-GCM-Stream' && (!item.iv || !item.salt)) {
-      setError('Datele fisierului sunt corupte sau lipsesc.');
+      setError(t('fileDataCorrupted'));
       return;
     }
 
@@ -129,7 +129,7 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
       onSuccess(blob, mimeType);
     } catch (e: any) {
       console.error(e);
-      setError('Cheie incorecta. Verifica si incearca din nou.');
+      setError(t('wrongKeyTryAgain'));
       setPassphrase('');
       setVaultKeyFound(null);
     } finally {
@@ -216,12 +216,12 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
                           <div className={`w-5 h-5 md:w-8 md:h-8 rounded-lg md:rounded-xl flex items-center justify-center ${autoFillFromVault && vaultKeyFound ? 'bg-neon-green/20 text-neon-green' : 'bg-zinc-800 text-zinc-500'}`}>
                             {autoFillFromVault && vaultKeyFound ? <Check size={10} className="md:size-4" /> : <Shield size={10} className="md:size-4" />}
                           </div>
-                          <div className="text-left">
+                            <div className="text-left">
                             <p className={`text-[9px] md:text-xs font-bold ${autoFillFromVault && vaultKeyFound ? 'text-white' : 'text-zinc-400'}`}>
-                              {autoFillFromVault && vaultKeyFound ? 'Key auto-filled from Vault' : 'Auto-fill from Vault'}
+                              {autoFillFromVault && vaultKeyFound ? t('keyAutoFilled') : t('autoFillFromVault')}
                             </p>
                             <p className="text-[7px] md:text-[9px] text-zinc-600">
-                              {autoFillFromVault && vaultKeyFound ? 'Key found' : 'Enter PIN to auto-fill'}
+                              {autoFillFromVault && vaultKeyFound ? t('keyFound') : t('enterPinToAutoFill')}
                             </p>
                           </div>
                         </div>
@@ -239,8 +239,8 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
                         <Shield size={16} />
                       </div>
                       <div className="text-left">
-                        <p className="text-xs font-bold text-zinc-500">Auto-fill from Vault</p>
-                        <p className="text-[9px] text-zinc-700">Set a PIN in Settings → Vault to enable</p>
+                        <p className="text-xs font-bold text-zinc-500">{t('autoFillFromVault')}</p>
+                        <p className="text-[9px] text-zinc-700">{t('setPinToEnable')}</p>
                       </div>
                     </div>
                   )}
@@ -294,7 +294,7 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
                 disabled={!passphrase.trim()}
                 className="ml-auto px-4 md:px-8 py-2 md:py-3 rounded-lg md:rounded-xl bg-white text-black text-[9px] md:text-xs font-bold uppercase tracking-wider flex items-center gap-1 disabled:opacity-30"
               >
-                Decripteaza
+                {t('decryptButton')}
               </button>
             </div>
           )}

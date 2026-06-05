@@ -354,7 +354,7 @@ export const BackupView: React.FC<BackupViewProps> = ({ onBack, theme }) => {
                                     type="text" 
                                     value={restoreKey}
                                     onChange={(e) => setRestoreKey(e.target.value)}
-                                    placeholder="XXXX-XXXX-XXXX-XXXX"
+                                    placeholder={t('backupKeyPlaceholder')}
                                     className="w-full bg-surface border border-border rounded-2xl py-4 pl-12 pr-4 text-base text-primary font-mono focus:border-neon-green outline-none transition-colors uppercase placeholder:text-zinc-700"
                                 />
                             </div>
@@ -374,7 +374,7 @@ export const BackupView: React.FC<BackupViewProps> = ({ onBack, theme }) => {
                             <AlertTriangle size={20} className="text-yellow-500" />
                         </div>
                         <div>
-                            <h4 className="text-xs font-black uppercase tracking-widest text-yellow-500 mb-2">{t('attention') || 'ATTENTION'}</h4>
+                            <h4 className="text-xs font-black uppercase tracking-widest text-yellow-500 mb-2">{t('attLabel')}</h4>
                             <p className="text-xs text-yellow-500/80 leading-relaxed font-medium">
                                 {t('restoreWarning')}
                             </p>
