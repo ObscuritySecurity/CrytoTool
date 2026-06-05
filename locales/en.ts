@@ -323,6 +323,7 @@ export const translations: Translations = {
     error: 'Error',
     success: 'Success',
     back: 'Back',
+    close: 'Close',
     done: 'Done',
     skip: 'Skip',
     retry: 'Retry',
@@ -344,4 +345,6 @@ export const translations: Translations = {
     socialmedia: 'Social Media',
     documente: 'Documents',
     documentsComingSoon: 'Document editing and viewing will come soon.',
+    translationLocked: 'Language Unavailable',
+    translationLockedDesc: 'This language is not yet available. We are building a community translation system to unlock all languages. Coming soon!',
 }

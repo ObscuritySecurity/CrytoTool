@@ -95,16 +95,42 @@ export const getTranslation = (langCode: string, key: TranslationKey): string =>
   return en?.[key] || key;
 };
 
-export const getLanguageOptions = () => {
+export async function preloadLanguage(code: string): Promise<void> {
+  await loadTranslations(code);
+}
+
+export const PRIORITY_LANGUAGES = new Set(['en', 'ro', 'es']);
+
+export const COMPLETION_PERCENTAGES: Record<string, number> = {
+  en: 100, ro: 89.5, es: 93.6, fr: 91.3, de: 92.4, it: 91.9,
+  pt: 93.9, ru: 94.8, zh: 65.4, ja: 92.4, ko: 94.8, ar: 94.5,
+  hi: 95.6, bn: 65.4, pa: 65.1, jv: 91.6, ta: 64.2, tr: 94.5,
+  vi: 65.1, ur: 65.4, fa: 65.4, pl: 93.9, uk: 95.4, ms: 94.5,
+  nl: 92.7, el: 65.1, he: 92.4, th: 65.1, sv: 64.2, cs: 93.6,
+  hu: 65.1, da: 63.1, fi: 65.1, no: 64.5, sk: 94.5, bg: 94.2,
+  sr: 94.8, hr: 92.2, lt: 65.1, sl: 94.2, lv: 65.1, et: 65.1,
+  sq: 64.8, mk: 65.1, bs: 92.7, ca: 92.7, eu: 94.2, gl: 94.8,
+  is: 65.1, id: 93.3, ml: 65.4,
+};
+
+export interface LanguageOption {
+  label: string;
+  value: string;
+  desc: string;
+  capital: string;
+  country: string;
+  completion: number;
+  locked: boolean;
+}
+
+export const getLanguageOptions = (): LanguageOption[] => {
   return LANGUAGES.map(lang => ({
     label: lang.nativeName,
     value: lang.code,
     desc: lang.name,
     capital: lang.capital,
     country: lang.country,
+    completion: COMPLETION_PERCENTAGES[lang.code] ?? 0,
+    locked: !PRIORITY_LANGUAGES.has(lang.code),
   }));
 };
-
-export async function preloadLanguage(code: string): Promise<void> {
-  await loadTranslations(code);
-}
