@@ -60,67 +60,69 @@ export const MusicView: React.FC<MusicViewProps> = ({ items, onPlay, currentSong
         ))}
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-32 pt-4 no-scrollbar">
-        
-        {/* Quick Picks Section */}
-        {quickPicks.length > 0 && (
-          <div className="mb-8 pl-1">
-            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              Quick picks <span className="text-xs font-normal text-zinc-500 bg-zinc-900 px-2 py-0.5 rounded-full border border-zinc-800">History</span>
-            </h3>
-            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4 pr-4">
-              {quickPicks.map((item) => (
-                <motion.div 
-                  key={item.id}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => onPlay(item)}
-                  className="min-w-[140px] flex flex-col gap-3 group cursor-pointer"
-                >
-                  <div className="w-[140px] h-[140px] rounded-2xl overflow-hidden relative shadow-lg">
-                    {(() => {
-                      const src = (item as any).decryptedCustomIcon || (item as any).decryptedCoverUrl || item.customIcon || item.coverUrl;
-                      return src && isSafeImageUrl(src);
-                    })() ? (
-                      <img src={(item as any).decryptedCustomIcon || (item as any).decryptedCoverUrl || item.customIcon || item.coverUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    ) : (
-                      <div className="w-full h-full bg-zinc-900 flex items-center justify-center border border-zinc-800">
-                        <Music size={40} className="text-zinc-700" />
-                      </div>
-                    )}
-                    {/* Hover Play Overlay */}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                       <div className="w-10 h-10 rounded-full bg-neon-green text-black flex items-center justify-center shadow-neon">
-                          <Play size={18} fill="black" className="ml-0.5" />
-                       </div>
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-white truncate">{(item as any).decryptedName || item.name}</h4>
-                    <p className="text-xs text-zinc-500 truncate">{(item as any).decryptedArtist || item.artist || 'Unknown'}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+      {filteredItems.length === 0 ? (
+        <div className="flex-1 flex flex-col items-center justify-center text-muted px-8 pt-56">
+          <div className="w-20 h-20 rounded-full bg-surface border border-border flex items-center justify-center mb-5">
+            <Music size={36} className="opacity-30" />
           </div>
-        )}
-
-        {/* Action Header */}
-        <div className="flex items-center justify-between mb-4 px-1">
-          <h3 className="text-xl font-bold text-white">Keep listening</h3>
-          <button className="w-10 h-10 rounded-full bg-neon-green text-black flex items-center justify-center hover:scale-105 transition-transform shadow-[0_0_15px_rgba(57,255,20,0.3)]">
-             <Shuffle size={20} />
-          </button>
+          <h4 className="text-sm font-bold text-primary text-center mb-2">{t('musicComingSoon')}</h4>
+          <p className="text-[11px] text-zinc-500 text-center leading-relaxed max-w-xs">{t('musicComingSoonDesc')}</p>
         </div>
+      ) : (
+        <div className="flex-1 overflow-y-auto pb-32 pt-4 no-scrollbar">
+          {/* Quick Picks Section */}
+          {quickPicks.length > 0 && (
+            <div className="mb-8 pl-1">
+              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                Quick picks <span className="text-xs font-normal text-zinc-500 bg-zinc-900 px-2 py-0.5 rounded-full border border-zinc-800">History</span>
+              </h3>
+              <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4 pr-4">
+                {quickPicks.map((item) => (
+                  <motion.div 
+                    key={item.id}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => onPlay(item)}
+                    className="min-w-[140px] flex flex-col gap-3 group cursor-pointer"
+                  >
+                    <div className="w-[140px] h-[140px] rounded-2xl overflow-hidden relative shadow-lg">
+                      {(() => {
+                        const src = (item as any).decryptedCustomIcon || (item as any).decryptedCoverUrl || item.customIcon || item.coverUrl;
+                        return src && isSafeImageUrl(src);
+                      })() ? (
+                        <img src={(item as any).decryptedCustomIcon || (item as any).decryptedCoverUrl || item.customIcon || item.coverUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      ) : (
+                        <div className="w-full h-full bg-zinc-900 flex items-center justify-center border border-zinc-800">
+                          <Music size={40} className="text-zinc-700" />
+                        </div>
+                      )}
+                      {/* Hover Play Overlay */}
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                         <div className="w-10 h-10 rounded-full bg-neon-green text-black flex items-center justify-center shadow-neon">
+                            <Play size={18} fill="black" className="ml-0.5" />
+                         </div>
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-white truncate">{(item as any).decryptedName || item.name}</h4>
+                      <p className="text-xs text-zinc-500 truncate">{(item as any).decryptedArtist || item.artist || 'Unknown'}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
 
-        {/* Song List */}
-        <div className="space-y-1">
-          {filteredItems.length === 0 ? (
-             <div className="flex flex-col items-center justify-center h-48 text-muted">
-               <Music size={48} className="mb-2 opacity-20" />
-               <p className="text-xs">Library empty.</p>
-             </div>
-          ) : (
-            filteredItems.map((item, index) => {
+          {/* Action Header */}
+          <div className="flex items-center justify-between mb-4 px-1">
+            <h3 className="text-xl font-bold text-white">Keep listening</h3>
+            <button className="w-10 h-10 rounded-full bg-neon-green text-black flex items-center justify-center hover:scale-105 transition-transform shadow-[0_0_15px_rgba(57,255,20,0.3)]">
+               <Shuffle size={20} />
+            </button>
+          </div>
+
+          {/* Song List */}
+          <div className="space-y-1">
+            {filteredItems.map((item, index) => {
               const isCurrent = currentSong?.id === item.id;
               
               return (
@@ -169,10 +171,10 @@ export const MusicView: React.FC<MusicViewProps> = ({ items, onPlay, currentSong
                   </div>
                 </motion.div>
               );
-            })
-          )}
+            })}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

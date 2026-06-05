@@ -1019,15 +1019,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   )}
 
                   {activeTab === 'docs' && (
-                      <div className="flex flex-col gap-2">
-                          <div className="px-3 py-2 rounded-lg bg-muted/10 border border-muted/20 mb-1">
-                              <p className="text-[11px] text-muted leading-relaxed">{t('documentsComingSoon')}</p>
+                      (() => {
+                        const docItems = items.filter(i => i.category === 'doc');
+                        return docItems.length === 0 ? (
+                          <div className="flex-1 flex flex-col items-center justify-center text-muted px-8 pt-56">
+                            <div className="w-20 h-20 rounded-full bg-surface border border-border flex items-center justify-center mb-5">
+                              <FileText size={36} className="opacity-30" />
+                            </div>
+                            <h4 className="text-sm font-bold text-primary text-center mb-2">{t('documentsComingSoon')}</h4>
+                            <p className="text-[11px] text-zinc-500 text-center leading-relaxed max-w-xs">{t('documentsComingSoonDesc')}</p>
                           </div>
-                          <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-2 px-1">{t('encryptedDocuments')}</p>
-                          {items.filter(i => i.category === 'doc').map(item => (
-                              <FileItem key={item.id} item={item} onAction={(act) => handleItemAction(act, item)} onOpenMenu={() => { if(item.type !== 'system') setMenuOpenItem(item); }} onClick={() => handleNavigate(item)} theme={appTheme} />
-                          ))}
-                      </div>
+                        ) : (
+                          <div className="flex flex-col gap-2">
+                              <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-2 px-1">{t('encryptedDocuments')}</p>
+                              {docItems.map(item => (
+                                  <FileItem key={item.id} item={item} onAction={(act) => handleItemAction(act, item)} onOpenMenu={() => { if(item.type !== 'system') setMenuOpenItem(item); }} onClick={() => handleNavigate(item)} theme={appTheme} />
+                              ))}
+                          </div>
+                        );
+                      })()
                   )}
                </main>
 
