@@ -76,3 +76,66 @@ The Linux release workflow (`.github/workflows/tauri-linux.yml`) produces a **si
 - `Tauri.conf.json` sets `decorations: false` and `transparent: true` on the main window — title bar is rendered in-app, not by the OS.
 - `dist/` is the Vite build output; `key.pem`/`cert.pem` are gitignored local dev certs (present only when developer sets up HTTPS).
 - No package-lock changes needed for adding a dep: `npm install <pkg>` is the workflow; lockfile updates via standard npm.
+
+## INSTRUCȚIUNI CRITICE PENTRU PULL REQUEST-uri
+
+### ⚠️ CERINȚĂ OBLIGATORIE
+
+Când creezi un Pull Request, TREBUIE să respecți 100% template-ul din `PULL_REQUEST_TEMPLATE.md` fără nicio modificare structurală.
+
+### ❌ CE NU AI VOIE SĂ FACI
+
+1. **NU modifica structura tabelului Protocol-3305**
+   - Tabelul are EXACT 9 articole (0-8) — nu adăuga rânduri noi.
+   - Nu crea principii noi la protocol.
+   - Nu schimba coloanele tabelului.
+
+2. **NU inventa principii noi**
+   - Protocol-3305 este FIX așa cum este definit în template.
+   - Cele 9 articole sunt imuabile (0-8).
+   - Tu doar VERIFICI dacă PR-ul respectă fiecare articol.
+
+### ✅ CE TREBUIE SĂ FACI
+
+La secțiunea „Protocol-3305 alignment", completează tabelul EXACT așa:
+
+| Art. | Principle | Status | Notes |
+| ---- | --------- | ------ | ----- |
+| 0 | Ethical Monetization | ✓ sau X | Notă scurtă (max 1 propoziție) |
+| 1 | Privacy by Design | ✓ sau X | Notă scurtă |
+| 2 | Security by Default | ✓ sau X | Notă scurtă |
+| 3 | Zero Trust | ✓ sau X | Notă scurtă |
+| 4 | Zero Knowledge | ✓ sau X | Notă scurtă |
+| 5 | Zero Personal Data Collection | ✓ sau X | Notă scurtă |
+| 6 | Zero Activity Logs | ✓ sau X | Notă scurtă |
+| 7 | Open Source | ✓ sau X | Notă scurtă |
+| 8 | Zero Non-Essential Permissions | ✓ sau X | Notă scurtă |
+
+**Reguli de completare**:
+
+1. **Status**:
+   - Pune `✓` dacă PR-ul respectă articolul.
+   - Pune `X` dacă PR-ul încalcă articolul (blocking).
+
+2. **Notes**:
+   - Scrie o explicație TEHNICĂ scurtă (max 1 propoziție).
+   - Exemple corecte: `✓ | "No monetization change"`, `✓ | "AppImage runtime does not collect data"`, `✓ | "Bundled libs from trusted upstream"`, `X | "Adds telemetry - requires protocol exception"`.
+
+3. **NU scrie**:
+   - Nu adăuga principii noi.
+   - Nu modifica numele principiilor existente.
+   - Nu adăuga coloane noi la tabel.
+   - Nu schimba ordinea articolelor.
+
+### 📋 CHECKLIST OBLIGATORIU
+
+La finalul PR-ului, trebuie să ai:
+
+```markdown
+## Checklist
+
+- [ ] PR does NOT modify cryptographic code, key derivation, or encryption algorithms
+- [ ] Tested on target platform(s)
+- [ ] `npx tsc --noEmit` passed
+- [ ] Docs updated
+```
