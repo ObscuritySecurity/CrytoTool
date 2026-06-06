@@ -100,16 +100,21 @@ jobs:
           VERSION: ${{ github.ref_name }}
           DESKTOP: ${{ github.workspace }}/src-tauri/crytotool.desktop
           ICON: ${{ github.workspace }}/src-tauri/icons/icon.png
-        run: |
-          set -e
-          STDERR_LOG=$(mktemp)
-          ./quick-sharun.sh "${{ steps.locate.outputs.binary }}" 2> "$STDERR_LOG"
-          grep -v "tr: write error: Broken pipe" "$STDERR_LOG" >&2 || true
-          rm -f "$STDERR_LOG"
-          echo "---"
-          echo "Generated AppImage:"
-          ls -la *.AppImage
-          file *.AppImage
+          WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS: 1
+          WEBKIT_DISABLE_DMABUF_RENDERER: 1
+          WEBKIT_DISABLE_COMPOSITING_MODE: 1
+  run: |
+    set -e
+    # Increase namespace limits to prevent ENOSPC errors
+    sudo sysctl -w user.max_user_namespaces=15000 || true
+    STDERR_LOG=$(mktemp)
+    ./quick-sharun.sh "${{ steps.locate.outputs.binary }}" 2> "$STDERR_LOG"
+    grep -v "tr: write error: Broken pipe" "$STDERR_LOG" >&2 || true
+    rm -f "$STDERR_LOG"
+    echo "---"
+    echo "Generated AppImage:"
+    ls -la *.AppImage
+    file *.AppImage
 
       - name: Rename AppImage
         run: |
