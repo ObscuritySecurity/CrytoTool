@@ -73,3 +73,20 @@ _Version: 2.5.0-beta | Last Updated: 2026-05-30_
 ## Reporting Security Issues
 
 Report vulnerabilities via **[GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories)**. We respond as fast as possible.
+
+---
+
+## Known Upstream Issues
+
+### `glib` (RUSTSEC-2024-0429 / GHSA-wrw7-89jp-8q8g) — Linux Tauri runtime
+
+| | |
+| --- | --- |
+| **Severity** | Medium (CVSS v4: 6.9, type: Unsound) |
+| **Component** | `glib` Rust crate v0.18.5 (transitive via `tauri 2.11.2` → `gtk-rs 0.18.2`) |
+| **Trigger** | Iterator / `DoubleEndedIterator` operations on `glib::VariantStrIter` |
+| **Impact on CrytoTool** | Application crash under specific Linux desktop integration paths (D-Bus, GVariant string lists). **No data exfiltration, no remote code execution, no privilege escalation.** The vulnerable code path is not called from CrytoTool's own Rust source (which is intentionally minimal: a single unused `greet` command). |
+| **Patched in** | `glib >= 0.20.0` |
+| **Why not patched in CrytoTool** | `glib 0.20+` is part of the maintained `gtk-rs-core 0.22.x` line, which targets **GTK 4**. The rest of the GTK 3 chain (`gtk`, `gdk`, `atk` all at `0.18.2`) is **archived and unmaintained upstream** with no `0.20+` releases. `tauri 2.11.2` (latest at the time of writing) still pins the GTK 3 family. The official position from the Tauri team is `status: upstream` (see [`tauri-apps/tauri#12048`](https://github.com/tauri-apps/tauri/issues/12048), [`tauri-apps/tauri#15035`](https://github.com/tauri-apps/tauri/issues/15035)). Fedora has [retired the gtk3-rs and gtk-rs-core v0.18 packages](https://fedoraproject.org/wiki/Changes/Retire_gtk3-rs,_gtk-rs-core_v0.18,_and_gtk4-rs_v0.7) for the same reason. |
+| **Mitigation timeline** | Awaiting Tauri migration to GTK 4 / `gtk-rs 0.20+`. The CrytoTool codebase itself cannot resolve this without forking and maintaining the GTK 3 Rust bindings — an unsustainable burden for a single application. |
+| **Risk acceptance** | Documented and tracked via GitHub Dependabot alert #20. The vulnerability is in third-party desktop integration code, isolated from CrytoTool's cryptographic core (which runs in the JavaScript layer using Web Crypto API and audited libraries — see `docs/ARCHITECTURE.md`). Dependabot is configured (`.github/dependabot.yml`) to ignore further updates to the affected gtk-rs 0.18 family so alerts stay focused on actionable items. |
