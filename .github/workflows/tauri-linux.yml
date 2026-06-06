@@ -76,6 +76,16 @@ jobs:
           chmod +x quick-sharun.sh
           ./quick-sharun.sh --help | head -3
 
+      - name: Install standard appimagetool (probonopd, squashfs format)
+        run: |
+          cd /tmp
+          wget -q https://github.com/probonopd/go-appimage/releases/download/continuous/appimagetool-940-x86_64.AppImage
+          chmod +x appimagetool-940-x86_64.AppImage
+          ./appimagetool-940-x86_64.AppImage --appimage-extract > /dev/null
+          ls -la squashfs-root/usr/bin/appimagetool
+          ./squashfs-root/usr/bin/appimagetool --version
+          echo "Static appimagetool ready at /tmp/squashfs-root/usr/bin/appimagetool"
+
       - name: Build truly-portable AppImage with quick-sharun
         env:
           DEPLOY_GTK: 1
@@ -86,9 +96,16 @@ jobs:
           DEPLOY_PULSE: 1
           OUTPUT_APPIMAGE: 1
           APPIMAGE_NAME: CrytoTool
+          APPIMAGETOOL: /tmp/squashfs-root/usr/bin/appimagetool
+          VERSION: ${{ github.ref_name }}
+          DESKTOP: ${{ github.workspace }}/src-tauri/crytotool.desktop
+          ICON: ${{ github.workspace }}/src-tauri/icons/icon.png
         run: |
           set -e
-          ./quick-sharun.sh "${{ steps.locate.outputs.binary }}"
+          STDERR_LOG=$(mktemp)
+          ./quick-sharun.sh "${{ steps.locate.outputs.binary }}" 2> "$STDERR_LOG"
+          grep -v "tr: write error: Broken pipe" "$STDERR_LOG" >&2 || true
+          rm -f "$STDERR_LOG"
           echo "---"
           echo "Generated AppImage:"
           ls -la *.AppImage
