@@ -127,7 +127,7 @@ jobs:
           du -h *.AppImage
 
       - name: Upload AppImage to release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'CrytoTool ${{ github.ref_name }}'
