@@ -77,59 +77,59 @@ The Linux release workflow (`.github/workflows/tauri-linux.yml`) produces a **si
 - `dist/` is the Vite build output; `key.pem`/`cert.pem` are gitignored local dev certs (present only when developer sets up HTTPS).
 - No package-lock changes needed for adding a dep: `npm install <pkg>` is the workflow; lockfile updates via standard npm.
 
-## INSTRUCȚIUNI CRITICE PENTRU PULL REQUEST-uri
+## CRITICAL INSTRUCTIONS FOR PULL REQUESTS
 
-### ⚠️ CERINȚĂ OBLIGATORIE
+### ⚠️ MANDATORY REQUIREMENT
 
-Când creezi un Pull Request, TREBUIE să respecți 100% template-ul din `PULL_REQUEST_TEMPLATE.md` fără nicio modificare structurală.
+When creating a Pull Request, you MUST follow the template in `PULL_REQUEST_TEMPLATE.md` 100% with no structural modifications.
 
-### ❌ CE NU AI VOIE SĂ FACI
+### ❌ WHAT YOU MUST NOT DO
 
-1. **NU modifica structura tabelului Protocol-3305**
-   - Tabelul are EXACT 9 articole (0-8) — nu adăuga rânduri noi.
-   - Nu crea principii noi la protocol.
-   - Nu schimba coloanele tabelului.
+1. **Do NOT modify the structure of the Protocol-3305 table**
+   - The table has EXACTLY 9 articles (0-8) — do not add new rows.
+   - Do not create new principles in the protocol.
+   - Do not change the table's columns.
 
-2. **NU inventa principii noi**
-   - Protocol-3305 este FIX așa cum este definit în template.
-   - Cele 9 articole sunt imuabile (0-8).
-   - Tu doar VERIFICI dacă PR-ul respectă fiecare articol.
+2. **Do NOT invent new principles**
+   - Protocol-3305 is FIXED as defined in the template.
+   - The 9 articles are immutable (0-8).
+   - You only VERIFY whether the PR complies with each article.
 
-### ✅ CE TREBUIE SĂ FACI
+### ✅ WHAT YOU MUST DO
 
-La secțiunea „Protocol-3305 alignment", completează tabelul EXACT așa:
+In the "Protocol-3305 alignment" section, complete the table EXACTLY as follows:
 
 | Art. | Principle | Status | Notes |
 | ---- | --------- | ------ | ----- |
-| 0 | Ethical Monetization | ✓ sau X | Notă scurtă (max 1 propoziție) |
-| 1 | Privacy by Design | ✓ sau X | Notă scurtă |
-| 2 | Security by Default | ✓ sau X | Notă scurtă |
-| 3 | Zero Trust | ✓ sau X | Notă scurtă |
-| 4 | Zero Knowledge | ✓ sau X | Notă scurtă |
-| 5 | Zero Personal Data Collection | ✓ sau X | Notă scurtă |
-| 6 | Zero Activity Logs | ✓ sau X | Notă scurtă |
-| 7 | Open Source | ✓ sau X | Notă scurtă |
-| 8 | Zero Non-Essential Permissions | ✓ sau X | Notă scurtă |
+| 0 | Ethical Monetization | ✓ or X | Short note (max 1 sentence) |
+| 1 | Privacy by Design | ✓ or X | Short note |
+| 2 | Security by Default | ✓ or X | Short note |
+| 3 | Zero Trust | ✓ or X | Short note |
+| 4 | Zero Knowledge | ✓ or X | Short note |
+| 5 | Zero Personal Data Collection | ✓ or X | Short note |
+| 6 | Zero Activity Logs | ✓ or X | Short note |
+| 7 | Open Source | ✓ or X | Short note |
+| 8 | Zero Non-Essential Permissions | ✓ or X | Short note |
 
-**Reguli de completare**:
+**Completion rules**:
 
 1. **Status**:
-   - Pune `✓` dacă PR-ul respectă articolul.
-   - Pune `X` dacă PR-ul încalcă articolul (blocking).
+   - Put `✓` if the PR complies with the article.
+   - Put `X` if the PR violates the article (blocking).
 
 2. **Notes**:
-   - Scrie o explicație TEHNICĂ scurtă (max 1 propoziție).
-   - Exemple corecte: `✓ | "No monetization change"`, `✓ | "AppImage runtime does not collect data"`, `✓ | "Bundled libs from trusted upstream"`, `X | "Adds telemetry - requires protocol exception"`.
+   - Write a short TECHNICAL explanation (max 1 sentence).
+   - Correct examples: `✓ | "No monetization change"`, `✓ | "AppImage runtime does not collect data"`, `✓ | "Bundled libs from trusted upstream"`, `X | "Adds telemetry - requires protocol exception"`.
 
-3. **NU scrie**:
-   - Nu adăuga principii noi.
-   - Nu modifica numele principiilor existente.
-   - Nu adăuga coloane noi la tabel.
-   - Nu schimba ordinea articolelor.
+3. **Do NOT write**:
+   - Do not add new principles.
+   - Do not modify the names of existing principles.
+   - Do not add new columns to the table.
+   - Do not change the order of articles.
 
-### 📋 CHECKLIST OBLIGATORIU
+### 📋 MANDATORY CHECKLIST
 
-La finalul PR-ului, trebuie să ai:
+At the end of the PR, you must have:
 
 ```markdown
 ## Checklist
