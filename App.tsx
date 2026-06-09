@@ -9,7 +9,7 @@ import { I18nProvider } from './locales/i18nContext';
 import { hashPin } from './utils/security';
 import {
   checkBiometricAvailability, retrieveMasterKeyBiometric, storeMasterKeyBiometric,
-  removeBiometricKey, isBiometricEnabled, setBiometricEnabled,
+  removeBiometricKey, isBiometricEnabled,
 } from './utils/biometric';
 import {
   deriveKey,
