@@ -649,7 +649,7 @@ export const NavButton: React.FC<NavButtonProps> = ({
       w-16 h-8 rounded-xl flex items-center justify-center transition-all duration-300
       ${active ? 'bg-neon-green shadow-[0_0_15px_rgba(var(--accent-rgb),0.4)]' : 'bg-transparent'}
     `}>
-      {React.cloneElement(icon as React.ReactElement, { 
+      {React.cloneElement(icon as React.ReactElement<any>, { 
         size: 20, 
         className: active ? 'text-black' : 'text-muted',
         strokeWidth: active ? 2.5 : 2

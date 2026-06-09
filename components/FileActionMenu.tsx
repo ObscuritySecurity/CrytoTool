@@ -48,7 +48,7 @@ export const FileActionMenu: React.FC<FileActionMenuProps> = ({ isOpen, onClose,
           p-1.5 rounded-lg bg-surface/30 
           ${isDanger ? 'text-red-500' : 'text-muted'}
         `}>
-          {React.cloneElement(icon as React.ReactElement, { size: 16 })}
+          {React.cloneElement(icon as React.ReactElement<any>, { size: 16 })}
         </div>
         <span className={`text-[7px] font-bold uppercase tracking-wider ${isDanger ? 'text-red-500' : 'text-primary'}`}>{label}</span>
       </motion.button>
@@ -72,7 +72,7 @@ export const FileActionMenu: React.FC<FileActionMenuProps> = ({ isOpen, onClose,
         `}
       >
         <div className={`p-1.5 rounded-lg bg-surface/30 ${isDanger ? 'text-red-500' : 'text-muted'}`}>
-          {React.cloneElement(icon as React.ReactElement, { size: 16 })}
+          {React.cloneElement(icon as React.ReactElement<any>, { size: 16 })}
         </div>
         <span className={`text-sm font-medium ${isDanger ? 'text-red-500' : 'text-primary'}`}>{label}</span>
       </motion.button>

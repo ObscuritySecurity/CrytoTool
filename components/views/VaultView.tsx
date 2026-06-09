@@ -221,11 +221,11 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
                                 className="relative group p-4 sm:p-5 rounded-xl sm:rounded-[24px] glass-card hover:border-neon-green/50 transition-all text-left flex flex-col justify-between h-32 sm:h-36 overflow-hidden"
                             >
                                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform scale-150 origin-top-right">
-                                    {React.cloneElement(CATEGORY_ICONS[cat.icon] as React.ReactElement, { size: 60 })}
+                                    {React.cloneElement(CATEGORY_ICONS[cat.icon] as React.ReactElement<any>, { size: 60 })}
                                 </div>
 
                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-black shadow-lg mb-4`} style={{ backgroundColor: cat.color }}>
-                                    {React.cloneElement(CATEGORY_ICONS[cat.icon] as React.ReactElement, { size: 20 })}
+                                    {React.cloneElement(CATEGORY_ICONS[cat.icon] as React.ReactElement<any>, { size: 20 })}
                                 </div>
 
                                 <div>
