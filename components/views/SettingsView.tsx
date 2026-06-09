@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, Monitor, LayoutGrid, Palette, PaintBucket, Moon, Sun, Shield, Terminal, 
   FileLock2, EyeOff, Heart, CheckCircle, Globe, Languages, KeyRound, Smartphone, Mail, 
-  Fingerprint, Info, Github, MessageSquare, AtSign, ExternalLink, Ghost, Calendar, MapPin, 
+  Fingerprint, Info, CodeXml, MessageSquare, AtSign, ExternalLink, Ghost, Calendar, MapPin, 
   Type, CaseUpper, ShieldAlert, Skull, Power, ShieldCheck, Lock, Check, Key, Sparkles, ChevronRight,
   Target
 } from 'lucide-react';
@@ -1142,7 +1142,7 @@ export const AboutView: React.FC<{
                            <div className="text-[10px] text-zinc-500">{t('multilingualSupport')}</div>
                       </div>
                       <div className="p-4 bg-zinc-900/60 border border-zinc-800/50 rounded-xl hover:border-neon-green/30 transition-colors">
-                          <Github size={20} className="text-neon-green mb-2" />
+                          <CodeXml size={20} className="text-neon-green mb-2" />
                           <div className="text-white font-bold text-xs mb-1">{t('openSourceLabel')}</div>
                            <div className="text-[10px] text-zinc-500">{t('transparentVerifiable')}</div>
                       </div>
@@ -1174,7 +1174,7 @@ export const AboutView: React.FC<{
                           </div>
                       </div>
                       <button className="p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-white hover:text-neon-green hover:border-neon-green transition-all">
-                          <Github size={20} />
+                          <ExternalLink size={20} />
                       </button>
                   </div>
               </section>

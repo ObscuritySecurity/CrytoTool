@@ -469,14 +469,14 @@ export const CustomizeModal: React.FC<{
                                                     >
                                                         {/* Large Faded Background Icon */}
                                                         <div className="absolute top-0 right-0 p-5 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
-                                                             {React.cloneElement(pack.icon as React.ReactElement, { size: 90 })}
+                                                             {React.cloneElement(pack.icon as React.ReactElement<any>, { size: 90 })}
                                                         </div>
 
                                                         {/* Header Section */}
                                                         <div className="flex items-center gap-4 relative z-10">
                                                             {/* Gradient Icon Box */}
                                                             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-neon-green to-emerald-600 flex items-center justify-center text-black shadow-lg shrink-0">
-                                                               {React.cloneElement(pack.icon as React.ReactElement, { size: 24 })}
+                                                               {React.cloneElement(pack.icon as React.ReactElement<any>, { size: 24 })}
                                                             </div>
                                                             <div>
                                                                 <h4 className="font-bold text-primary text-lg leading-tight">{pack.name}</h4>
