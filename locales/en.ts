@@ -627,4 +627,10 @@ export const translations: Translations = {
   landingContact: 'Contact',
   homeNav: 'Home',
   documentsNav: 'Documents',
+  biometricUnlockLabel: 'Biometric Unlock',
+  biometricUnlockDesc: 'Securely unlock your vault with fingerprint or face recognition. Master key is stored in device hardware keystore.',
+  biometricNotAvailable: 'Biometric authentication is not available on this device.',
+  unlockWithBiometric: 'Unlock with Biometrics',
+  biometricPromptHint: 'Touch ID, Face ID or Windows Hello',
+  biometricFailed: 'Biometric authentication failed. Please use your master password.',
 }

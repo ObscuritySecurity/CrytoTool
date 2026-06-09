@@ -57,6 +57,13 @@ interface SettingsViewProps {
     openVault: () => void;
     disableVault: () => void;
   };
+  biometricSettings: {
+    available: boolean;
+    enabled: boolean;
+    enable: () => Promise<boolean>;
+    disable: () => Promise<boolean>;
+    setAvailable: (v: boolean) => void;
+  };
   openThemes: () => void;
   openFonts: () => void;
   onOpenAbout: () => void;
@@ -442,6 +449,41 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                           </div>
                       </div>
                       <p className="text-[10px] text-muted mb-3">{t('vaultKeysDesc')}</p>
+                  </div>
+
+{/* --- BIOMETRIC UNLOCK --- */}
+                  <div className="pb-6 border-b border-border">
+                      <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                               <Fingerprint size={16} className={props.biometricSettings.enabled ? "text-neon-green" : "text-muted"} />
+                               <label className="text-sm font-bold uppercase tracking-wider text-primary">{t('biometricUnlockLabel')}</label>
+                          </div>
+                          <div className="flex items-center gap-2">
+                              <button
+                                  onClick={async () => {
+                                      if (props.biometricSettings.enabled) {
+                                          await props.biometricSettings.disable();
+                                      } else {
+                                          await props.biometricSettings.enable();
+                                      }
+                                  }}
+                                  className={`w-12 h-7 rounded-full transition-colors flex items-center px-1 ${props.biometricSettings.enabled ? 'bg-neon-green' : 'bg-surface border border-border'}`}
+                              >
+                                  <motion.div
+                                      layout
+                                      className={`w-5 h-5 rounded-full bg-white shadow-sm`}
+                                      animate={{ x: props.biometricSettings.enabled ? 18 : 0 }}
+                                  />
+                              </button>
+                          </div>
+                      </div>
+                      <p className="text-[10px] text-muted mb-2">{t('biometricUnlockDesc')}</p>
+                      {!props.biometricSettings.available && (
+                          <p className="text-[10px] text-zinc-600 flex items-center gap-1">
+                              <ShieldAlert size={10} />
+                              {t('biometricNotAvailable')}
+                          </p>
+                      )}
                   </div>
 
                   {/* === ZONA DE PERICOL: AUTODISTRUGERE === */}

@@ -630,4 +630,10 @@ export const translations: Translations = {
   landingContact: 'Contacto',
   homeNav: 'Inicio',
   documentsNav: 'Documentos',
+  biometricUnlockLabel: 'Desbloqueo biométrico',
+  biometricUnlockDesc: 'Desbloquea tu bóveda con huella dactilar o reconocimiento facial. La clave maestra se almacena en el almacén de claves del hardware del dispositivo.',
+  biometricNotAvailable: 'La autenticación biométrica no está disponible en este dispositivo.',
+  unlockWithBiometric: 'Desbloquear con biometría',
+  biometricPromptHint: 'Touch ID, Face ID o Windows Hello',
+  biometricFailed: 'La autenticación biométrica falló. Usa tu contraseña maestra.',
 }

@@ -53,6 +53,13 @@ interface DashboardProps {
     pin: string | null;
     update: (enabled: boolean, pin: string | null) => void;
   };
+  biometricSettings: {
+    available: boolean;
+    enabled: boolean;
+    enable: () => Promise<boolean>;
+    disable: () => Promise<boolean>;
+    setAvailable: (v: boolean) => void;
+  };
   autoBlurSettings: { value: number; setValue: (val: number) => void; };
   autoLockSettings: { value: number; setValue: (val: number) => void; };
   progressiveLockSettings: {
@@ -125,6 +132,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   settingsLock, 
   recoverySettings,
   vaultSettings,
+  biometricSettings,
   autoBlurSettings, 
   autoLockSettings, 
   progressiveLockSettings,
@@ -1148,6 +1156,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 openVault: handleOpenVaultSettings,
                 disableVault: handleDisableVault
               }}
+              biometricSettings={biometricSettings}
               applyFullTheme={applyFullTheme} 
               openThemes={() => setCurrentView('themes')} 
               openFonts={() => setCurrentView('fonts')} 

@@ -630,4 +630,10 @@ export const translations: Translations = {
   landingContact: 'Contact',
   homeNav: 'Acasă',
   documentsNav: 'Documente',
+  biometricUnlockLabel: 'Deblocare biometrică',
+  biometricUnlockDesc: 'Deblochează seiful cu amprenta sau recunoașterea facială. Cheia principală este stocată în keystore-ul hardware al dispozitivului.',
+  biometricNotAvailable: 'Autentificarea biometrică nu este disponibilă pe acest dispozitiv.',
+  unlockWithBiometric: 'Deblochează cu Biometrie',
+  biometricPromptHint: 'Touch ID, Face ID sau Windows Hello',
+  biometricFailed: 'Autentificarea biometrică a eșuat. Folosește parola principală.',
 }

@@ -8,6 +8,10 @@ import { db } from './utils/db';
 import { I18nProvider } from './locales/i18nContext';
 import { hashPin } from './utils/security';
 import {
+  checkBiometricAvailability, retrieveMasterKeyBiometric, storeMasterKeyBiometric,
+  removeBiometricKey, isBiometricEnabled, setBiometricEnabled,
+} from './utils/biometric';
+import {
   deriveKey,
   wrapRawKey,
   unwrapRawKey,
@@ -110,8 +114,12 @@ const App: React.FC = () => {
     return saved ? parseInt(saved, 10) : null;
   });
 
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricEnabled, setBiometricEnabledState] = useState(() => isBiometricEnabled());
+
   const [newlyGeneratedCodes, setNewlyGeneratedCodes] = useState<string[] | null>(null);
   const masterKeyRef = useRef<CryptoKey | null>(null);
+  const biometricAttemptedRef = useRef(false);
   const [recoveryWrappersCount, setRecoveryWrappersCount] = useState(() => {
     const raw = localStorage.getItem('crytotool_vault_wrappers');
     if (!raw) return 0;
@@ -216,6 +224,46 @@ const App: React.FC = () => {
     return () => clearInterval(intervalId);
   }, [isAuthenticated, destructTriggerTime]);
 
+  useEffect(() => {
+    if (showSplash) return;
+    checkBiometricAvailability().then(r => setBiometricAvailable(r.available));
+  }, [showSplash]);
+
+  useEffect(() => {
+    if (showSplash) return;
+    if (isAuthenticated) return;
+    if (!biometricEnabled) return;
+    if (biometricAttemptedRef.current) return;
+    biometricAttemptedRef.current = true;
+    (async () => {
+      const availability = await checkBiometricAvailability();
+      setBiometricAvailable(availability.available);
+      if (!availability.available) return;
+      const rawBytes = await retrieveMasterKeyBiometric();
+      if (!rawBytes) return;
+      try {
+        const masterKey = await window.crypto.subtle.importKey(
+          'raw', rawBytes as BufferSource, { name: 'AES-GCM' },
+          false, ['encrypt', 'decrypt'],
+        );
+        const wrappersRaw = localStorage.getItem('crytotool_vault_wrappers');
+        if (!wrappersRaw) return;
+        const wrappers = JSON.parse(wrappersRaw);
+        const mvkBytes = await unwrapRawKey(wrappers.master, masterKey);
+        const mvk = await window.crypto.subtle.importKey(
+          'raw', mvkBytes as unknown as BufferSource, { name: 'AES-GCM' },
+          false, ['encrypt', 'decrypt'],
+        );
+        cryptoService.setVaultKey(mvk);
+        mvkBytes.fill(0);
+        masterKeyRef.current = masterKey;
+        handleUnlock();
+      } catch {
+        /* fall through to AuthScreen */
+      }
+    })();
+  }, [showSplash, biometricAvailable, biometricEnabled, isAuthenticated]);
+
   const performWipe = async () => {
     try {
       await db.clearDatabase();
@@ -264,6 +312,21 @@ const App: React.FC = () => {
     setIsBlurred(false);
     cryptoService.clearKeys();
     masterKeyRef.current = null;
+  };
+
+  const enableBiometric = async (): Promise<boolean> => {
+    if (!masterKeyRef.current) return false;
+    const raw = await window.crypto.subtle.exportKey('raw', masterKeyRef.current);
+    const bytes = new Uint8Array(raw);
+    const ok = await storeMasterKeyBiometric(bytes);
+    if (ok) setBiometricEnabledState(true);
+    return ok;
+  };
+
+  const disableBiometric = async (): Promise<boolean> => {
+    const ok = await removeBiometricKey();
+    if (ok) setBiometricEnabledState(false);
+    return ok;
   };
 
   useEffect(() => {
@@ -423,6 +486,28 @@ const App: React.FC = () => {
                 downloadCodes(codes);
                 syncRecoveryCount();
               }}
+              biometricAvailable={biometricAvailable}
+              biometricEnabled={biometricEnabled}
+              onBiometricUnlock={async () => {
+                const rawBytes = await retrieveMasterKeyBiometric();
+                if (!rawBytes) throw new Error('Biometric unlock cancelled');
+                const masterKey = await window.crypto.subtle.importKey(
+                  'raw', rawBytes as BufferSource, { name: 'AES-GCM' },
+                  false, ['encrypt', 'decrypt'],
+                );
+                const wrappersRaw = localStorage.getItem('crytotool_vault_wrappers');
+                if (!wrappersRaw) throw new Error('No vault wrappers');
+                const wrappers = JSON.parse(wrappersRaw);
+                const mvkBytes = await unwrapRawKey(wrappers.master, masterKey);
+                const mvk = await window.crypto.subtle.importKey(
+                  'raw', mvkBytes as unknown as BufferSource, { name: 'AES-GCM' },
+                  false, ['encrypt', 'decrypt'],
+                );
+                cryptoService.setVaultKey(mvk);
+                mvkBytes.fill(0);
+                masterKeyRef.current = masterKey;
+                handleUnlock();
+              }}
             />
           </motion.div>
         ) : (
@@ -442,6 +527,13 @@ const App: React.FC = () => {
                   enabled: vaultEnabled,
                   pin: vaultPin,
                   update: updateVaultSettings
+                }}
+                biometricSettings={{
+                  available: biometricAvailable,
+                  enabled: biometricEnabled,
+                  enable: enableBiometric,
+                  disable: disableBiometric,
+                  setAvailable: setBiometricAvailable,
                 }}
                autoBlurSettings={{
                  value: autoBlurSeconds,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, Key, Loader2, ShieldCheck, Timer, ShieldAlert } from 'lucide-react';
+import { Eye, EyeOff, Key, Loader2, ShieldCheck, Timer, ShieldAlert, Fingerprint } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cryptoService } from '../utils/crypto';
 import { useI18n } from '../locales/i18nContext';
@@ -25,9 +25,12 @@ interface AuthScreenProps {
   destructCountdown?: number | null;
   onNewCodes?: (codes: string[]) => void;
   onStoreMasterKey?: (key: CryptoKey) => void;
+  biometricAvailable?: boolean;
+  biometricEnabled?: boolean;
+  onBiometricUnlock?: () => Promise<void>;
 }
 
-export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockUntil, onFailedAttempt, recoverySettings, onResetWithRecovery, onNewCodes, onStoreMasterKey }) => {
+export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockUntil, onFailedAttempt, recoverySettings, onResetWithRecovery, onNewCodes, onStoreMasterKey, biometricAvailable, biometricEnabled, onBiometricUnlock }) => {
   const { t } = useI18n();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -35,6 +38,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
+  const [biometricError, setBiometricError] = useState(false);
 
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
   const [recoveryCode, setRecoveryCode] = useState('');
@@ -265,6 +269,38 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
           >
             <Timer className="text-red-500 mb-4 animate-pulse" size={48} />
             <div className="text-4xl font-black font-mono text-red-500">{timeLeft}s</div>
+          </motion.div>
+        )}
+
+        {(biometricAvailable && biometricEnabled && !isSetup && !isLocked && onBiometricUnlock) && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            <button
+              onClick={async () => {
+                setBiometricError(false);
+                setIsProcessing(true);
+                try {
+                  await onBiometricUnlock();
+                } catch {
+                  setBiometricError(true);
+                  setIsProcessing(false);
+                }
+              }}
+              disabled={isProcessing}
+              className="w-full bg-gradient-to-br from-neon-green/20 to-neon-green/5 border border-neon-green/30 text-white font-bold py-4 rounded-xl hover:from-neon-green/30 hover:to-neon-green/10 transition-all flex items-center justify-center gap-3 active:scale-[0.99] disabled:opacity-50 group"
+            >
+              <Fingerprint size={24} className="text-neon-green group-hover:scale-110 transition-transform" />
+              <div className="text-left">
+                <span className="text-sm">{t('unlockWithBiometric')}</span>
+                <p className="text-[10px] text-zinc-500 font-normal">{t('biometricPromptHint')}</p>
+              </div>
+            </button>
+            {biometricError && (
+              <p className="text-red-500 text-xs text-center mt-2">{t('biometricFailed')}</p>
+            )}
           </motion.div>
         )}
 
