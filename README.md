@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/CrytoTool.png" alt="CrytoTool Logo" width="150px" />
+  <img src="assets/CrytoTool.png" alt="CrytoTool Logo" width="300px" />
   <h1>CrytoTool</h1>
   <p><strong>All-in-One Privacy.</strong></p>
   <br>
