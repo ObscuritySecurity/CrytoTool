@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, Key, Loader2, ShieldCheck, Timer, ShieldAlert } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Eye, EyeOff, Loader2, ShieldCheck, Timer, Fingerprint, Key, Sparkles, Edit3, Copy, Check, ChevronRight, Target, Shield, ShieldAlert, Skull, AlertTriangle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cryptoService } from '../utils/crypto';
 import { useI18n } from '../locales/i18nContext';
+import crytoLogo from '../assets/CrytoTool.png';
+import { AutoDestructCountdown } from './AutoDestructCountdown';
+import type { AutoDestructCountdownHandle } from './AutoDestructCountdown';
 import {
   deriveKey,
   wrapRawKey,
@@ -22,12 +25,17 @@ interface AuthScreenProps {
     count: number;
   };
   onResetWithRecovery: (code: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
-  destructCountdown?: number | null;
+  destructRef: React.RefObject<AutoDestructCountdownHandle | null>;
+  onDestructComplete: () => void;
   onNewCodes?: (codes: string[]) => void;
   onStoreMasterKey?: (key: CryptoKey) => void;
+  onApplyThreatModel?: (config: { autoBlurSeconds: number; autoLockSeconds: number; failedAttemptsThreshold: number; progressiveLockSeconds: number; autoDestructEnabled: boolean; autoDestructAttempts: number; autoDestructInactivity: number; destructCountdownSeconds: number }) => void;
+  biometricAvailable?: boolean;
+  biometricEnabled?: boolean;
+  onBiometricUnlock?: () => Promise<void>;
 }
 
-export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockUntil, onFailedAttempt, recoverySettings, onResetWithRecovery, onNewCodes, onStoreMasterKey }) => {
+export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockUntil, onFailedAttempt, recoverySettings, onResetWithRecovery, destructRef, onDestructComplete, onNewCodes, onStoreMasterKey, onApplyThreatModel, biometricAvailable, biometricEnabled, onBiometricUnlock }) => {
   const { t } = useI18n();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -35,13 +43,20 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
+  const [biometricError, setBiometricError] = useState(false);
+  const [isDestructing, setIsDestructing] = useState(false);
+  const [setupStep, setSetupStep] = useState<'welcome' | 'create' | 'threat'>('welcome');
+  const [selectedTier, setSelectedTier] = useState<number | null>(null);
+  const [blockedTier, setBlockedTier] = useState<number | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  const [recoveryStep, setRecoveryStep] = useState<1 | 2>(1);
   const [recoveryCode, setRecoveryCode] = useState('');
   const [newRecoveryPassword, setNewRecoveryPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
-  const accentColor = localStorage.getItem('theme_accent') || '#39ff14';
+  const accentColor = localStorage.getItem('theme_accent') || '#e4e4e7';
   const accentRgb = (() => {
     const c = accentColor.replace('#', '');
     return `${parseInt(c.slice(0, 2), 16)}, ${parseInt(c.slice(2, 4), 16)}, ${parseInt(c.slice(4, 6), 16)}`;
@@ -75,63 +90,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isLocked) return;
+    if (isLocked && !isDestructing) return;
     setError(null);
     setIsProcessing(true);
 
     try {
-      if (isSetup) {
-        if (password.length < 30) {
-          setError(t('passwordTooShort'));
-          setIsProcessing(false);
-          return;
-        }
-        if (password !== confirmPassword) {
-          setError(t('passwordsDoNotMatch'));
-          setIsProcessing(false);
-          return;
-        }
+      if (isSetup) return;
 
-        const mvk = await cryptoService.generateVaultKey();
-        const rawMvk = await window.crypto.subtle.exportKey('raw', mvk);
-        const mvkBytes = new Uint8Array(rawMvk);
-
-        const codes = generateRecoveryCodes();
-
-        const masterSalt = window.crypto.getRandomValues(new Uint8Array(16));
-          const masterKey = await deriveKey(password, masterSalt, 'master');
-        const masterWrapper = await wrapRawKey(mvkBytes, masterKey);
-
-        const recoverySalts: string[] = [];
-        const recoveryWrappers: Record<string, { ciphertext: string; iv: string }> = {};
-
-        for (let i = 0; i < codes.length; i++) {
-          const salt = window.crypto.getRandomValues(new Uint8Array(16));
-          recoverySalts.push(bytesToBase64(salt));
-          const key = await deriveKey(codes[i], salt, 'recovery');
-          const paddedIdx = String(i + 1).padStart(2, '0');
-          recoveryWrappers[paddedIdx] = await wrapRawKey(mvkBytes, key);
-        }
-
-        const meta: CryptoMetadata = {
-          master_salt: bytesToBase64(masterSalt),
-          recovery_salts: recoverySalts,
-        };
-        const wrappers: VaultWrappers = {
-          master: masterWrapper,
-          recovery: recoveryWrappers,
-        };
-
-        localStorage.setItem('crytotool_crypto_metadata', JSON.stringify(meta));
-        localStorage.setItem('crytotool_vault_wrappers', JSON.stringify(wrappers));
-
-        cryptoService.setVaultKey(mvk);
-        mvkBytes.fill(0);
-        onStoreMasterKey?.(masterKey);
-        onNewCodes?.(codes);
-        onUnlock();
-      } else {
-        const wrappersRaw = localStorage.getItem('crytotool_vault_wrappers');
+      const wrappersRaw = localStorage.getItem('crytotool_vault_wrappers');
         if (wrappersRaw) {
           const metadataRaw = localStorage.getItem('crytotool_crypto_metadata');
           if (!metadataRaw) {
@@ -163,7 +129,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
           } catch (err) {
             setError(t('wrongPassword'));
             setPassword('');
-            onFailedAttempt();
+            if (!isDestructing) onFailedAttempt();
           }
         } else {
           const saltB64 = localStorage.getItem('crytotool_salt');
@@ -198,10 +164,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
           } catch (err) {
             setError(t('wrongPassword'));
             setPassword('');
-            onFailedAttempt();
+            if (!isDestructing) onFailedAttempt();
           }
         }
-      }
     } catch (err) {
       console.error(err);
       setError(t('cryptoError'));
@@ -210,232 +175,772 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
     }
   };
 
-  const Logo = () => (
-    <div className="relative w-32 h-32 flex items-center justify-center mb-6">
-      <div className={`absolute inset-0 ${isLocked ? 'bg-red-500/10' : 'blur-[40px] rounded-full transition-colors duration-500'}`} style={{ backgroundColor: isLocked ? undefined : `rgba(${accentRgb}, 0.1)` }} />
-      <svg viewBox="0 0 100 100" className="w-full h-full" style={{ filter: `drop-shadow(0 0 15px rgba(${isLocked ? '239, 68, 68' : accentRgb}, 0.5))` }}>
-        <path d="M30 40 V25 A20 20 0 0 1 70 25 V40" stroke={isLocked ? '#ef4444' : accentColor} strokeWidth="10" strokeLinecap="round" fill="none" className="transition-colors duration-500" />
-        <rect x="15" y="40" width="70" height="45" rx="10" fill="none" stroke={isLocked ? '#ef4444' : accentColor} strokeWidth="8" className="transition-colors duration-500" />
+  const handleCreateFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    if (password.length < 30) {
+      setError(t('passwordTooShort'));
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError(t('passwordsDoNotMatch'));
+      return;
+    }
+    setSetupStep('threat');
+  };
 
-        {isLocked ? (
-           <path d="M40 55 L60 75 M60 55 L40 75" stroke="#ef4444" strokeWidth="6" strokeLinecap="round" fill="none" />
-        ) : (
-           <path d="M42 61 L50 69 L62 53" stroke={accentColor} strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        )}
-      </svg>
+  const completeSetup = async () => {
+    setIsProcessing(true);
+    setError(null);
+    try {
+      const mvk = await cryptoService.generateVaultKey();
+      const rawMvk = await window.crypto.subtle.exportKey('raw', mvk);
+      const mvkBytes = new Uint8Array(rawMvk);
+
+      const codes = generateRecoveryCodes();
+
+      const masterSalt = window.crypto.getRandomValues(new Uint8Array(16));
+      const masterKey = await deriveKey(password, masterSalt, 'master');
+      const masterWrapper = await wrapRawKey(mvkBytes, masterKey);
+
+      const recoverySalts: string[] = [];
+      const recoveryWrappers: Record<string, { ciphertext: string; iv: string }> = {};
+
+      for (let i = 0; i < codes.length; i++) {
+        const salt = window.crypto.getRandomValues(new Uint8Array(16));
+        recoverySalts.push(bytesToBase64(salt));
+        const key = await deriveKey(codes[i], salt, 'recovery');
+        const paddedIdx = String(i + 1).padStart(2, '0');
+        recoveryWrappers[paddedIdx] = await wrapRawKey(mvkBytes, key);
+      }
+
+      const meta: CryptoMetadata = {
+        master_salt: bytesToBase64(masterSalt),
+        recovery_salts: recoverySalts,
+      };
+      const wrappers: VaultWrappers = {
+        master: masterWrapper,
+        recovery: recoveryWrappers,
+      };
+
+      localStorage.setItem('crytotool_crypto_metadata', JSON.stringify(meta));
+      localStorage.setItem('crytotool_vault_wrappers', JSON.stringify(wrappers));
+
+      cryptoService.setVaultKey(mvk);
+      mvkBytes.fill(0);
+      onStoreMasterKey?.(masterKey);
+      onNewCodes?.(codes);
+      onUnlock();
+    } catch (err) {
+      console.error(err);
+      setError(t('cryptoError'));
+      setIsProcessing(false);
+    }
+  };
+
+  const THREAT_MODEL_TIER1 = {
+    autoBlurSeconds: 20,
+    autoLockSeconds: 25,
+    failedAttemptsThreshold: 3,
+    progressiveLockSeconds: 60,
+    autoDestructEnabled: false,
+    autoDestructAttempts: 5,
+    autoDestructInactivity: 0,
+    destructCountdownSeconds: 30,
+  };
+
+  const TIERS = [
+    { id: 1, icon: Target, nameKey: 'tier1Name', descKey: 'tier1Desc', blocked: false },
+    { id: 2, icon: Shield, nameKey: 'tier2Name', descKey: 'tier2Desc', blocked: true },
+    { id: 3, icon: ShieldAlert, nameKey: 'tier3Name', descKey: 'tier3Desc', blocked: true },
+    { id: 4, icon: Skull, nameKey: 'tier4Name', descKey: 'tier4Desc', blocked: true },
+  ] as const;
+
+  const WORD_LIST = [
+    'apple','autumn','basin','batch','beach','beard','bench','birth','black','blank',
+    'blast','blend','bless','blind','block','bloom','board','boast','bonus','boost',
+    'brain','brand','brave','bread','break','breed','brief','bring','broad','brook',
+    'brown','brush','build','bunch','burst','cabin','cable','calm','camel','candy',
+    'cargo','carve','catch','cause','cedar','chain','chair','chalk','charm','chart',
+    'chase','cheap','check','cheek','cheer','chess','chest','chief','child','chill',
+    'choir','civic','civil','claim','clash','class','clean','clear','clerk','cliff',
+    'climb','cling','clock','close','cloth','cloud','coach','coast','coral','couch',
+    'count','court','cover','crack','craft','crane','crash','crawl','cream','crest',
+    'crime','crisp','cross','crowd','crown','crush','curve','cycle','daily','dance',
+    'debut','decay','delay','delta','dense','depth','derby','diary','donor','doubt',
+    'draft','drain','drama','dress','drift','drill','drink','drive','drone','eager',
+    'eagle','early','earth','eight','elder','elect','elite','empty','enjoy','enter',
+    'entry','equal','equip','error','essay','event','exact','exist','extra','fable',
+    'faith','false','fancy','fatal','fault','feast','fence','ferry','fetch','fever',
+    'fiber','field','fierce','fifth','fifty','fight','final','first','flame','flash',
+    'fleet','flesh','float','flock','flood','floor','flora','flour','fluid','flush',
+    'focus','force','forge','forth','forum','found','frame','frank','fraud','fresh',
+    'front','frost','fruit','gauge','ghost','giant','given','glad','glare','glass',
+    'glide','globe','gloom','glory','glove','glow','grace','grade','grain','grand',
+    'grant','grape','graph','grasp','grass','grave','great','green','greet','grief',
+    'grill','grind','gross','group','grove','guard','guess','guest','guide','guild',
+    'guilt','habit','happy','harsh','haven','heart','heavy','hedge','height','helmet',
+    'herald','herd','hike','honey','honor','horse','hotel','house','hover','human',
+    'humor','hurry','ideal','image','imply','index','inner','input','irony','ivory',
+    'jewel','joint','judge','juice','kebab','kernel','kettle','keypad','knock','label',
+    'labor','ladder','lance','large','laser','later','launch','layer','layout','leader',
+    'leaf','league','learn','leave','ledge','legal','lemon','level','light','limit',
+    'linen','links','liver','lobby','local','lodge','logic','loose','lover','lower',
+    'loyal','lucky','lunar','lunch','luxury','magic','major','maker','manor','maple',
+    'marble','march','margin','marker','market','marsh','mask','match','maxim','mayor',
+    'meadow','media','melon','melt','member','memory','mercy','merge','merit','metal',
+    'meter','might','minor','minus','mirror','mixed','mobile','model','money','month',
+    'moral','motor','mount','mouse','mouth','movie','museum','music','naive','narrow',
+    'naval','nerve','never','night','noble','noise','north','noted','novel','nurse',
+    'nylon','oasis','ocean','offer','often','olive','opera','orbit','order','organ',
+    'other','outer','output','oval','oven','owner','oxide','ozone','panel','panic',
+    'paper','pardon','parish','parrot','party','patch','pause','peace','pearl','phase',
+    'phone','photo','piano','piece','pilot','pinch','pixel','place','plain','plane',
+    'plant','plate','plaza','pluck','plumb','plume','point','polar','polish','polite',
+    'porch','pork','port','post','potato','pound','power','press','price','pride',
+    'prime','print','prior','prism','prize','probe','proof','pulse','punch','pupil',
+    'purple','purse','quest','queue','quick','quiet','quite','quote','radar','radio',
+    'raise','rally','ranch','range','rapid','ratio','reach','react','ready','realm',
+    'rebel','refer','reign','relax','relay','renew','reply','resin','reward','rhythm',
+    'rifle','right','rigid','ruler','rural','saber','safari','salad','salmon','salon',
+    'salute','satin','sauce','scale','scalp','scene','scent','scope','score','scrub',
+    'search','second','secret','sense','sensor','setup','seven','shade','shadow','shape',
+    'share','shark','sharp','shawl','sheep','sheet','shelf','shell','shift','shine',
+    'shirt','shock','shore','short','shout','sight','sigma','silly','since','sketch',
+    'skill','skull','slate','slave','sleep','slice','slide','slope','smart','smell',
+    'smile','smoke','snack','snake','solar','solid','solve','sorry','sound','south',
+    'space','spare','spark','speak','spear','speed','spell','spend','spice','spill',
+    'spine','spirit','split','spoil','spoon','sport','spray','spread','spring','square',
+    'stable','stair','stamp','stand','stark','start','state','steam','steel','steep',
+    'steer','stern','stick','stiff','still','stock','stone','stood','stool','store',
+    'storm','story','stove','strap','straw','strip','stuck','study','stuff','style',
+    'sugar','suite','sunny','super','surge','swamp','swan','swap','sweet','swift',
+    'swing','sword','table','tablet','taste','teach','teeth','temple','theme','thick',
+    'thief','thing','think','third','thorn','three','throw','thumb','tiger','tight',
+    'timer','tired','title','token','total','touch','towel','tower','trace','track',
+    'trade','trail','train','trait','trash','treat','trend','trial','tribe','trick',
+    'troop','truck','truly','trump','trunk','trust','truth','twice','twist','ultra',
+    'uncle','under','union','unite','unity','upper','upset','urban','usage','usual',
+    'valid','value','valve','vault','venue','verse','video','vigor','vinyl','viral',
+    'virus','visit','vista','vital','vivid','vocal','voice','voter','waist','waste',
+    'watch','water','weave','wheat','wheel','white','whole','woman','world','worry',
+    'worse','worst','worth','wound','write','wrong','yacht','yield','young','youth',
+    'zebra','zone',
+  ];
+
+  const generatePassword = (): string => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%^&*';
+    const bytes = new Uint32Array(32);
+    window.crypto.getRandomValues(bytes);
+    let result = '';
+    for (let i = 0; i < 32; i++) {
+      result += chars[bytes[i] % chars.length];
+    }
+    return result;
+  };
+
+  const generatePassphrase = (): string => {
+    const indices = new Uint32Array(6);
+    window.crypto.getRandomValues(indices);
+    return Array.from(indices).map(i => WORD_LIST[i % WORD_LIST.length]).join('-');
+  };
+
+  const handleCopyPassword = async () => {
+    try {
+      await navigator.clipboard.writeText(password);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {}
+  };
+
+  const Logo = () => (
+    <div className={`relative w-48 h-48 md:w-64 md:h-64 flex items-center justify-center transition-all duration-700`}>
+      <div className={`absolute -inset-4 md:-inset-6 blur-[80px] md:blur-[120px] rounded-full animate-pulse transition-all duration-700 ${isLocked ? 'bg-red-500/20' : ''}`} style={{ backgroundColor: isLocked ? undefined : `rgba(${accentRgb}, 0.3)` }} />
+      <div className={`absolute inset-0 md:inset-2 blur-2xl md:blur-3xl rounded-full ${isLocked ? 'bg-red-500/10' : ''}`} style={{ backgroundColor: isLocked ? undefined : `rgba(${accentRgb}, 0.2)` }} />
+      <img
+        src={crytoLogo}
+        alt="CrytoTool"
+        className={`w-full h-full object-contain transition-all duration-500 ${isLocked ? 'opacity-50 grayscale' : ''}`}
+        style={{ filter: isLocked ? 'none' : `drop-shadow(0 0 40px rgba(${accentRgb}, 0.6)) drop-shadow(0 0 80px rgba(${accentRgb}, 0.3)) drop-shadow(0 0 120px rgba(${accentRgb}, 0.15))` }}
+      />
     </div>
   );
 
+  if (isSetup) {
+    return (
+      <div className="bg-black h-screen h-dvh overflow-hidden">
+        <AnimatePresence mode="wait">
+          {setupStep === 'welcome' ? (
+            <motion.div
+              key="welcome"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className="flex flex-col items-center justify-center px-6 h-full"
+            >
+              <div className="flex flex-col items-center space-y-3 md:space-y-4">
+                <div className="relative w-36 h-36 md:w-48 md:h-48">
+                  <div className="absolute -inset-4 md:-inset-6 blur-[80px] md:blur-[120px] rounded-full animate-pulse" style={{ backgroundColor: `rgba(${accentRgb}, 0.3)` }} />
+                  <img src={crytoLogo} alt="CrytoTool" className="w-full h-full object-contain" style={{ filter: `drop-shadow(0 0 40px rgba(${accentRgb}, 0.6)) drop-shadow(0 0 80px rgba(${accentRgb}, 0.3))` }} />
+                </div>
+                <div className="text-xl md:text-2xl font-bold tracking-tight">
+                  <span className="text-white drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">{t('crytoPrefix')}</span>
+                  <span className="drop-shadow-[0_0_12px_rgba(212,212,216,0.5)]" style={{ color: accentColor }}>{t('toolSuffix')}</span>
+                </div>
+                <p className="text-zinc-400 text-xs text-center mb-1">{t('allInOnePrivacyTagline')}</p>
+              </div>
+
+              <div className="w-full max-w-sm glass-card border border-white/10 rounded-2xl p-4 mt-5 space-y-2.5">
+                <div className="flex items-center gap-3 p-2.5 rounded-xl bg-zinc-900/50">
+                  <ShieldCheck size={16} className="text-neon-green shrink-0" />
+                  <span className="text-xs text-zinc-300">{t('argon2idAES')}</span>
+                </div>
+                <div className="flex items-center gap-3 p-2.5 rounded-xl bg-zinc-900/50">
+                  <ShieldCheck size={16} className="text-neon-green shrink-0" />
+                  <span className="text-xs text-zinc-300">{t('clientSide')}</span>
+                </div>
+                <div className="flex items-center gap-3 p-2.5 rounded-xl bg-zinc-900/50">
+                  <Key size={16} className="text-neon-green shrink-0" />
+                  <span className="text-xs text-zinc-300">{t('min30Chars')}</span>
+                </div>
+              </div>
+
+              <button onClick={() => setSetupStep('create')}
+                className="mt-5 w-full max-w-sm py-3 rounded-xl text-black font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-[0.98]"
+                style={{ backgroundColor: accentColor, boxShadow: `0 0 20px rgba(${accentRgb}, 0.3)` }}
+              >
+                {t('continueButton')} <ChevronRight size={18} />
+              </button>
+            </motion.div>
+          ) : setupStep === 'create' ? (
+            <motion.div
+              key="create"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className="flex flex-col items-center justify-center px-6 h-full"
+            >
+              <div className="flex flex-col items-center space-y-2 md:space-y-3 mb-4">
+                <div className="relative w-36 h-36 md:w-48 md:h-48">
+                  <div className="absolute -inset-4 md:-inset-6 blur-[80px] md:blur-[120px] rounded-full animate-pulse" style={{ backgroundColor: `rgba(${accentRgb}, 0.3)` }} />
+                  <img src={crytoLogo} alt="CrytoTool" className="w-full h-full object-contain" style={{ filter: `drop-shadow(0 0 40px rgba(${accentRgb}, 0.6)) drop-shadow(0 0 80px rgba(${accentRgb}, 0.3))` }} />
+                </div>
+                <div className="text-xl md:text-2xl font-bold tracking-tight">
+                  <span className="text-white drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">{t('crytoPrefix')}</span>
+                  <span className="drop-shadow-[0_0_12px_rgba(212,212,216,0.5)]" style={{ color: accentColor }}>{t('toolSuffix')}</span>
+                </div>
+                <p className="text-zinc-400 text-xs text-center">{t('setupCreateTitle')}</p>
+              </div>
+
+              <div className="w-full max-w-sm glass-card border border-white/10 rounded-2xl p-4 space-y-3">
+                <div className="grid grid-cols-3 gap-2">
+                  <button type="button" onClick={() => { const pwd = generatePassword(); setPassword(pwd); setConfirmPassword(pwd); setError(null); }}
+                    className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-600 transition-all active:scale-[0.96]"
+                  ><Key size={18} className="text-neon-green" /><span className="text-[10px] text-zinc-300 font-medium text-center leading-tight">{t('setupGeneratePwd')}</span></button>
+                  <button type="button" onClick={() => { const phrase = generatePassphrase(); setPassword(phrase); setConfirmPassword(phrase); setError(null); }}
+                    className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-600 transition-all active:scale-[0.96]"
+                  ><Sparkles size={18} className="text-neon-green" /><span className="text-[10px] text-zinc-300 font-medium text-center leading-tight">{t('setupCreatePhrase')}</span></button>
+                  <button type="button" onClick={() => { setPassword(''); setConfirmPassword(''); setError(null); }}
+                    className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-600 transition-all active:scale-[0.96]"
+                  ><Edit3 size={18} className="text-neon-green" /><span className="text-[10px] text-zinc-300 font-medium text-center leading-tight">{t('setupTypeManual')}</span></button>
+                </div>
+
+                {(password || confirmPassword) && (
+                  <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                    <p className="text-amber-400 text-[10px] text-center leading-relaxed">⚠️ {t('setupCopyWarning')}</p>
+                  </motion.div>
+                )}
+
+                <button type="button" onClick={() => { setSetupStep('welcome'); setPassword(''); setConfirmPassword(''); setError(null); }}
+                  className="text-[10px] text-zinc-500 hover:text-white transition-colors block"
+                >← {t('backButton')}</button>
+
+                <form onSubmit={handleCreateFormSubmit} className="space-y-2.5">
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted font-medium ml-1">{t('masterPassword')}</label>
+                    <div className="relative">
+                      <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)}
+                        placeholder={t('enterPasswordField')}
+                        className="w-full bg-surface border border-border text-primary rounded-xl pl-3 pr-14 py-2.5 text-sm focus:outline-none focus:border-primary transition-all placeholder:text-muted font-mono tracking-wider" autoFocus
+                      />
+                      <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+                        {password && (
+                          <button type="button" onClick={handleCopyPassword} className="p-1.5 hover:bg-zinc-800 rounded-lg transition-colors">
+                            {copied ? <Check size={14} className="text-neon-green" /> : <Copy size={14} className="text-zinc-400" />}
+                          </button>
+                        )}
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="p-1.5 hover:bg-zinc-800 rounded-lg transition-colors">
+                          {showPassword ? <EyeOff size={14} className="text-zinc-400" /> : <Eye size={14} className="text-zinc-400" />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted font-medium ml-1">{t('confirmPassword')}</label>
+                    <input type={showPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder={t('confirmYourPassword')}
+                      className="w-full bg-surface border border-border text-primary rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-primary transition-all placeholder:text-muted"
+                    />
+                  </div>
+                  {error && (
+                    <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="text-red-500 text-xs font-medium bg-red-500/10 p-2 rounded-lg border border-red-500/20 text-center">
+                      {error}
+                    </motion.div>
+                  )}
+                  <button type="submit"
+                    className="w-full py-2.5 rounded-xl text-black font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-[0.98]"
+                    style={{ backgroundColor: accentColor }}
+                  >
+                    {t('saveAndContinue')} <ChevronRight size={18} />
+                  </button>
+                </form>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="threat"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className="flex flex-col items-center justify-center px-6 h-full"
+            >
+              <div className="flex flex-col items-center space-y-2 md:space-y-3 mb-4">
+                <div className="relative w-36 h-36 md:w-48 md:h-48">
+                  <div className="absolute -inset-4 md:-inset-6 blur-[80px] md:blur-[120px] rounded-full animate-pulse" style={{ backgroundColor: `rgba(${accentRgb}, 0.3)` }} />
+                  <img src={crytoLogo} alt="CrytoTool" className="w-full h-full object-contain" style={{ filter: `drop-shadow(0 0 40px rgba(${accentRgb}, 0.6)) drop-shadow(0 0 80px rgba(${accentRgb}, 0.3))` }} />
+                </div>
+                <div className="text-xl md:text-2xl font-bold tracking-tight">
+                  <span className="text-white drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">{t('crytoPrefix')}</span>
+                  <span className="drop-shadow-[0_0_12px_rgba(212,212,216,0.5)]" style={{ color: accentColor }}>{t('toolSuffix')}</span>
+                </div>
+                <p className="text-zinc-400 text-xs text-center">{t('threatModelDesc')}</p>
+              </div>
+
+              <div className="w-full max-w-sm space-y-2">
+                {TIERS.map((tier) => {
+                  const Icon = tier.icon;
+                  const isSelected = selectedTier === tier.id;
+                  const isBlocked = tier.blocked;
+                  const showBlockedWarning = blockedTier === tier.id && isBlocked;
+                  return (
+                    <div key={tier.id}>
+                      <button
+                        onClick={() => {
+                          if (isBlocked) {
+                            setBlockedTier(tier.id);
+                            setSelectedTier(null);
+                          } else {
+                            setSelectedTier(tier.id);
+                            setBlockedTier(null);
+                          }
+                        }}
+                        className={`w-full glass-card border rounded-2xl p-3 text-left transition-all active:scale-[0.98] ${
+                          isSelected
+                            ? 'border-neon-green/50 bg-neon-green/5'
+                            : showBlockedWarning
+                            ? 'border-red-500/50 bg-red-500/5'
+                            : 'border-white/10 hover:border-white/20'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-xl ${
+                            isSelected ? 'bg-neon-green/20 text-neon-green' :
+                            isBlocked ? 'bg-zinc-800 text-zinc-500' : 'bg-zinc-800 text-zinc-300'
+                          }`}>
+                            <Icon size={18} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className={`text-xs font-semibold ${
+                                isSelected ? 'text-neon-green' : isBlocked ? 'text-zinc-500' : 'text-white'
+                              }`}>{t(tier.nameKey as any)}</span>
+                              {isSelected && (
+                                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-neon-green/20 text-neon-green font-medium">{t('tierRecommended')}</span>
+                              )}
+                              {isBlocked && (
+                                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-zinc-800 text-zinc-500 font-medium">{t('tierNotAvailable')}</span>
+                              )}
+                            </div>
+                            <p className={`text-[10px] mt-0.5 ${
+                              isBlocked ? 'text-zinc-600' : 'text-zinc-400'
+                            }`}>{t(tier.descKey as any)}</p>
+                          </div>
+                        </div>
+                      </button>
+                      {showBlockedWarning && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          className="overflow-hidden"
+                        >
+                          <div className="mt-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
+                            <div className="flex items-start gap-2">
+                              <AlertTriangle size={14} className="text-red-400 shrink-0 mt-0.5" />
+                              <div>
+                                <p className="text-[11px] font-bold text-red-400 mb-1">{t('auditLimitationTitle')}</p>
+                                <p className="text-[10px] text-red-300/80 leading-relaxed">{t('auditLimitationBody')}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={async () => {
+                  if (!selectedTier) return;
+                  onApplyThreatModel?.(THREAT_MODEL_TIER1);
+                  await completeSetup();
+                }}
+                disabled={!selectedTier || isProcessing}
+                className="mt-4 w-full max-w-sm py-3 rounded-xl text-black font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-[0.98] disabled:grayscale disabled:opacity-50"
+                style={{ backgroundColor: accentColor, boxShadow: `0 0 20px rgba(${accentRgb}, 0.3)` }}
+              >
+                {isProcessing ? (
+                  <span className="flex items-center justify-center gap-2"><Loader2 size={16} className="animate-spin" />{t('processing')}</span>
+                ) : (
+                  <>{t('continueButton')} <ChevronRight size={18} /></>
+                )}
+              </button>
+
+              <button
+                onClick={() => { setSetupStep('create'); setSelectedTier(null); setBlockedTier(null); }}
+                className="mt-3 text-[10px] text-zinc-500 hover:text-white transition-colors"
+              >← {t('backButton')}</button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col items-center justify-center bg-black p-4 font-sans text-primary min-h-screen">
-      <div className="flex flex-col items-center mb-2">
+    <div className="flex flex-col items-center bg-black px-4 pt-12 md:pt-24 pb-6 font-sans text-primary min-h-screen min-h-dvh overflow-y-auto">
+      <div className="flex flex-col items-center space-y-3 md:space-y-5">
         <Logo />
-        <div className="text-3xl font-bold tracking-tight mb-8">
-          <span className={`font-bold tracking-tight ${isLocked ? 'text-red-500' : 'text-white'}`}>{t('crytoPrefix')}</span>
-          <span style={{ color: isLocked ? '#ef4444' : accentColor }}>{t('toolSuffix')}</span>
+        <div className="text-2xl md:text-3xl font-bold tracking-tight">
+          <span className={`font-bold tracking-tight ${isLocked ? 'text-red-500' : 'text-white drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]'}`}>{t('crytoPrefix')}</span>
+          <span className={isLocked ? '' : 'drop-shadow-[0_0_12px_rgba(212,212,216,0.5)]'} style={{ color: isLocked ? '#ef4444' : accentColor }}>{t('toolSuffix')}</span>
         </div>
-        <p className="text-sm text-muted mb-6 tracking-wide">{t('allInOnePrivacyTagline')}</p>
+        <p className={`text-sm tracking-wide ${isLocked ? 'text-muted' : 'text-zinc-400 drop-shadow-[0_0_8px_rgba(161,161,170,0.3)]'}`}>{t('allInOnePrivacyTagline')}</p>
       </div>
 
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className={`w-full max-w-md glass-card border ${isLocked ? 'border-red-500/50' : 'border-white/10'} rounded-3xl p-6 relative overflow-hidden mt-8`}
+        className={`w-full max-w-md glass-card border ${isLocked ? 'border-red-500/50' : 'border-white/10'} rounded-3xl p-5 relative mt-6 md:mt-10`}
       >
-        <div className="mb-8">
-          <h1 className={`text-2xl font-bold mb-3 ${isLocked ? 'text-red-500' : 'text-primary'}`}>
-            {isLocked ? t('lockedOut') : (isSetup ? t('setupPassword') : t('unlock'))}
-          </h1>
-          <p className="text-muted text-sm leading-relaxed">
-            {isLocked
-              ? `${t('securityLockout')} ${t('tryAgainIn')} ${timeLeft} ${t('processing')}`
-              : (isSetup
-                  ? `${t('argon2idAES')} ${t('min30Chars')}`
-                  : t('enterMasterPassword')
-                )
-            }
-          </p>
-        </div>
+        <AnimatePresence mode="wait">
+          {isRecoveryMode ? (
+            recoveryStep === 1 ? (
+              <motion.div
+                key="recovery-code"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="mb-6">
+                  <h1 className="text-xl font-bold mb-2 text-primary">{t('resetWithRecoveryCode')}</h1>
+                  <p className="text-muted text-sm leading-relaxed">{t('recoveryCodesDescription')}</p>
+                </div>
 
-        {isLocked && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col items-center justify-center p-8 bg-red-500/5 rounded-2xl border border-red-500/10 mb-6"
-          >
-            <Timer className="text-red-500 mb-4 animate-pulse" size={48} />
-            <div className="text-4xl font-black font-mono text-red-500">{timeLeft}s</div>
-          </motion.div>
-        )}
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs text-muted font-medium ml-1">{t('recoveryCodeLabel')}</label>
+                    <input
+                      type="text"
+                      value={recoveryCode}
+                      onChange={(e) => setRecoveryCode(e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, ''))}
+                      placeholder={t('recoveryCodePlaceholder')}
+                      className="w-full bg-surface border border-border text-primary rounded-xl px-4 py-3 mt-1 focus:outline-none focus:border-primary transition-all placeholder:text-muted font-mono tracking-wider"
+                      maxLength={23}
+                      autoFocus
+                    />
+                  </div>
 
-        <form onSubmit={handleSubmit} className={`space-y-6 ${isLocked ? 'opacity-30 pointer-events-none grayscale' : ''}`}>
-          <div className="space-y-2">
-            <label className="text-sm text-muted font-medium ml-1">{t('masterPassword')}</label>
-            <div className="relative group">
-              <input
-                disabled={isProcessing || isLocked}
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={t('enterPasswordField')}
-                className="w-full bg-surface border border-border text-primary rounded-xl pl-4 pr-20 py-3.5 focus:outline-none focus:border-primary transition-all placeholder:text-muted disabled:opacity-50"
-                autoFocus
-              />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-3 text-muted">
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="hover:text-primary transition-colors"
-                >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-              </div>
-            </div>
-          </div>
+                  {error && (
+                    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-red-500 text-sm font-medium bg-red-500/10 p-2.5 rounded-lg border border-red-500/20 text-center">
+                      {error}
+                    </motion.div>
+                  )}
 
-          {isSetup && (
-             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-2">
-              <label className="text-sm text-muted font-medium ml-1">{t('confirmPassword')}</label>
-              <input
-                disabled={isProcessing || isLocked}
-                type={showPassword ? "text" : "password"}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder={t('confirmYourPassword')}
-                className="w-full bg-surface border border-border text-primary rounded-xl px-4 py-3.5 focus:outline-none focus:border-primary transition-all placeholder:text-muted"
-              />
-            </motion.div>
-          )}
-
-          {error && (
-            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-red-500 text-sm font-medium bg-red-500/10 p-3 rounded-lg border border-red-500/20 text-center">
-              {error}
-            </motion.div>
-          )}
-
-          <button
-            type="submit"
-            disabled={isProcessing || isLocked}
-            className={`w-full ${isLocked ? 'bg-zinc-800' : ''} text-black font-bold text-base py-3.5 rounded-xl hover:opacity-90 transition-all flex items-center justify-center gap-2 active:scale-[0.99] disabled:grayscale disabled:opacity-50`}
-            style={{ backgroundColor: isLocked ? undefined : accentColor, boxShadow: isLocked ? undefined : `0 0 15px rgba(${accentRgb}, 0.3)` }}
-          >
-            {isProcessing ? (
-                <>
-                    <Loader2 size={20} className="animate-spin" />
-                    <span>{t('processing')}</span>
-                </>
+                  <div className="flex gap-3 pt-1">
+                    <button
+                      onClick={() => {
+                        setIsRecoveryMode(false);
+                        setRecoveryStep(1);
+                        setRecoveryCode('');
+                        setNewRecoveryPassword('');
+                        setConfirmNewPassword('');
+                        setError(null);
+                      }}
+                      className="flex-1 py-3 rounded-xl border border-zinc-700 text-zinc-400 text-sm font-medium hover:bg-zinc-800 transition-colors active:scale-[0.99]"
+                    >
+                      {t('cancel')}
+                    </button>
+                    <button
+                      onClick={() => {
+                        const trimmed = recoveryCode.trim();
+                        if (!trimmed || trimmed.length < 23) {
+                          setError(t('invalidRecoveryCode'));
+                          return;
+                        }
+                        setError(null);
+                        setRecoveryStep(2);
+                      }}
+                      disabled={isProcessing || recoveryCode.trim().length < 23}
+                      className="flex-1 py-3 rounded-xl text-black text-sm font-bold disabled:opacity-50 active:scale-[0.99] transition-all"
+                      style={{ backgroundColor: accentColor }}
+                    >
+                      {t('continueButton')}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
             ) : (
-                <>
-                    {isSetup ? t('saveAndContinue') : t('unlockVault')}
-                    {!isSetup && <ShieldCheck size={20} />}
-                </>
-            )}
-          </button>
-        </form>
+              <motion.div
+                key="recovery-password"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="mb-6">
+                  <h1 className="text-xl font-bold mb-2 text-primary">{t('setupPassword')}</h1>
+                  <p className="text-muted text-sm leading-relaxed">{t('min30Chars')}</p>
+                </div>
 
-        {!isSetup && !isLocked && recoverySettings && recoverySettings.count > 0 && (
-          <div className="mt-4 pt-4 border-t border-white/10">
-            <button
-              type="button"
-              onClick={() => setIsRecoveryMode(true)}
-              className="w-full py-2 text-xs text-zinc-500 hover:text-white transition-colors"
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs text-muted font-medium ml-1">{t('newPasswordMin30')}</label>
+                    <input
+                      type="password"
+                      value={newRecoveryPassword}
+                      onChange={(e) => setNewRecoveryPassword(e.target.value)}
+                      placeholder={t('newPasswordPlaceholder')}
+                      className="w-full bg-surface border border-border text-primary rounded-xl px-4 py-3 mt-1 focus:outline-none focus:border-primary transition-all placeholder:text-muted"
+                      autoFocus
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-muted font-medium ml-1">{t('confirmPassword')}</label>
+                    <input
+                      type="password"
+                      value={confirmNewPassword}
+                      onChange={(e) => setConfirmNewPassword(e.target.value)}
+                      placeholder={t('confirmPasswordPlaceholder')}
+                      className="w-full bg-surface border border-border text-primary rounded-xl px-4 py-3 mt-1 focus:outline-none focus:border-primary transition-all placeholder:text-muted"
+                    />
+                  </div>
+
+                  {error && (
+                    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-red-500 text-sm font-medium bg-red-500/10 p-2.5 rounded-lg border border-red-500/20 text-center">
+                      {error}
+                    </motion.div>
+                  )}
+
+                  <div className="flex gap-3 pt-1">
+                    <button
+                      onClick={() => {
+                        setRecoveryStep(1);
+                        setError(null);
+                      }}
+                      className="flex-1 py-3 rounded-xl border border-zinc-700 text-zinc-400 text-sm font-medium hover:bg-zinc-800 transition-colors active:scale-[0.99]"
+                    >
+                      {t('backButton')}
+                    </button>
+                    <button
+                      onClick={async () => {
+                        if (newRecoveryPassword.length < 30) {
+                          setError(t('passwordTooShort'));
+                          return;
+                        }
+                        if (newRecoveryPassword !== confirmNewPassword) {
+                          setError(t('passwordsDoNotMatch'));
+                          return;
+                        }
+                        setIsProcessing(true);
+                        const result = await onResetWithRecovery(recoveryCode, newRecoveryPassword);
+                        setIsProcessing(false);
+                        if (result.success) {
+                          window.location.reload();
+                        } else {
+                          setError(result.error || t('resetErrorLabel'));
+                        }
+                      }}
+                      disabled={isProcessing || !newRecoveryPassword || !confirmNewPassword}
+                      className="flex-1 py-3 rounded-xl text-black text-sm font-bold disabled:opacity-50 active:scale-[0.99] transition-all"
+                      style={{ backgroundColor: accentColor }}
+                    >
+                      {isProcessing ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <Loader2 size={16} className="animate-spin" />
+                          {t('processing')}
+                        </span>
+                      ) : t('resetButton')}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )
+          ) : (
+            <motion.div
+              key="unlock"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.25 }}
             >
-              {t('forgotPasswordLink')}
-            </button>
-          </div>
-        )}
-
-        {isRecoveryMode && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-4 p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800"
-          >
-            <h3 className="text-sm font-bold text-white mb-3">{t('resetWithRecoveryCode')}</h3>
-
-            <div className="space-y-3">
-              <div>
-                <label className="text-[10px] text-zinc-500 uppercase tracking-wider">{t('recoveryCodeLabel')}</label>
-                <input
-                  type="text"
-                  value={recoveryCode}
-                  onChange={(e) => setRecoveryCode(e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, ''))}
-                  placeholder={t('recoveryCodePlaceholder')}
-                  className="w-full bg-black border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm font-mono mt-1"
-                  maxLength={23}
-                />
+              <div className="mb-6">
+                <h1 className={`text-xl font-bold mb-2 ${isLocked ? 'text-red-500' : 'text-primary'}`}>
+                  {isLocked ? t('lockedOut') : (isSetup ? t('setupPassword') : t('unlock'))}
+                </h1>
+                <p className="text-muted text-sm leading-relaxed">
+                  {isLocked
+                    ? `${t('securityLockout')} ${t('tryAgainIn')} ${timeLeft} ${t('processing')}`
+                    : (isSetup
+                        ? `${t('argon2idAES')} ${t('min30Chars')}`
+                        : t('enterMasterPassword')
+                      )
+                  }
+                </p>
               </div>
 
-              <div>
-                <label className="text-[10px] text-zinc-500 uppercase tracking-wider">{t('newPasswordMin30')}</label>
-                <input
-                  type="password"
-                  value={newRecoveryPassword}
-                  onChange={(e) => setNewRecoveryPassword(e.target.value)}
-                  placeholder={t('newPasswordPlaceholder')}
-                  className="w-full bg-black border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm mt-1"
-                />
-              </div>
+              <AutoDestructCountdown ref={destructRef} onComplete={onDestructComplete} onStateChange={setIsDestructing} />
 
-              <div>
-                <label className="text-[10px] text-zinc-500 uppercase tracking-wider">{t('confirmPassword')}</label>
-                <input
-                  type="password"
-                  value={confirmNewPassword}
-                  onChange={(e) => setConfirmNewPassword(e.target.value)}
-                  placeholder={t('confirmPasswordPlaceholder')}
-                  className="w-full bg-black border border-zinc-700 text-white rounded-lg px-3 py-2 text-sm mt-1"
-                />
-              </div>
-
-              {error && (
-                <p className="text-red-500 text-xs">{error}</p>
+              {isLocked && !isDestructing && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex flex-col items-center justify-center p-6 bg-red-500/5 rounded-2xl border border-red-500/10 mb-4"
+                >
+                  <Timer className="text-red-500 mb-3 animate-pulse" size={36} />
+                  <div className="text-3xl font-black font-mono text-red-500">{timeLeft}s</div>
+                </motion.div>
               )}
 
-              <div className="flex gap-2 mt-3">
-                <button
-                  onClick={() => {
-                    setIsRecoveryMode(false);
-                    setRecoveryCode('');
-                    setNewRecoveryPassword('');
-                    setConfirmNewPassword('');
-                    setError(null);
-                  }}
-                  className="flex-1 py-2 rounded-lg border border-zinc-700 text-zinc-400 text-sm hover:bg-zinc-800"
+              {(biometricAvailable && biometricEnabled && !isSetup && !isLocked && !isDestructing && onBiometricUnlock) && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-4"
                 >
-                  {t('cancel')}
-                </button>
+                  <button
+                    onClick={async () => {
+                      setBiometricError(false);
+                      setIsProcessing(true);
+                      try {
+                        await onBiometricUnlock();
+                      } catch {
+                        setBiometricError(true);
+                        setIsProcessing(false);
+                      }
+                    }}
+                    disabled={isProcessing}
+                    className="w-full bg-gradient-to-br from-neon-green/20 to-neon-green/5 border border-neon-green/30 text-white font-bold py-3 rounded-xl hover:from-neon-green/30 hover:to-neon-green/10 transition-all flex items-center justify-center gap-3 active:scale-[0.99] disabled:opacity-50 group"
+                  >
+                    <Fingerprint size={20} className="text-neon-green group-hover:scale-110 transition-transform" />
+                    <div className="text-left">
+                      <span className="text-sm">{t('unlockWithBiometric')}</span>
+                      <p className="text-[10px] text-zinc-500 font-normal">{t('biometricPromptHint')}</p>
+                    </div>
+                  </button>
+                  {biometricError && (
+                    <p className="text-red-500 text-xs text-center mt-2">{t('biometricFailed')}</p>
+                  )}
+                </motion.div>
+              )}
+
+              <form onSubmit={handleSubmit} className={`space-y-4 ${isLocked && !isDestructing ? 'opacity-30 pointer-events-none grayscale' : ''}`}>
+                <div className="space-y-1.5">
+                  <label className="text-sm text-muted font-medium ml-1">{t('masterPassword')}</label>
+                  <div className="relative group">
+                    <input
+                      disabled={isProcessing || (isLocked && !isDestructing)}
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder={t('enterPasswordField')}
+                      className={`w-full bg-surface border ${isDestructing ? 'border-red-500/50 focus:border-red-500' : 'border-border focus:border-primary'} text-primary rounded-xl pl-4 pr-20 py-3 focus:outline-none transition-all placeholder:text-muted disabled:opacity-50`}
+                      autoFocus
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-3 text-muted">
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="hover:text-primary transition-colors"
+                      >
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {isSetup && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-1.5">
+                    <label className="text-sm text-muted font-medium ml-1">{t('confirmPassword')}</label>
+                    <input
+                      disabled={isProcessing || (isLocked && !isDestructing)}
+                      type={showPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder={t('confirmYourPassword')}
+                      className="w-full bg-surface border border-border text-primary rounded-xl px-4 py-3 focus:outline-none focus:border-primary transition-all placeholder:text-muted"
+                    />
+                  </motion.div>
+                )}
+
+                {error && (
+                  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-red-500 text-sm font-medium bg-red-500/10 p-2.5 rounded-lg border border-red-500/20 text-center">
+                    {error}
+                  </motion.div>
+                )}
+
                 <button
-                  onClick={async () => {
-                    if (newRecoveryPassword.length < 30) {
-                      setError(t('passwordTooShort'));
-                      return;
-                    }
-                    if (newRecoveryPassword !== confirmNewPassword) {
-                      setError(t('passwordsDoNotMatch'));
-                      return;
-                    }
-
-                    setIsProcessing(true);
-                    const result = await onResetWithRecovery(recoveryCode, newRecoveryPassword);
-                    setIsProcessing(false);
-
-                    if (result.success) {
-                      window.location.reload();
-                    } else {
-                      setError(result.error || t('resetErrorLabel'));
-                    }
-                  }}
-                  disabled={isProcessing || !recoveryCode || !newRecoveryPassword || !confirmNewPassword}
-                  className="flex-1 py-2 rounded-lg text-black text-sm font-bold disabled:opacity-50"
-                  style={{ backgroundColor: accentColor }}
+                  type="submit"
+                  disabled={isProcessing || (isLocked && !isDestructing)}
+                  className={`w-full text-black font-bold text-base py-3 rounded-xl hover:opacity-90 transition-all flex items-center justify-center gap-2 active:scale-[0.99] disabled:grayscale disabled:opacity-50 ${isDestructing ? 'bg-red-500 hover:bg-red-400' : isLocked ? 'bg-zinc-800' : ''}`}
+                  style={{ backgroundColor: isDestructing ? undefined : (isLocked ? undefined : accentColor), boxShadow: isDestructing ? '0 0 20px rgba(239,68,68,0.4)' : (isLocked ? undefined : `0 0 15px rgba(${accentRgb}, 0.3)`) }}
                 >
-                  {t('resetButton')}
+                  {isProcessing ? (
+                    <>
+                      <Loader2 size={20} className="animate-spin" />
+                      <span>{t('processing')}</span>
+                    </>
+                  ) : (
+                    <>
+                      {isSetup ? t('saveAndContinue') : t('unlockVault')}
+                      {!isSetup && <ShieldCheck size={20} />}
+                    </>
+                  )}
                 </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
+              </form>
+
+              {!isSetup && !isLocked && !isDestructing && recoverySettings && recoverySettings.count > 0 && (
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsRecoveryMode(true);
+                      setRecoveryStep(1);
+                    }}
+                    className="w-full py-2 text-xs text-zinc-500 hover:text-white transition-colors"
+                  >
+                    {t('forgotPasswordLink')}
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </div>
   );

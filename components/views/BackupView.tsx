@@ -296,7 +296,7 @@ export const BackupView: React.FC<BackupViewProps> = ({ onBack, theme }) => {
                     initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
                     className="flex flex-col items-center justify-center py-12 space-y-8"
                 >
-                    <div className="w-24 h-24 rounded-full bg-neon-green text-black flex items-center justify-center shadow-[0_0_40px_rgba(57,255,20,0.4)]">
+                    <div className="w-24 h-24 rounded-full bg-neon-green text-black flex items-center justify-center shadow-[0_0_40px_rgba(228,228,231,0.4)]">
                         <CheckCircle size={48} strokeWidth={3} />
                     </div>
                     <div className="text-center space-y-2">
@@ -406,7 +406,7 @@ export const BackupView: React.FC<BackupViewProps> = ({ onBack, theme }) => {
                     initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
                     className="flex flex-col items-center justify-center py-12 space-y-8"
                 >
-                    <div className="w-24 h-24 rounded-full bg-neon-green text-black flex items-center justify-center shadow-[0_0_40px_rgba(57,255,20,0.4)]">
+                    <div className="w-24 h-24 rounded-full bg-neon-green text-black flex items-center justify-center shadow-[0_0_40px_rgba(228,228,231,0.4)]">
                         <CheckCircle size={48} strokeWidth={3} />
                     </div>
                     <div className="text-center space-y-2">

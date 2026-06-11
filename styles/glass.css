@@ -23,7 +23,7 @@
   --glass-radius-lg: 24px;
   --glass-radius-xl: 32px;
   
-  --glass-accent-glow: rgba(57, 255, 20, 0.15);
+  --glass-accent-glow: rgba(228, 228, 231, 0.15);
 }
 
 [data-theme="light"],
@@ -46,7 +46,7 @@
   --glass-shadow-medium: 0 4px 20px rgba(0, 0, 0, 0.08);
   --glass-shadow-heavy: 0 8px 30px rgba(0, 0, 0, 0.12);
   
-  --glass-accent-glow: rgba(57, 255, 20, 0.25);
+  --glass-accent-glow: rgba(228, 228, 231, 0.25);
 }
 
 .glass-surface {
@@ -136,10 +136,10 @@
   display: inline-flex;
   align-items: center;
   padding: 4px 12px;
-  background: rgba(57, 255, 20, 0.1);
+  background: rgba(228, 228, 231, 0.1);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(57, 255, 20, 0.2);
+  border: 1px solid rgba(228, 228, 231, 0.2);
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 600;
@@ -210,7 +210,7 @@
 }
 
 .glass-glow {
-  box-shadow: 0 0 40px var(--glass-accent-glow), 0 0 80px rgba(57, 255, 20, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 40px var(--glass-accent-glow), 0 0 80px rgba(228, 228, 231, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .glass-inner-glow {
@@ -291,7 +291,7 @@
 
 .glass-progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent-color), rgba(57, 255, 20, 0.7));
+  background: linear-gradient(90deg, var(--accent-color), rgba(228, 228, 231, 0.7));
   border-radius: 999px;
   transition: width 0.3s ease;
   box-shadow: 0 0 10px var(--glass-accent-glow);

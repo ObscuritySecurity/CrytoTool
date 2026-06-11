@@ -31,7 +31,7 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
 };
 
 const DEFAULT_CATEGORIES: VaultCategory[] = [
-  { id: 'personal', name: 'Personal', icon: 'folder', count: 0, color: '#39ff14' },
+  { id: 'personal', name: 'Personal', icon: 'folder', count: 0, color: '#e4e4e7' },
   { id: 'financial', name: 'Financiar', icon: 'card', count: 0, color: '#eab308' },
   { id: 'social', name: 'Social Media', icon: 'web', count: 0, color: '#3b82f6' },
   { id: 'documents', name: 'Documente', icon: 'note', count: 0, color: '#a855f7' },

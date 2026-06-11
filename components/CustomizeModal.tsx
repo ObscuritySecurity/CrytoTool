@@ -153,7 +153,7 @@ export const CustomizeModal: React.FC<{
 
     // Tag Creator State
     const [newTagLabel, setNewTagLabel] = useState('');
-    const [newTagColor, setNewTagColor] = useState('#39ff14');
+    const [newTagColor, setNewTagColor] = useState('#e4e4e7');
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 

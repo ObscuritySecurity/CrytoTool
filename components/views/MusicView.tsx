@@ -115,7 +115,7 @@ export const MusicView: React.FC<MusicViewProps> = ({ items, onPlay, currentSong
           {/* Action Header */}
           <div className="flex items-center justify-between mb-4 px-1">
             <h3 className="text-xl font-bold text-white">{t('keepListening')}</h3>
-            <button className="w-10 h-10 rounded-full bg-neon-green text-black flex items-center justify-center hover:scale-105 transition-transform shadow-[0_0_15px_rgba(57,255,20,0.3)]">
+            <button className="w-10 h-10 rounded-full bg-neon-green text-black flex items-center justify-center hover:scale-105 transition-transform shadow-[0_0_15px_rgba(228,228,231,0.3)]">
                <Shuffle size={20} />
             </button>
           </div>

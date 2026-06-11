@@ -3,6 +3,7 @@ import React from 'react';
 import { Plus, FolderPlus, Database, Search, Trash2, Settings } from 'lucide-react';
 import { ViewState } from '../types';
 import { useI18n } from '../locales/i18nContext';
+import crytoLogo from '../assets/CrytoTool.png';
 
 interface TopActionsProps {
   activeTab: string;
@@ -35,14 +36,11 @@ export const TopActions: React.FC<TopActionsProps> = ({
     return (
       <header className="px-5 pt-8 pb-4 bg-background">
         <div className="flex items-center gap-2.5 mb-2">
-          <div className="w-9 h-9 flex items-center justify-center">
-            <svg viewBox="0 0 100 100" className="w-full h-full" style={{ filter: `drop-shadow(0 0 6px rgba(var(--accent-rgb), 0.4))` }}>
-              <path d="M30 40 V25 A20 20 0 0 1 70 25 V40" stroke="var(--accent-color)" strokeWidth="12" strokeLinecap="round" fill="none" />
-              <rect x="15" y="40" width="70" height="45" rx="10" fill="none" stroke="var(--accent-color)" strokeWidth="8" />
-              <path d="M42 61 L50 69 L62 53" stroke="var(--accent-color)" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-            </svg>
+          <div className="relative w-16 h-16 flex items-center justify-center">
+            <div className="absolute inset-0 blur-2xl rounded-full" style={{ backgroundColor: 'rgba(var(--accent-rgb), 0.15)' }} />
+            <img src={crytoLogo} alt="CrytoTool" className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_20px_rgba(var(--accent-rgb),0.6)]" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-primary">{t('crytoPrefix')}<span className="text-neon-green">{t('toolSuffix')}</span></h1>
+          <h1 className="text-3xl font-bold tracking-tight text-primary">{t('crytoPrefix')}<span className="bg-gradient-to-r from-zinc-300 via-zinc-400 to-zinc-500 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(212,212,216,0.3)]">{t('toolSuffix')}</span></h1>
         </div>
       </header>
     );
@@ -51,15 +49,12 @@ export const TopActions: React.FC<TopActionsProps> = ({
   return (
     <header className="px-5 pt-8 pb-4 space-y-6 bg-background">
       {/* LOGO & NAME */}
-      <div className="flex items-center gap-2.5 mb-2">
-        <div className="w-9 h-9 flex items-center justify-center">
-          <svg viewBox="0 0 100 100" className="w-full h-full" style={{ filter: `drop-shadow(0 0 6px rgba(var(--accent-rgb), 0.4))` }}>
-            <path d="M30 40 V25 A20 20 0 0 1 70 25 V40" stroke="var(--accent-color)" strokeWidth="12" strokeLinecap="round" fill="none" />
-            <rect x="15" y="40" width="70" height="45" rx="10" fill="none" stroke="var(--accent-color)" strokeWidth="8" />
-            <path d="M42 61 L50 69 L62 53" stroke="var(--accent-color)" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-          </svg>
+      <div className="flex items-center gap-3 mb-2">
+        <div className="relative w-16 h-16 flex items-center justify-center">
+          <div className="absolute inset-0 blur-2xl rounded-full" style={{ backgroundColor: 'rgba(var(--accent-rgb), 0.15)' }} />
+          <img src={crytoLogo} alt="CrytoTool" className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_20px_rgba(var(--accent-rgb),0.6)]" />
         </div>
-        <h1 className="text-2xl font-bold tracking-tight text-primary">{t('crytoPrefix')}<span className="text-neon-green">{t('toolSuffix')}</span></h1>
+        <h1 className="text-3xl font-bold tracking-tight text-primary">{t('crytoPrefix')}<span className="bg-gradient-to-r from-zinc-300 via-zinc-400 to-zinc-500 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(212,212,216,0.3)]">{t('toolSuffix')}</span></h1>
       </div>
 
       <div className="space-y-2.5">

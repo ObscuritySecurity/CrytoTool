@@ -1,38 +1,26 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import crytoLogo from '../assets/CrytoTool.png';
 
 interface SplashScreenProps {
   onComplete: () => void;
 }
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
-  const [locked, setLocked] = useState(false);
-  const [verified, setVerified] = useState(false);
   const [showText, setShowText] = useState(false);
   
-  const accentColor = localStorage.getItem('theme_accent') || '#39ff14';
+  const accentColor = localStorage.getItem('theme_accent') || '#e4e4e7';
   const rgb = (() => {
     const c = accentColor.replace('#', '');
     return `${parseInt(c.slice(0, 2), 16)}, ${parseInt(c.slice(2, 4), 16)}, ${parseInt(c.slice(4, 6), 16)}`;
   })();
 
   useEffect(() => {
-    // Animation sequence:
-    // 0ms: Screen appears (Lock open, grey)
-    // 800ms: Lock closes and turns green
-    // 1600ms: Checkmark draws (Verified)
-    // 2200ms: CrytoTool text appears
-    // 3800ms: Exit
-    
-    const lockTimer = setTimeout(() => setLocked(true), 800);
-    const verifyTimer = setTimeout(() => setVerified(true), 1600);
-    const textTimer = setTimeout(() => setShowText(true), 2200);
-    const completeTimer = setTimeout(onComplete, 3800);
+    const textTimer = setTimeout(() => setShowText(true), 600);
+    const completeTimer = setTimeout(onComplete, 2600);
 
     return () => {
-      clearTimeout(lockTimer);
-      clearTimeout(verifyTimer);
       clearTimeout(textTimer);
       clearTimeout(completeTimer);
     };
@@ -48,77 +36,24 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
       <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(circle_at_center, rgba(${rgb}, 0.06) 0%, transparent 70%)` }} />
 
       <div className="relative z-10 flex flex-col items-center">
-        {/* Custom SVG Lock Animation */}
-        <div className="relative w-32 h-32 flex items-center justify-center mb-8">
-            <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-                {/* Glow Filter Definiton */}
-                <defs>
-                    <filter id="neon-glow" x="-50%" y="-50%" width="200%" height="200%">
-                        <feGaussianBlur stdDeviation="4" result="coloredBlur" />
-                        <feMerge>
-                            <feMergeNode in="coloredBlur" />
-                            <feMergeNode in="SourceGraphic" />
-                        </feMerge>
-                    </filter>
-                </defs>
-
-                {/* Shackle (Lock shackle) */}
-                <motion.path 
-                    d="M30 40 V25 A20 20 0 0 1 70 25 V40" 
-                    fill="none" 
-                    stroke={locked ? accentColor : "#52525b"}
-                    strokeWidth="10" 
-                    strokeLinecap="round" 
-                    initial={{ y: -15 }}
-                    animate={{ 
-                        y: locked ? 0 : -15,
-                        stroke: locked ? accentColor : "#52525b"
-                    }}
-                    transition={{ duration: 0.6, type: "spring", bounce: 0.3 }}
-                    style={{ filter: locked ? "url(#neon-glow)" : "none" }}
-                />
-
-                {/* Lock Body (Corpul) */}
-                <motion.rect 
-                    x="15" y="40" width="70" height="45" rx="10" 
-                    fill="none" 
-                    stroke={locked ? accentColor : "#52525b"}
-                    strokeWidth="8" 
-                    animate={{ 
-                        stroke: locked ? accentColor : "#52525b"
-                    }}
-                    transition={{ duration: 0.4 }}
-                    style={{ filter: locked ? "url(#neon-glow)" : "none" }}
-                />
-
-                {/* Checkmark - Only draws when verified */}
-                {verified && (
-                    <motion.path 
-                        d="M42 61 L50 69 L62 53" 
-                        fill="none" 
-                        stroke={accentColor} 
-                        strokeWidth="8" 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        initial={{ pathLength: 0, opacity: 0 }}
-                        animate={{ pathLength: 1, opacity: 1 }}
-                        transition={{ duration: 0.4, ease: "easeOut" }}
-                        style={{ filter: "url(#neon-glow)" }}
-                    />
-                )}
-            </svg>
-            
-            {/* Pulse Ring Effect when locking */}
-            {locked && !verified && (
-                 <motion.div 
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1.5, opacity: 0 }}
-                    transition={{ duration: 1, repeat: 0 }}
-                    className="absolute inset-0 rounded-full"
-                    style={{ border: `2px solid ${accentColor}` }}
-                 />
-            )}
-        </div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6 }}
+          className="relative w-72 h-72 flex items-center justify-center mb-10"
+        >
+            <div className="absolute inset-0 blur-[100px] rounded-full" style={{ backgroundColor: `rgba(${rgb}, 0.2)` }} />
+            <div className="absolute inset-8 blur-3xl rounded-full" style={{ backgroundColor: `rgba(${rgb}, 0.15)` }} />
+            <motion.img
+              src={crytoLogo}
+              alt="CrytoTool"
+              className="w-full h-full object-contain relative z-10"
+              style={{ filter: `drop-shadow(0 0 40px rgba(${rgb}, 0.6)) drop-shadow(0 0 80px rgba(${rgb}, 0.3))` }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8 }}
+            />
+        </motion.div>
 
         {/* Text Animation */}
         <motion.div
@@ -128,7 +63,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             className="text-center"
         >
             <h1 className="text-5xl font-black tracking-tighter text-white mb-2 font-mono">
-                CRYTO<span style={{ color: accentColor, textShadow: `0 0 15px rgba(${rgb}, 0.5)` }}>TOOL</span>
+                CRYTO<span className="bg-gradient-to-r from-zinc-300 via-zinc-400 to-zinc-500 bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(212,212,216,0.4)]">TOOL</span>
             </h1>
             <motion.div 
                 className="h-0.5 mx-auto opacity-50"
