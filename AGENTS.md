@@ -244,7 +244,7 @@ CrytoTool/
 - **Props:** `onUnlock, isSetup, lockUntil, onFailedAttempt, recoverySettings, onResetWithRecovery, destructCountdown, onNewCodes, onStoreMasterKey`.
 - **Two modes:** `setup` (initial master password + confirm) and `unlock` (re-enter).
 - **Recovery flow:** enter code + new password → calls back to `App`'s `resetMasterPasswordWithRecovery`.
-- **Hardcoded colors:** `accentColor` from `theme_accent` localStorage (default `#D4AF37`); `bgMain` from `app_theme_config`.
+- **Hardcoded colors:** `accentColor` from `theme_accent` localStorage (default `#E8E8E8`); `bgMain` from `app_theme_config`.
 - **Key derivation:** `cryptoService.deriveMasterKey(password, salt)`, then `wrapRawKey(mvk, masterKey)`. The MVK wrapper is stored in `localStorage` as `crytotool_vault_wrappers`.
 
 ### View router — `Dashboard.tsx` (1168 lines, heaviest component)
@@ -413,7 +413,7 @@ If a fix is needed in crypto code, **describe the change in an issue and ask the
 - 100 themes across 10 categories (Neon, Dark, Light, Nature, Ocean, Space, Retro, Royal, Sunset, Tech), generated programmatically in `styles/themes.ts`.
 - 40+ fonts across 6 categories (Modern, Tech, Serif, Display, Handwriting, System).
 - Glassmorphism: `bg-zinc-900/80` with `backdrop-blur-xl`; `glass-card`, `glass-surface`, `glass-button` classes in `styles/glass.css`.
-- Accent default: Gold `#D4AF37` (customizable via `CustomColorPicker`; stored in `localStorage` as `crytotool_accent_h/s/l`, applied via CSS vars in `index.css`/`index.html`).
+- Accent default: Matte Metallic White `#E8E8E8` (customizable via `CustomColorPicker`; stored in `localStorage` as `crytotool_accent_h/s/l`, applied via CSS vars in `index.css`/`index.html`).
 - Dark / Light / System modes.
 
 ### Animation
