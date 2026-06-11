@@ -3,10 +3,16 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { SplashScreen } from './components/SplashScreen';
 import { Dashboard } from './components/Dashboard';
 import { AuthScreen } from './components/AuthScreen';
+import { AutoDestructCountdown } from './components/AutoDestructCountdown';
+import type { AutoDestructCountdownHandle } from './components/AutoDestructCountdown';
 import { cryptoService } from './utils/crypto';
 import { db } from './utils/db';
 import { I18nProvider } from './locales/i18nContext';
 import { hashPin } from './utils/security';
+import {
+  checkBiometricAvailability, retrieveMasterKeyBiometric, storeMasterKeyBiometric,
+  removeBiometricKey, isBiometricEnabled, setBiometricEnabled,
+} from './utils/biometric';
 import {
   deriveKey,
   wrapRawKey,
@@ -97,21 +103,14 @@ const App: React.FC = () => {
     return saved ? parseInt(saved, 10) : 30;
   });
 
-  const [destructCountdown, setDestructCountdown] = useState<number | null>(() => {
-    const saved = localStorage.getItem('crytotool_destruct_time');
-    if (saved) {
-      const remaining = Math.max(0, Math.ceil((parseInt(saved, 10) - Date.now()) / 1000));
-      return remaining > 0 ? remaining : null;
-    }
-    return null;
-  });
-  const [destructTriggerTime, setDestructTriggerTime] = useState<number | null>(() => {
-    const saved = localStorage.getItem('crytotool_destruct_time');
-    return saved ? parseInt(saved, 10) : null;
-  });
+  const destructRef = useRef<AutoDestructCountdownHandle>(null);
+
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricEnabled, setBiometricEnabledState] = useState(() => isBiometricEnabled());
 
   const [newlyGeneratedCodes, setNewlyGeneratedCodes] = useState<string[] | null>(null);
   const masterKeyRef = useRef<CryptoKey | null>(null);
+  const biometricAttemptedRef = useRef(false);
   const [recoveryWrappersCount, setRecoveryWrappersCount] = useState(() => {
     const raw = localStorage.getItem('crytotool_vault_wrappers');
     if (!raw) return 0;
@@ -196,25 +195,44 @@ const App: React.FC = () => {
   }, [isAuthenticated, autoDestructEnabled, autoDestructInactivity]);
 
   useEffect(() => {
-    if (isAuthenticated || !destructTriggerTime) return;
-    const storedDestructTime = localStorage.getItem('crytotool_destruct_time');
-    if (storedDestructTime) {
-      setDestructTriggerTime(parseInt(storedDestructTime, 10));
-    }
-  }, [isAuthenticated]);
+    if (showSplash) return;
+    checkBiometricAvailability().then(r => setBiometricAvailable(r.available));
+  }, [showSplash]);
 
   useEffect(() => {
-    if (isAuthenticated || !destructTriggerTime) return;
-    const intervalId = setInterval(() => {
-      const remaining = Math.max(0, Math.ceil((destructTriggerTime - Date.now()) / 1000));
-      setDestructCountdown(remaining);
-      if (remaining <= 0) {
-        localStorage.removeItem('crytotool_destruct_time');
-        performWipe();
+    if (showSplash) return;
+    if (isAuthenticated) return;
+    if (!biometricEnabled) return;
+    if (biometricAttemptedRef.current) return;
+    biometricAttemptedRef.current = true;
+    (async () => {
+      const availability = await checkBiometricAvailability();
+      setBiometricAvailable(availability.available);
+      if (!availability.available) return;
+      const rawBytes = await retrieveMasterKeyBiometric();
+      if (!rawBytes) return;
+      try {
+        const masterKey = await window.crypto.subtle.importKey(
+          'raw', rawBytes as BufferSource, { name: 'AES-GCM' },
+          false, ['encrypt', 'decrypt'],
+        );
+        const wrappersRaw = localStorage.getItem('crytotool_vault_wrappers');
+        if (!wrappersRaw) return;
+        const wrappers = JSON.parse(wrappersRaw);
+        const mvkBytes = await unwrapRawKey(wrappers.master, masterKey);
+        const mvk = await window.crypto.subtle.importKey(
+          'raw', mvkBytes as unknown as BufferSource, { name: 'AES-GCM' },
+          false, ['encrypt', 'decrypt'],
+        );
+        cryptoService.setVaultKey(mvk);
+        mvkBytes.fill(0);
+        masterKeyRef.current = masterKey;
+        handleUnlock();
+      } catch {
+        /* fall through to AuthScreen */
       }
-    }, 1000);
-    return () => clearInterval(intervalId);
-  }, [isAuthenticated, destructTriggerTime]);
+    })();
+  }, [showSplash, biometricAvailable, biometricEnabled, isAuthenticated]);
 
   const performWipe = async () => {
     try {
@@ -235,6 +253,7 @@ const App: React.FC = () => {
     setIsBlurred(false);
     setFailedAttempts(0);
     setLockUntil(null);
+    destructRef.current?.cancel();
     lastActivityRef.current = Date.now();
   };
 
@@ -242,20 +261,12 @@ const App: React.FC = () => {
     const newCount = failedAttempts + 1;
     setFailedAttempts(newCount);
 
-    if (autoDestructEnabled && autoDestructAttempts > 0) {
-      if (newCount >= autoDestructAttempts) {
-        if (!destructTriggerTime) {
-          setDestructCountdown(destructCountdownSeconds);
-          const triggerTime = Date.now() + (destructCountdownSeconds * 1000);
-          setDestructTriggerTime(triggerTime);
-          localStorage.setItem('crytotool_destruct_time', triggerTime.toString());
-        }
-      }
-    } else {
-      if (newCount >= failedAttemptsThreshold) {
-        const lockDuration = progressiveLockSeconds * 1000;
-        setLockUntil(Date.now() + lockDuration);
-      }
+    if (autoDestructEnabled && autoDestructAttempts > 0 && newCount >= autoDestructAttempts) {
+      setLockUntil(null);
+      destructRef.current?.trigger(destructCountdownSeconds);
+    } else if (newCount >= failedAttemptsThreshold) {
+      const lockDuration = progressiveLockSeconds * 1000;
+      setLockUntil(Date.now() + lockDuration);
     }
   };
 
@@ -264,6 +275,21 @@ const App: React.FC = () => {
     setIsBlurred(false);
     cryptoService.clearKeys();
     masterKeyRef.current = null;
+  };
+
+  const enableBiometric = async (): Promise<boolean> => {
+    if (!masterKeyRef.current) return false;
+    const raw = await window.crypto.subtle.exportKey('raw', masterKeyRef.current);
+    const bytes = new Uint8Array(raw);
+    const ok = await storeMasterKeyBiometric(bytes);
+    if (ok) setBiometricEnabledState(true);
+    return ok;
+  };
+
+  const disableBiometric = async (): Promise<boolean> => {
+    const ok = await removeBiometricKey();
+    if (ok) setBiometricEnabledState(false);
+    return ok;
   };
 
   useEffect(() => {
@@ -399,6 +425,29 @@ const App: React.FC = () => {
     syncRecoveryCount();
   };
 
+  const applyThreatModel = (config: {
+    autoBlurSeconds: number; autoLockSeconds: number; failedAttemptsThreshold: number;
+    progressiveLockSeconds: number; autoDestructEnabled: boolean; autoDestructAttempts: number;
+    autoDestructInactivity: number; destructCountdownSeconds: number;
+  }) => {
+    setAutoBlurSeconds(config.autoBlurSeconds);
+    localStorage.setItem('crytotool_blur_time', config.autoBlurSeconds.toString());
+    setAutoLockSeconds(config.autoLockSeconds);
+    localStorage.setItem('crytotool_lock_time', config.autoLockSeconds.toString());
+    setProgressiveLockSeconds(config.progressiveLockSeconds);
+    localStorage.setItem('crytotool_prog_lock_time', config.progressiveLockSeconds.toString());
+    setFailedAttemptsThreshold(config.failedAttemptsThreshold);
+    localStorage.setItem('crytotool_prog_attempts', config.failedAttemptsThreshold.toString());
+    setAutoDestructEnabled(config.autoDestructEnabled);
+    localStorage.setItem('crytotool_ad_enabled', config.autoDestructEnabled.toString());
+    setAutoDestructAttempts(config.autoDestructAttempts);
+    localStorage.setItem('crytotool_ad_attempts', config.autoDestructAttempts.toString());
+    setAutoDestructInactivity(config.autoDestructInactivity);
+    localStorage.setItem('crytotool_ad_inactivity', config.autoDestructInactivity.toString());
+    setDestructCountdownSeconds(config.destructCountdownSeconds);
+    localStorage.setItem('crytotool_ad_countdown', config.destructCountdownSeconds.toString());
+  };
+
   return (
     <I18nProvider>
     <div className="w-full min-h-screen bg-background text-primary font-sans selection:bg-neon-green selection:text-black relative">
@@ -415,13 +464,37 @@ const App: React.FC = () => {
               recoverySettings={{
                 count: recoveryWrappersCount
               }}
-              onResetWithRecovery={resetMasterPasswordWithRecovery}
-              onStoreMasterKey={(key) => { masterKeyRef.current = key; }}
-              destructCountdown={destructCountdown}
-              onNewCodes={(codes) => {
+               onResetWithRecovery={resetMasterPasswordWithRecovery}
+               onStoreMasterKey={(key) => { masterKeyRef.current = key; }}
+               onApplyThreatModel={applyThreatModel}
+               destructRef={destructRef}
+               onDestructComplete={performWipe}
+               onNewCodes={(codes) => {
                 setNewlyGeneratedCodes(codes);
                 downloadCodes(codes);
                 syncRecoveryCount();
+              }}
+              biometricAvailable={biometricAvailable}
+              biometricEnabled={biometricEnabled}
+              onBiometricUnlock={async () => {
+                const rawBytes = await retrieveMasterKeyBiometric();
+                if (!rawBytes) throw new Error('Biometric unlock cancelled');
+                const masterKey = await window.crypto.subtle.importKey(
+                  'raw', rawBytes as BufferSource, { name: 'AES-GCM' },
+                  false, ['encrypt', 'decrypt'],
+                );
+                const wrappersRaw = localStorage.getItem('crytotool_vault_wrappers');
+                if (!wrappersRaw) throw new Error('No vault wrappers');
+                const wrappers = JSON.parse(wrappersRaw);
+                const mvkBytes = await unwrapRawKey(wrappers.master, masterKey);
+                const mvk = await window.crypto.subtle.importKey(
+                  'raw', mvkBytes as unknown as BufferSource, { name: 'AES-GCM' },
+                  false, ['encrypt', 'decrypt'],
+                );
+                cryptoService.setVaultKey(mvk);
+                mvkBytes.fill(0);
+                masterKeyRef.current = masterKey;
+                handleUnlock();
               }}
             />
           </motion.div>
@@ -442,6 +515,13 @@ const App: React.FC = () => {
                   enabled: vaultEnabled,
                   pin: vaultPin,
                   update: updateVaultSettings
+                }}
+                biometricSettings={{
+                  available: biometricAvailable,
+                  enabled: biometricEnabled,
+                  enable: enableBiometric,
+                  disable: disableBiometric,
+                  setAvailable: setBiometricAvailable,
                 }}
                autoBlurSettings={{
                  value: autoBlurSeconds,
@@ -486,13 +566,12 @@ const App: React.FC = () => {
                      localStorage.setItem('crytotool_ad_inactivity', v.toString());
                   },
                   countdownSeconds: destructCountdownSeconds,
-                   setCountdownSeconds: (v: number) => {
-                     setDestructCountdownSeconds(v);
-                     localStorage.setItem('crytotool_ad_countdown', v.toString());
-                   }
-                }}
-                destructCountdown={destructCountdown}
-              />
+                    setCountdownSeconds: (v: number) => {
+                      setDestructCountdownSeconds(v);
+                      localStorage.setItem('crytotool_ad_countdown', v.toString());
+                    }
+                 }}
+               />
 
               <AnimatePresence>
                 {isBlurred && (

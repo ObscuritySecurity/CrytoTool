@@ -3,6 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ShieldCheck, Lock, FileText, Image, Music, Database, Key, FolderLock } from 'lucide-react';
 import { useI18n } from '../locales/i18nContext';
+import crytoLogo from '../assets/CrytoTool.png';
 
 const NeonButton: React.FC<{ children: React.ReactNode; primary?: boolean }> = ({ children, primary }) => (
   <button
@@ -13,11 +14,6 @@ const NeonButton: React.FC<{ children: React.ReactNode; primary?: boolean }> = (
         : 'border-2 border-neon-green text-neon-green hover:bg-neon-green hover:text-black hover:shadow-neon'
       }
     `}
-    style={{
-      backgroundColor: primary ? '#39ff14' : 'transparent',
-      borderColor: '#39ff14',
-      color: primary ? '#000' : '#39ff14'
-    }}
   >
     {children}
   </button>
@@ -25,10 +21,10 @@ const NeonButton: React.FC<{ children: React.ReactNode; primary?: boolean }> = (
 
 const FeatureCard: React.FC<{ icon: React.ReactNode; title: string; desc: string }> = ({ icon, title, desc }) => (
   <motion.div
-    whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(57, 255, 20, 0.2)" }}
+    whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(228, 228, 231, 0.2)" }}
     className="p-6 border border-zinc-800 bg-zinc-900/50 rounded-xl backdrop-blur-sm hover:border-neon-green/50 transition-colors duration-300"
   >
-    <div className="text-neon-green mb-4 [&>svg]:w-10 [&>svg]:h-10 drop-shadow-[0_0_5px_rgba(57,255,20,0.8)]">
+    <div className="text-neon-green mb-4 [&>svg]:w-10 [&>svg]:h-10 drop-shadow-[0_0_5px_rgba(228,228,231,0.8)]">
       {icon}
     </div>
     <h3 className="text-xl font-bold text-white mb-2">{title}</h3>
@@ -39,21 +35,16 @@ const FeatureCard: React.FC<{ icon: React.ReactNode; title: string; desc: string
 const ModernLogo: React.FC = () => {
   const { t } = useI18n();
   return (
-    <div className="flex items-center gap-3 select-none cursor-pointer group">
-      <div className="relative w-10 h-10 flex items-center justify-center bg-black border border-zinc-800 rounded-xl shadow-[0_0_10px_rgba(0,0,0,0.5)] overflow-hidden group-hover:border-neon-green/50 transition-all duration-300">
-        <div className="absolute inset-0 bg-gradient-to-tr from-neon-green/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        {/* Custom SVG Lock Logo with Checkmark */}
-        <svg viewBox="0 0 100 100" className="w-6 h-6 text-neon-green relative z-10 transition-transform duration-300 group-hover:scale-110" style={{ filter: 'drop-shadow(0 0 5px rgba(57,255,20,0.6))' }}>
-          <path d="M30 40 V25 A20 20 0 0 1 70 25 V40" stroke="currentColor" strokeWidth="10" strokeLinecap="round" fill="none" />
-          <rect x="15" y="40" width="70" height="45" rx="10" fill="none" stroke="currentColor" strokeWidth="8" />
-          <path d="M42 61 L50 69 L62 53" stroke="currentColor" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        </svg>
+    <div className="flex items-center gap-4 select-none cursor-pointer group">
+      <div className="relative w-16 h-16 flex items-center justify-center bg-black border border-zinc-800 rounded-2xl overflow-hidden group-hover:border-neon-green/50 transition-all duration-300 shadow-[0_0_30px_rgba(var(--accent-rgb),0.15)]">
+        <div className="absolute inset-0 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ backgroundColor: 'rgba(var(--accent-rgb), 0.15)' }} />
+        <img src={crytoLogo} alt="CrytoTool" className="w-full h-full object-cover relative z-10" />
       </div>
       <div className="flex flex-col">
-        <span className="font-mono font-black text-xl tracking-wide leading-none text-white group-hover:text-neon-green transition-colors duration-300">
+        <span className="font-mono font-black text-2xl tracking-wide leading-none text-white group-hover:text-neon-green transition-colors duration-300">
           {t('crytoPrefix').toUpperCase()}
         </span>
-        <span className="font-mono text-[10px] tracking-[0.4em] text-neon-green leading-none opacity-80 group-hover:opacity-100 transition-opacity">
+        <span className="font-mono text-xs tracking-[0.4em] text-neon-green leading-none opacity-80 group-hover:opacity-100 transition-opacity">
           VAULT
         </span>
       </div>
@@ -75,7 +66,7 @@ export const LandingPage: React.FC = () => {
             <a href="#" className="hover:text-neon-green transition-colors py-2">{t('landingNavAlgorithms')}</a>
             <a href="#" className="hover:text-neon-green transition-colors py-2">{t('landingNavPricing')}</a>
           </div>
-          <button className="hidden md:block px-6 py-2 border border-zinc-700 rounded-full text-sm font-semibold hover:border-neon-green hover:text-neon-green transition-all duration-300 hover:shadow-[0_0_15px_rgba(57,255,20,0.3)] bg-zinc-900/50">
+          <button className="hidden md:block px-6 py-2 border border-zinc-700 rounded-full text-sm font-semibold hover:border-neon-green hover:text-neon-green transition-all duration-300 hover:shadow-[0_0_15px_rgba(228,228,231,0.3)] bg-zinc-900/50">
             {t('landingOpenVault')}
           </button>
         </div>
@@ -92,12 +83,12 @@ export const LandingPage: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <div className="inline-block px-3 py-1 mb-6 border border-neon-green/30 rounded-full bg-neon-green/5 text-neon-green text-xs font-mono tracking-widest uppercase shadow-[0_0_10px_rgba(57,255,20,0.2)]">
+            <div className="inline-block px-3 py-1 mb-6 border border-neon-green/30 rounded-full bg-neon-green/5 text-neon-green text-xs font-mono tracking-widest uppercase shadow-[0_0_10px_rgba(228,228,231,0.2)]">
               {t('landingBadge')}
             </div>
             <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight leading-tight">
               {t('landingHeroTitle1')} <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500">{t('landingFileVault')}</span><br />
-              <span style={{ textShadow: "0 0 20px rgba(57, 255, 20, 0.4)" }} className="text-neon-green">{t('landingHeroTitle2')}</span>
+              <span style={{ textShadow: "0 0 20px rgba(228, 228, 231, 0.4)" }} className="text-neon-green">{t('landingHeroTitle2')}</span>
             </h1>
             <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
               {t('landingHeroSubtitle')}
@@ -181,7 +172,7 @@ export const LandingPage: React.FC = () => {
                             initial={{ opacity: 0, y: 10 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ delay: i * 0.1 }}
-                            className="group p-4 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-neon-green/50 cursor-pointer transition-all hover:shadow-[0_0_15px_rgba(57,255,20,0.1)]"
+                            className="group p-4 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-neon-green/50 cursor-pointer transition-all hover:shadow-[0_0_15px_rgba(228,228,231,0.1)]"
                         >
                             <div className="flex justify-center mb-3 text-zinc-600 group-hover:text-neon-green transition-colors">
                                 <Lock size={32} />

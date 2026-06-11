@@ -53,6 +53,13 @@ interface DashboardProps {
     pin: string | null;
     update: (enabled: boolean, pin: string | null) => void;
   };
+  biometricSettings: {
+    available: boolean;
+    enabled: boolean;
+    enable: () => Promise<boolean>;
+    disable: () => Promise<boolean>;
+    setAvailable: (v: boolean) => void;
+  };
   autoBlurSettings: { value: number; setValue: (val: number) => void; };
   autoLockSettings: { value: number; setValue: (val: number) => void; };
   progressiveLockSettings: {
@@ -71,7 +78,6 @@ interface DashboardProps {
     countdownSeconds: number;
     setCountdownSeconds: (val: number) => void;
   };
-  destructCountdown: number | null;
 }
 
 const formatBytes = (bytes: number, decimals = 2) => {
@@ -109,12 +115,12 @@ const formatTime = (seconds: number) => {
             <div className="absolute -inset-3 bg-gradient-to-t from-neon-green/40 to-transparent blur-xl rounded-full opacity-60" />
           )}
           <div className={`relative transition-all duration-300 ${active ? '' : 'group-hover:-translate-y-1.5 group-hover:scale-110'}`}>
-            <div className="w-6 h-6 flex items-center justify-center text-neon-green drop-shadow-[0_0_12px_rgba(57,255,20,0.8)]">
+            <div className="w-6 h-6 flex items-center justify-center text-neon-green drop-shadow-[0_0_12px_rgba(228,228,231,0.8)]">
               {icon}
             </div>
           </div>
         </div>
-        <span className="text-[9px] font-bold tracking-widest uppercase z-10 text-neon-green drop-shadow-[0_0_10px_rgba(57,255,20,0.8)]">
+        <span className="text-[9px] font-bold tracking-widest uppercase z-10 text-neon-green drop-shadow-[0_0_10px_rgba(228,228,231,0.8)]">
           {label}
         </span>
       </button>
@@ -125,6 +131,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   settingsLock, 
   recoverySettings,
   vaultSettings,
+  biometricSettings,
   autoBlurSettings, 
   autoLockSettings, 
   progressiveLockSettings,
@@ -143,7 +150,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     return mode;
   };
   const [accentColor, setAccentColor] = useState(() => {
-    return localStorage.getItem('app_accent_manual') || localStorage.getItem('theme_accent') || '#39ff14';
+    return localStorage.getItem('app_accent_manual') || localStorage.getItem('theme_accent') || '#e4e4e7';
   });
   const setManualAccent = (color: string) => {
     setAccentColor(color);
@@ -161,7 +168,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         }
       } catch {}
     }
-    setAccentColor('#39ff14');
+    setAccentColor('#e4e4e7');
   };
   const [activeThemeCategory, setActiveThemeCategory] = useState<ThemeCategory>('Neon');
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
@@ -1148,6 +1155,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 openVault: handleOpenVaultSettings,
                 disableVault: handleDisableVault
               }}
+              biometricSettings={biometricSettings}
               applyFullTheme={applyFullTheme} 
               openThemes={() => setCurrentView('themes')} 
               openFonts={() => setCurrentView('fonts')} 

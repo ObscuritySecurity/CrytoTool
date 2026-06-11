@@ -53,7 +53,7 @@ export const Button: React.FC<ButtonProps> = ({
   };
   
   const variantClasses = {
-    primary: 'bg-neon-green text-black shadow-[0_0_20px_rgba(57,255,20,0.3)] hover:opacity-90 hover:scale-105',
+    primary: 'bg-neon-green text-black shadow-[0_0_20px_rgba(228,228,231,0.3)] hover:opacity-90 hover:scale-105',
     secondary: 'bg-surface border border-border text-primary hover:border-neon-green hover:bg-surface/80',
     ghost: 'bg-transparent text-muted hover:text-primary hover:bg-surface',
     danger: 'bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white',

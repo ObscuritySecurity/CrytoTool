@@ -92,7 +92,7 @@ export const FullPlayer: React.FC<FullPlayerProps> = ({
             max={duration || 0}
             value={currentTime}
             onChange={onSeek}
-            className="w-full h-1.5 appearance-none bg-zinc-800 rounded-full cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-neon-green [&::-webkit-slider-thumb]:shadow-[0_0_10px_rgba(57,255,20,0.5)]"
+            className="w-full h-1.5 appearance-none bg-zinc-800 rounded-full cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-neon-green [&::-webkit-slider-thumb]:shadow-[0_0_10px_rgba(228,228,231,0.5)]"
           />
           <div className="flex justify-between mt-1">
             <span className="text-xs text-zinc-500 font-mono">
@@ -115,7 +115,7 @@ export const FullPlayer: React.FC<FullPlayerProps> = ({
               e.stopPropagation();
               onTogglePlay();
             }}
-            className="w-16 h-16 flex items-center justify-center rounded-full bg-neon-green text-black hover:scale-105 transition-transform shadow-[0_0_30px_rgba(57,255,20,0.3)]"
+            className="w-16 h-16 flex items-center justify-center rounded-full bg-neon-green text-black hover:scale-105 transition-transform shadow-[0_0_30px_rgba(228,228,231,0.3)]"
           >
             {isPlaying ? (
               <Pause size={28} fill="currentColor" />

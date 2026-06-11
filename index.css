@@ -4,8 +4,8 @@
 
 /* Default Vars Fallback */
 :root {
-  --accent-color: #39ff14;
-  --accent-rgb: 57, 255, 20;
+  --accent-color: #e4e4e7;
+  --accent-rgb: 228, 228, 231;
   --bg-main: #000000;
   --bg-card: #09090b;
   --bg-surface: #18181b;

@@ -1,13 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
+import {
   ArrowLeft, Monitor, LayoutGrid, Palette, PaintBucket, Moon, Sun, Shield, Terminal, 
   FileLock2, EyeOff, Heart, CheckCircle, Globe, Languages, KeyRound, Smartphone, Mail, 
   Fingerprint, Info, CodeXml, MessageSquare, AtSign, ExternalLink, Ghost, Calendar, MapPin, 
   Type, CaseUpper, ShieldAlert, Skull, Power, ShieldCheck, Lock, Check, Key, Sparkles, ChevronRight,
   Target
 } from 'lucide-react';
+import crytoLogo from '../../assets/CrytoTool.png';
 import { AppTheme, ThemeConfig, ThemeCategory, FontCategory, FontConfig } from '../../types';
 import { CustomColorPicker } from '../CustomColorPicker';
 import { CustomSelect } from '../CustomSelect';
@@ -40,6 +41,8 @@ interface SettingsViewProps {
     setAttempts: (val: number) => void;
     inactivitySeconds: number;
     setInactivitySeconds: (val: number) => void;
+    countdownSeconds: number;
+    setCountdownSeconds: (val: number) => void;
   };
   settingsLock: {
     password: string | null;
@@ -56,6 +59,13 @@ interface SettingsViewProps {
     pin: string | null;
     openVault: () => void;
     disableVault: () => void;
+  };
+  biometricSettings: {
+    available: boolean;
+    enabled: boolean;
+    enable: () => Promise<boolean>;
+    disable: () => Promise<boolean>;
+    setAvailable: (v: boolean) => void;
   };
   openThemes: () => void;
   openFonts: () => void;
@@ -444,6 +454,41 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                       <p className="text-[10px] text-muted mb-3">{t('vaultKeysDesc')}</p>
                   </div>
 
+{/* --- BIOMETRIC UNLOCK --- */}
+                  <div className="pb-6 border-b border-border">
+                      <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                               <Fingerprint size={16} className={props.biometricSettings.enabled ? "text-neon-green" : "text-muted"} />
+                               <label className="text-sm font-bold uppercase tracking-wider text-primary">{t('biometricUnlockLabel')}</label>
+                          </div>
+                          <div className="flex items-center gap-2">
+                              <button
+                                  onClick={async () => {
+                                      if (props.biometricSettings.enabled) {
+                                          await props.biometricSettings.disable();
+                                      } else {
+                                          await props.biometricSettings.enable();
+                                      }
+                                  }}
+                                  className={`w-12 h-7 rounded-full transition-colors flex items-center px-1 ${props.biometricSettings.enabled ? 'bg-neon-green' : 'bg-surface border border-border'}`}
+                              >
+                                  <motion.div
+                                      layout
+                                      className={`w-5 h-5 rounded-full bg-white shadow-sm`}
+                                      animate={{ x: props.biometricSettings.enabled ? 18 : 0 }}
+                                  />
+                              </button>
+                          </div>
+                      </div>
+                      <p className="text-[10px] text-muted mb-2">{t('biometricUnlockDesc')}</p>
+                      {!props.biometricSettings.available && (
+                          <p className="text-[10px] text-zinc-600 flex items-center gap-1">
+                              <ShieldAlert size={10} />
+                              {t('biometricNotAvailable')}
+                          </p>
+                      )}
+                  </div>
+
                   {/* === ZONA DE PERICOL: AUTODISTRUGERE === */}
                   <div className="border-t border-border pt-6 bg-red-500/5 -mx-6 px-6 pb-6 mt-6 border-b">
                       <div className="flex items-center justify-between mb-6">
@@ -481,6 +526,21 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                                       className="w-full accent-red-500 h-1.5 bg-surface rounded-lg appearance-none cursor-pointer"
                                   />
                                   <p className="text-[10px] text-muted">{t('deleteAfterXAttempts')}</p>
+                              </div>
+
+                              {/* Countdown Duration */}
+                              <div className="space-y-4">
+                                  <div className="flex justify-between items-center">
+                                      <label className="text-sm font-bold uppercase tracking-wider text-primary">{t('countdownSeconds')}</label>
+                                      <span className="text-xs font-mono text-red-500 font-bold">{props.autoDestructSettings.countdownSeconds}s</span>
+                                  </div>
+                                  <input
+                                      type="range" min="5" max="120" step="5"
+                                      value={props.autoDestructSettings.countdownSeconds}
+                                      onChange={(e) => props.autoDestructSettings.setCountdownSeconds(parseInt(e.target.value))}
+                                      className="w-full accent-red-500 h-1.5 bg-surface rounded-lg appearance-none cursor-pointer"
+                                  />
+                                  <p className="text-[10px] text-muted">{t('destructCountdownDesc')}</p>
                               </div>
 
                               {/* Trigger 2: Inactivitate (Dead Man's Switch) */}
@@ -801,7 +861,7 @@ export const ThemesGalleryView: React.FC<{
                                              <path d="M42 61 L50 69 L62 53" stroke={isLight ? theme.bgMain : '#000'} strokeWidth="8" strokeLinecap="round" strokeLinejoin="round"/>
                                          </svg>
                                      </div>
-                                     <span className="text-[9px] font-bold tracking-wide" style={{ color: theme.textMain }}>Cryto<span style={{ color: theme.accent }}>Tool</span></span>
+                                     <span className="text-[9px] font-bold tracking-wide" style={{ color: theme.textMain }}>Cryto<span className="bg-gradient-to-r from-zinc-300 to-zinc-500 bg-clip-text text-transparent">Tool</span></span>
                                  </div>
                                  <div className="flex items-center gap-1.5">
                                      <div className="w-4 h-4 rounded-full" style={{ backgroundColor: theme.accent, opacity: 0.3 }} />
@@ -946,7 +1006,7 @@ export const FontsGalleryView: React.FC<{
                                               <path d="M42 61 L50 69 L62 53" stroke="var(--bg-card)" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round"/>
                                           </svg>
                                       </div>
-                                      <span className="text-[9px] font-bold tracking-wide" style={{ color: 'var(--text-main)' }}>Cryto<span style={{ color: 'var(--accent-color)' }}>Tool</span></span>
+                                      <span className="text-[9px] font-bold tracking-wide" style={{ color: 'var(--text-main)' }}>Cryto<span className="bg-gradient-to-r from-zinc-300 to-zinc-500 bg-clip-text text-transparent">Tool</span></span>
                                   </div>
                                   {isActive && (
                                       <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--accent-color)' }}>
@@ -991,7 +1051,7 @@ export const FontsGalleryView: React.FC<{
 export const AboutView: React.FC<{
   onBack: () => void;
   accentColor?: string;
-}> = ({ onBack, accentColor = '#39ff14' }) => {
+}> = ({ onBack, accentColor = '#e4e4e7' }) => {
   const { t } = useI18n();
   return (
     <motion.div key="about-view" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="absolute inset-0 z-50 flex flex-col bg-background">
@@ -1005,50 +1065,13 @@ export const AboutView: React.FC<{
           <div className="flex flex-col items-center mb-10">
               <div className="relative mb-6">
                   <div className="absolute inset-0 blur-3xl rounded-full" style={{ backgroundColor: `${accentColor}20` }}></div>
-                  <div className="relative w-28 h-28 rounded-[32px] bg-gradient-to-br from-zinc-900 to-black border-2 flex items-center justify-center" style={{ borderColor: `${accentColor}50`, boxShadow: `0_0_40px_${accentColor}30` }}>
-                      {/* Custom Logo - Lock with Checkmark */}
-                      <svg viewBox="0 0 100 100" className="w-20 h-20 overflow-visible">
-                          <defs>
-                              <filter id="logo-glow" x="-50%" y="-50%" width="200%" height="200%">
-                                  <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-                                  <feMerge>
-                                      <feMergeNode in="coloredBlur" />
-                                      <feMergeNode in="SourceGraphic" />
-                                  </feMerge>
-                              </filter>
-                          </defs>
-                          <motion.path 
-                              d="M30 40 V25 A20 20 0 0 1 70 25 V40" 
-                              fill="none" 
-                              stroke={accentColor}
-                              strokeWidth="8" 
-                              strokeLinecap="round"
-                              style={{ filter: "url(#logo-glow)" }}
-                          />
-                          <motion.rect 
-                              x="18" y="40" width="64" height="42" rx="8" 
-                              fill="none" 
-                              stroke={accentColor}
-                              strokeWidth="6"
-                              style={{ filter: "url(#logo-glow)" }}
-                          />
-                          <motion.path 
-                              d="M42 58 L50 66 L62 50" 
-                              fill="none" 
-                              stroke={accentColor}
-                              strokeWidth="6" 
-                              strokeLinecap="round" 
-                              strokeLinejoin="round"
-                              initial={{ pathLength: 0 }}
-                              animate={{ pathLength: 1 }}
-                              transition={{ duration: 0.5 }}
-                              style={{ filter: "url(#logo-glow)" }}
-                          />
-                      </svg>
-                  </div>
+                   <div className="relative w-48 h-48 rounded-[32px] bg-gradient-to-br from-zinc-900 to-black border-2 flex items-center justify-center overflow-hidden" style={{ borderColor: `${accentColor}50`, boxShadow: `0_0_80px_${accentColor}40, 0_0_160px_${accentColor}20` }}>
+                       <div className="absolute inset-0 blur-[80px] rounded-full" style={{ backgroundColor: `${accentColor}15` }} />
+                       <img src={crytoLogo} alt="CrytoTool" className="w-full h-full object-cover relative z-10 drop-shadow-[0_0_30px_rgba(var(--accent-rgb),0.5)]" />
+                   </div>
               </div>
               <h1 className="text-4xl font-black text-primary mb-3 tracking-tight">
-                  Cryto<span className="text-neon-green">Tool</span>
+                  Cryto<span className="bg-gradient-to-r from-zinc-300 via-zinc-400 to-zinc-500 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(212,212,216,0.3)]">Tool</span>
               </h1>
               <p className="text-xs text-zinc-500 font-medium mb-4">{t('privacyFirstVault')}</p>
               <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-900/80 border border-zinc-800">
