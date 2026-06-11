@@ -279,7 +279,22 @@ impl<R: Runtime> Biometry<R> {
 
             if status == errSecSuccess {
                 if !out.is_null() {
-                    let cf_data: &CFData = &*(out as *const CFData);
+                    let cf_type = unsafe { CFRetained::<CFType>::from_raw(out) }.ok_or_else(|| {
+                        crate::Error::PluginInvoke(PluginInvokeError::InvokeRejected(ErrorResponse {
+                            code: Some("dataError".to_string()),
+                            message: Some("SecItemCopyMatching returned invalid data pointer".to_string()),
+                            data: (),
+                        }))
+                    })?;
+
+                    let cf_data = cf_type.downcast::<CFData>().ok_or_else(|| {
+                        crate::Error::PluginInvoke(PluginInvokeError::InvokeRejected(ErrorResponse {
+                            code: Some("dataError".to_string()),
+                            message: Some("SecItemCopyMatching did not return CFData".to_string()),
+                            data: (),
+                        }))
+                    })?;
+
                     let bytes = cf_data.byte_ptr();
                     let data = std::slice::from_raw_parts(bytes, cf_data.len() as usize);
                     Ok(DataResponse {
