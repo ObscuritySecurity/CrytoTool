@@ -653,4 +653,6 @@ export const translations: Translations = {
   tierNotAvailable: 'No disponible',
   auditLimitationTitle: 'Auditoría Profesional Requerida',
   auditLimitationBody: 'El código criptográfico de CrytoTool NO ha sido auditado profesionalmente. Aunque utilizamos algoritmos estándar (AES-256-GCM, Argon2id, ChaCha20-Poly1305) a través de Web Crypto API y bibliotecas auditadas, el código de integración no ha sido revisado por investigadores de seguridad externos. Este modelo de amenaza requiere un mayor nivel de garantía. Hasta que se complete una auditoría profesional, CrytoTool es más adecuado para la defensa contra adversarios casuales o moderados.',
+  biometricSectionTitle: 'Asegurar con Biometría',
+  biometricSectionDesc: 'Usa huella dactilar o reconocimiento facial para acceso rápido a la bóveda',
 }

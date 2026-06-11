@@ -434,6 +434,13 @@ const App: React.FC = () => {
     syncRecoveryCount();
   };
 
+  const handleSetupComplete = async (biometricWanted: boolean) => {
+    if (biometricWanted && biometricAvailable) {
+      await enableBiometric();
+    }
+    handleUnlock();
+  };
+
   const applyThreatModel = (config: {
     autoBlurSeconds: number; autoLockSeconds: number; failedAttemptsThreshold: number;
     progressiveLockSeconds: number; autoDestructEnabled: boolean; autoDestructAttempts: number;
@@ -476,6 +483,7 @@ const App: React.FC = () => {
                onResetWithRecovery={resetMasterPasswordWithRecovery}
                onStoreMasterKey={(key) => { masterKeyRef.current = key; }}
                onApplyThreatModel={applyThreatModel}
+               onSetupComplete={handleSetupComplete}
                destructRef={destructRef}
                onDestructComplete={performWipe}
                onNewCodes={(codes) => {

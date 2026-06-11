@@ -33,9 +33,10 @@ interface AuthScreenProps {
   biometricAvailable?: boolean;
   biometricEnabled?: boolean;
   onBiometricUnlock?: () => Promise<void>;
+  onSetupComplete?: (biometricWanted: boolean) => void;
 }
 
-export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockUntil, onFailedAttempt, recoverySettings, onResetWithRecovery, destructRef, onDestructComplete, onNewCodes, onStoreMasterKey, onApplyThreatModel, biometricAvailable, biometricEnabled, onBiometricUnlock }) => {
+export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockUntil, onFailedAttempt, recoverySettings, onResetWithRecovery, destructRef, onDestructComplete, onNewCodes, onStoreMasterKey, onApplyThreatModel, biometricAvailable, biometricEnabled, onBiometricUnlock, onSetupComplete }) => {
   const { t } = useI18n();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -45,10 +46,11 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
   const [timeLeft, setTimeLeft] = useState(0);
   const [biometricError, setBiometricError] = useState(false);
   const [isDestructing, setIsDestructing] = useState(false);
-  const [setupStep, setSetupStep] = useState<'welcome' | 'create' | 'threat'>('welcome');
+  const [setupStep, setSetupStep] = useState<'welcome' | 'create' | 'biometric-threat'>('welcome');
   const [selectedTier, setSelectedTier] = useState<number | null>(null);
   const [blockedTier, setBlockedTier] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
+  const [enableBiometricOn, setEnableBiometricOn] = useState(false);
 
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
   const [recoveryStep, setRecoveryStep] = useState<1 | 2>(1);
@@ -186,7 +188,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
       setError(t('passwordsDoNotMatch'));
       return;
     }
-    setSetupStep('threat');
+    setSetupStep('biometric-threat');
   };
 
   const completeSetup = async () => {
@@ -230,7 +232,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
       mvkBytes.fill(0);
       onStoreMasterKey?.(masterKey);
       onNewCodes?.(codes);
-      onUnlock();
+      await onSetupComplete?.(enableBiometricOn);
     } catch (err) {
       console.error(err);
       setError(t('cryptoError'));
@@ -517,6 +519,39 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
                   <span className="drop-shadow-[0_0_12px_rgba(212,212,216,0.5)]" style={{ color: accentColor }}>{t('toolSuffix')}</span>
                 </div>
                 <p className="text-zinc-400 text-xs text-center">{t('threatModelDesc')}</p>
+              </div>
+
+              <div className="w-full max-w-sm mb-3 glass-card border border-white/10 rounded-2xl p-3">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-xl ${biometricAvailable ? 'bg-neon-green/20 text-neon-green' : 'bg-zinc-800 text-zinc-500'}`}>
+                    <Fingerprint size={18} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-white">{t('biometricSectionTitle')}</span>
+                    </div>
+                    <p className={`text-[10px] mt-0.5 ${biometricAvailable ? 'text-zinc-400' : 'text-zinc-600'}`}>
+                      {biometricAvailable ? t('biometricSectionDesc') : t('biometricNotAvailable')}
+                    </p>
+                  </div>
+                  <div className="shrink-0">
+                    {biometricAvailable ? (
+                      <button
+                        type="button"
+                        onClick={() => setEnableBiometricOn(!enableBiometricOn)}
+                        className={`relative w-10 h-6 rounded-full transition-colors ${
+                          enableBiometricOn ? 'bg-neon-green' : 'bg-zinc-700'
+                        }`}
+                      >
+                        <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+                          enableBiometricOn ? 'translate-x-[18px]' : 'translate-x-0.5'
+                        }`} />
+                      </button>
+                    ) : (
+                      <span className="text-[10px] text-zinc-600 font-medium px-2">{t('disabled')}</span>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div className="w-full max-w-sm space-y-2">
