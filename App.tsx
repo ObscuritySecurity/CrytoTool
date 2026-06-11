@@ -23,6 +23,7 @@ import {
   parseCodeIndex,
 } from './utils/keyWrapping';
 import type { CryptoMetadata, VaultWrappers } from './utils/keyWrapping';
+import CryptoTest from './CryptoTest';
 
 const App: React.FC = () => {
   const [showSplash, setShowSplash] = useState(true);
@@ -109,7 +110,7 @@ const App: React.FC = () => {
   const [biometricEnabled, setBiometricEnabledState] = useState(() => isBiometricEnabled());
 
   const [newlyGeneratedCodes, setNewlyGeneratedCodes] = useState<string[] | null>(null);
-  const masterKeyRef = useRef<CryptoKey | null>(null);
+  const masterKeyRef = useRef<Uint8Array | null>(null);
   const biometricAttemptedRef = useRef(false);
   const [recoveryWrappersCount, setRecoveryWrappersCount] = useState(() => {
     const raw = localStorage.getItem('crytotool_vault_wrappers');
@@ -212,22 +213,13 @@ const App: React.FC = () => {
       const rawBytes = await retrieveMasterKeyBiometric();
       if (!rawBytes) return;
       try {
-        const masterKey = await window.crypto.subtle.importKey(
-          'raw', rawBytes as BufferSource, { name: 'AES-GCM' },
-          false, ['encrypt', 'decrypt'],
-        );
-        rawBytes.fill(0);
         const wrappersRaw = localStorage.getItem('crytotool_vault_wrappers');
         if (!wrappersRaw) return;
         const wrappers = JSON.parse(wrappersRaw);
-        const mvkBytes = await unwrapRawKey(wrappers.master, masterKey);
-        const mvk = await window.crypto.subtle.importKey(
-          'raw', mvkBytes as unknown as BufferSource, { name: 'AES-GCM' },
-          false, ['encrypt', 'decrypt'],
-        );
-        cryptoService.setVaultKey(mvk);
+        const mvkBytes = await unwrapRawKey(wrappers.master, rawBytes);
+        cryptoService.setVaultKey(mvkBytes);
         mvkBytes.fill(0);
-        masterKeyRef.current = masterKey;
+        masterKeyRef.current = rawBytes;
         handleUnlock();
       } catch {
         /* fall through to AuthScreen */
@@ -281,9 +273,7 @@ const App: React.FC = () => {
 
   const enableBiometric = async (): Promise<boolean> => {
     if (!masterKeyRef.current) return false;
-    const raw = await window.crypto.subtle.exportKey('raw', masterKeyRef.current);
-    const bytes = new Uint8Array(raw);
-    const ok = await storeMasterKeyBiometric(bytes);
+    const ok = await storeMasterKeyBiometric(masterKeyRef.current);
     if (ok) setBiometricEnabledState(true);
     return ok;
   };
@@ -369,22 +359,12 @@ const App: React.FC = () => {
       localStorage.setItem('crytotool_crypto_metadata', JSON.stringify(meta));
       localStorage.setItem('crytotool_vault_wrappers', JSON.stringify(wrappers));
 
-      const mvk = await window.crypto.subtle.importKey(
-        'raw',
-        mvkBytes as unknown as BufferSource,
-        { name: 'AES-GCM' },
-        false,
-        ['encrypt', 'decrypt']
-      );
-      cryptoService.setVaultKey(mvk);
+      cryptoService.setVaultKey(mvkBytes);
       masterKeyRef.current = newMasterKey;
       syncRecoveryCount();
 
       if (biometricEnabled) {
-        const newRaw = await window.crypto.subtle.exportKey('raw', newMasterKey);
-        const newBytes = new Uint8Array(newRaw);
-        await storeMasterKeyBiometric(newBytes);
-        newBytes.fill(0);
+        await storeMasterKeyBiometric(newMasterKey);
       }
 
       return { success: true };
@@ -496,21 +476,13 @@ const App: React.FC = () => {
               onBiometricUnlock={async () => {
                 const rawBytes = await retrieveMasterKeyBiometric();
                 if (!rawBytes) throw new Error('Biometric unlock cancelled');
-                const masterKey = await window.crypto.subtle.importKey(
-                  'raw', rawBytes as BufferSource, { name: 'AES-GCM' },
-                  false, ['encrypt', 'decrypt'],
-                );
                 const wrappersRaw = localStorage.getItem('crytotool_vault_wrappers');
                 if (!wrappersRaw) throw new Error('No vault wrappers');
                 const wrappers = JSON.parse(wrappersRaw);
-                const mvkBytes = await unwrapRawKey(wrappers.master, masterKey);
-                const mvk = await window.crypto.subtle.importKey(
-                  'raw', mvkBytes as unknown as BufferSource, { name: 'AES-GCM' },
-                  false, ['encrypt', 'decrypt'],
-                );
-                cryptoService.setVaultKey(mvk);
+                const mvkBytes = await unwrapRawKey(wrappers.master, rawBytes);
+                cryptoService.setVaultKey(mvkBytes);
                 mvkBytes.fill(0);
-                masterKeyRef.current = masterKey;
+                masterKeyRef.current = rawBytes;
                 handleUnlock();
               }}
             />
@@ -604,6 +576,7 @@ const App: React.FC = () => {
             </motion.div>
          )}
        </AnimatePresence>
+      <CryptoTest />
     </div>
     </I18nProvider>
   );

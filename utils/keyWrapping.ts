@@ -1,20 +1,21 @@
-import { argon2id } from 'hash-wasm';
+import { ensureInit, derive_key as wasm_derive_key, aes_gcm_encrypt, aes_gcm_decrypt } from '../crypto-core/index';
 import { getArgonParams, type ArgonPurpose } from './platform';
+
+let inited = false;
+async function initOnce() {
+  if (!inited) { await ensureInit(); inited = true; }
+}
 
 export function bytesToBase64(bytes: Uint8Array): string {
   let binary = '';
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
   return btoa(binary);
 }
 
 export function base64ToBytes(base64: string): Uint8Array {
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
   return bytes;
 }
 
@@ -22,55 +23,40 @@ export async function deriveKey(
   secret: string,
   salt: Uint8Array,
   purpose: ArgonPurpose = 'master'
-): Promise<CryptoKey> {
+): Promise<Uint8Array> {
+  await initOnce();
   const { iterations, memorySize, parallelism } = await getArgonParams(purpose);
-  const hash = await argon2id({
-    password: secret,
+  return wasm_derive_key(
+    new TextEncoder().encode(secret),
     salt,
     iterations,
     memorySize,
     parallelism,
-    hashLength: 32,
-    outputType: 'binary',
-  }) as Uint8Array;
-
-  return await window.crypto.subtle.importKey(
-    'raw',
-    hash as unknown as BufferSource,
-    { name: 'AES-GCM' },
-    false,
-    ['encrypt', 'decrypt']
+    32,
   );
 }
 
 export async function wrapRawKey(
   rawKey: Uint8Array,
-  wrappingKey: CryptoKey
+  wrappingKey: Uint8Array,
 ): Promise<{ ciphertext: string; iv: string }> {
-  const iv = window.crypto.getRandomValues(new Uint8Array(12));
-  const ciphertext = await window.crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv: iv as unknown as BufferSource },
-    wrappingKey,
-    rawKey as unknown as BufferSource
-  );
+  await initOnce();
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ciphertext = aes_gcm_encrypt(rawKey, wrappingKey, iv);
   return {
-    ciphertext: bytesToBase64(new Uint8Array(ciphertext)),
+    ciphertext: bytesToBase64(ciphertext),
     iv: bytesToBase64(iv),
   };
 }
 
 export async function unwrapRawKey(
   wrapper: { ciphertext: string; iv: string },
-  wrappingKey: CryptoKey
+  wrappingKey: Uint8Array,
 ): Promise<Uint8Array> {
+  await initOnce();
   const ciphertext = base64ToBytes(wrapper.ciphertext);
   const iv = base64ToBytes(wrapper.iv);
-  const decrypted = await window.crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv: iv as unknown as BufferSource },
-    wrappingKey,
-    ciphertext as unknown as BufferSource
-  );
-  return new Uint8Array(decrypted);
+  return aes_gcm_decrypt(ciphertext, wrappingKey, iv);
 }
 
 export function generateRecoveryCodes(): string[] {
@@ -79,7 +65,7 @@ export function generateRecoveryCodes(): string[] {
   for (let i = 0; i < 10; i++) {
     const idx = String(i + 1).padStart(2, '0');
     const randomValues = new Uint8Array(12);
-    window.crypto.getRandomValues(randomValues);
+    crypto.getRandomValues(randomValues);
     const alphabetLength = chars.length;
     const maxUnbiased = Math.floor(256 / alphabetLength) * alphabetLength;
     let body = '';

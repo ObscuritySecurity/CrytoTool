@@ -28,7 +28,7 @@ interface AuthScreenProps {
   destructRef: React.RefObject<AutoDestructCountdownHandle | null>;
   onDestructComplete: () => void;
   onNewCodes?: (codes: string[]) => void;
-  onStoreMasterKey?: (key: CryptoKey) => void;
+  onStoreMasterKey?: (key: Uint8Array) => void;
   onApplyThreatModel?: (config: { autoBlurSeconds: number; autoLockSeconds: number; failedAttemptsThreshold: number; progressiveLockSeconds: number; autoDestructEnabled: boolean; autoDestructAttempts: number; autoDestructInactivity: number; destructCountdownSeconds: number }) => void;
   biometricAvailable?: boolean;
   biometricEnabled?: boolean;
@@ -116,15 +116,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
 
           try {
             const mvkBytes = await unwrapRawKey(wrappers.master, masterKey);
-            const mvk = await window.crypto.subtle.importKey(
-              'raw',
-              mvkBytes as unknown as BufferSource,
-              { name: 'AES-GCM' },
-              false,
-              ['encrypt', 'decrypt']
-            );
-
-            cryptoService.setVaultKey(mvk);
+            cryptoService.setVaultKey(mvkBytes);
             mvkBytes.fill(0);
             onStoreMasterKey?.(masterKey);
             onUnlock();
@@ -152,15 +144,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
 
           try {
             const rawVaultKey = await cryptoService.decrypt(encryptedVault, iv, masterKey);
-            const vaultKey = await window.crypto.subtle.importKey(
-              'raw',
-              rawVaultKey.buffer as ArrayBuffer,
-              { name: 'AES-GCM' },
-              false,
-              ['encrypt', 'decrypt']
-            );
-
-            cryptoService.setVaultKey(vaultKey);
+            cryptoService.setVaultKey(rawVaultKey);
             onStoreMasterKey?.(masterKey);
             onUnlock();
           } catch (err) {
@@ -195,9 +179,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
     setIsProcessing(true);
     setError(null);
     try {
-      const mvk = await cryptoService.generateVaultKey();
-      const rawMvk = await window.crypto.subtle.exportKey('raw', mvk);
-      const mvkBytes = new Uint8Array(rawMvk);
+      const mvkBytes = await cryptoService.generateVaultKey();
 
       const codes = generateRecoveryCodes();
 
@@ -237,7 +219,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
       localStorage.setItem('crytotool_crypto_metadata', JSON.stringify(meta));
       localStorage.setItem('crytotool_vault_wrappers', JSON.stringify(wrappers));
 
-      cryptoService.setVaultKey(mvk);
+      cryptoService.setVaultKey(mvkBytes);
       mvkBytes.fill(0);
       onStoreMasterKey?.(masterKey);
       onNewCodes?.(codes);

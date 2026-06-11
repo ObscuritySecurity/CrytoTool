@@ -1,147 +1,93 @@
-import { argon2id } from 'hash-wasm';
+import { ensureInit, derive_key, aes_gcm_encrypt, aes_gcm_decrypt } from '../crypto-core/index';
 import { getArgonParams } from './platform';
-
-/**
- * BACKUP CRYPTO SERVICE
- * 
- * This file contains exclusively the cryptographic logic for the backup system.
- * It is isolated to facilitate security auditing.
- * 
- * Algorithms used:
- * - Key Derivation: Argon2id (19 iterations, 128MB memory, 4 parallelism)
- * - Encryption: AES-256-GCM (Authenticated Encryption)
- * - Passphrase Entropy: 26 cryptographically generated Base32-like characters (130 bits)
- * 
- * Backup file format:
- * [salt (16 bytes)] + [IV (12 bytes)] + [AES-GCM ciphertext + 16-byte GCM tag]
- */
 
 const SALT_LENGTH = 16;
 
+let inited = false;
+async function initOnce() {
+  if (!inited) { await ensureInit(); inited = true; }
+}
+
 class BackupEncryptionService {
-    
-    /**
-     * Generates a readable random key for backup (e.g., "X9F2-KLP0-...")
-     * Uses window.crypto.getRandomValues for secure entropy.
-     * 26 characters × 5 bits = 130 bits entropy.
-     */
-    generatePassphrase(): string {
-        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-        let result = '';
-        const targetLength = 26;
-        const alphabetLength = chars.length;
-        const maxUnbiased = Math.floor(256 / alphabetLength) * alphabetLength;
-        let generated = 0;
 
-        while (generated < targetLength) {
-            const randomValues = new Uint8Array(32);
-            window.crypto.getRandomValues(randomValues);
+  generatePassphrase(): string {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let result = '';
+    const targetLength = 26;
+    const alphabetLength = chars.length;
+    const maxUnbiased = Math.floor(256 / alphabetLength) * alphabetLength;
+    let generated = 0;
 
-            for (let j = 0; j < randomValues.length && generated < targetLength; j++) {
-                const value = randomValues[j];
-                if (value >= maxUnbiased) continue;
+    while (generated < targetLength) {
+      const randomValues = new Uint8Array(32);
+      crypto.getRandomValues(randomValues);
 
-                result += chars[value % alphabetLength];
-                generated++;
-                if (generated % 4 === 0 && generated !== targetLength) result += '-';
-            }
-        }
-
-        return result;
+      for (let j = 0; j < randomValues.length && generated < targetLength; j++) {
+        const value = randomValues[j];
+        if (value >= maxUnbiased) continue;
+        result += chars[value % alphabetLength];
+        generated++;
+        if (generated % 4 === 0 && generated !== targetLength) result += '-';
+      }
     }
 
-    /**
-     * Derives AES-256 key from passphrase using Argon2id.
-     * 19 iterations, 128MB memory, 4 parallelism.
-     */
-    private async keyFromPassphrase(passphrase: string, salt: Uint8Array): Promise<CryptoKey> {
-        const { iterations, memorySize, parallelism } = await getArgonParams();
-        const hash = await argon2id({
-            password: passphrase,
-            salt,
-            iterations,
-            memorySize,
-            parallelism,
-            hashLength: 32,
-            outputType: 'binary',
-        }) as Uint8Array;
+    return result;
+  }
 
-        return await window.crypto.subtle.importKey(
-            'raw',
-            hash as BufferSource,
-            { name: 'AES-GCM' },
-            false,
-            ['encrypt', 'decrypt']
-        );
+  private async keyFromPassphrase(passphrase: string, salt: Uint8Array): Promise<Uint8Array> {
+    await initOnce();
+    const { iterations, memorySize, parallelism } = await getArgonParams();
+    return derive_key(
+      new TextEncoder().encode(passphrase),
+      salt,
+      iterations,
+      memorySize,
+      parallelism,
+      32,
+    );
+  }
+
+  async encryptBackup(jsonString: string, passphrase: string): Promise<Blob> {
+    await initOnce();
+    const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH));
+    const key = await this.keyFromPassphrase(passphrase, salt);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const encodedData = new TextEncoder().encode(jsonString);
+
+    const ciphertext = aes_gcm_encrypt(encodedData, key, iv);
+
+    const result = new Uint8Array(salt.length + iv.length + ciphertext.byteLength);
+    result.set(salt, 0);
+    result.set(iv, salt.length);
+    result.set(ciphertext, salt.length + iv.length);
+
+    return new Blob([result], { type: 'application/octet-stream' });
+  }
+
+  async decryptBackup(backupBlob: Blob, passphrase: string): Promise<string> {
+    await initOnce();
+    const arrayBuffer = await backupBlob.arrayBuffer();
+    const fullData = new Uint8Array(arrayBuffer);
+
+    if (fullData.length < SALT_LENGTH + 12 + 16) {
+      throw new Error('File is corrupt or invalid (too short).');
     }
 
-    /**
-     * Encrypts the entire backup JSON.
-     * Protocol:
-     * 1. Generate random salt (16 bytes)
-     * 2. Derive AES-256 key with Argon2id
-     * 3. Generate unique IV (12 bytes)
-     * 4. Encrypt with AES-GCM
-     * 5. Concatenate: salt + IV + ciphertext
-     */
-    async encryptBackup(jsonString: string, passphrase: string): Promise<Blob> {
-        const salt = window.crypto.getRandomValues(new Uint8Array(SALT_LENGTH));
-        const key = await this.keyFromPassphrase(passphrase, salt);
-        const iv = window.crypto.getRandomValues(new Uint8Array(12));
-        const encoder = new TextEncoder();
-        const encodedData = encoder.encode(jsonString);
+    const salt = fullData.slice(0, SALT_LENGTH);
+    const iv = fullData.slice(SALT_LENGTH, SALT_LENGTH + 12);
+    const ciphertext = fullData.slice(SALT_LENGTH + 12);
 
-        const ciphertext = await window.crypto.subtle.encrypt(
-            { name: 'AES-GCM', iv },
-            key,
-            encodedData
-        );
+    const key = await this.keyFromPassphrase(passphrase, salt);
 
-        // File format: [salt (16 bytes)] + [IV (12 bytes)] + [Encrypted Data]
-        const result = new Uint8Array(salt.length + iv.length + ciphertext.byteLength);
-        result.set(salt, 0);
-        result.set(iv, salt.length);
-        result.set(new Uint8Array(ciphertext), salt.length + iv.length);
-
-        return new Blob([result], { type: 'application/octet-stream' });
+    let decrypted: Uint8Array;
+    try {
+      decrypted = aes_gcm_decrypt(ciphertext, key, iv);
+    } catch {
+      throw new Error('Invalid passphrase or corrupted backup file.');
     }
 
-    /**
-     * Decrypts the backup file.
-     * Extracts salt, derives key with Argon2id, then decrypts.
-     */
-    async decryptBackup(backupBlob: Blob, passphrase: string): Promise<string> {
-        const arrayBuffer = await backupBlob.arrayBuffer();
-        const fullData = new Uint8Array(arrayBuffer);
-
-        // Validate minimum length: salt (16) + IV (12) + min 16 bytes (GCM tag)
-        if (fullData.length < SALT_LENGTH + 12 + 16) {
-            throw new Error("File is corrupt or invalid (too short).");
-        }
-
-        // Extract salt (first 16 bytes)
-        const salt = fullData.slice(0, SALT_LENGTH);
-        // Extract IV (next 12 bytes)
-        const iv = fullData.slice(SALT_LENGTH, SALT_LENGTH + 12);
-        // Rest is ciphertext
-        const ciphertext = fullData.slice(SALT_LENGTH + 12);
-
-        const key = await this.keyFromPassphrase(passphrase, salt);
-
-        let decryptedBuffer: ArrayBuffer;
-        try {
-            decryptedBuffer = await window.crypto.subtle.decrypt(
-                { name: 'AES-GCM', iv },
-                key,
-                ciphertext
-            );
-        } catch {
-            throw new Error("Invalid passphrase or corrupted backup file.");
-        }
-
-        const decoder = new TextDecoder();
-        return decoder.decode(decryptedBuffer);
-    }
+    return new TextDecoder().decode(decrypted);
+  }
 }
 
 export const backupCryptoService = new BackupEncryptionService();

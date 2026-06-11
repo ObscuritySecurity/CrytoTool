@@ -1,5 +1,11 @@
 
+import { ensureInit, aes_gcm_encrypt, aes_gcm_decrypt } from '../crypto-core/index';
 import { deriveKey, bytesToBase64, base64ToBytes } from './keyWrapping';
+
+let inited = false;
+async function initOnce() {
+  if (!inited) { await ensureInit(); inited = true; }
+}
 
 export const COMMON_PINS = [
   '123456', '000000', '111111', '123123', '654321', 
@@ -39,27 +45,24 @@ export function timingSafeEqual(a: string, b: string): boolean {
 }
 
 export async function hashPin(pin: string): Promise<string> {
-  const pinSalt = window.crypto.getRandomValues(new Uint8Array(16));
+  await initOnce();
+  const pinSalt = crypto.getRandomValues(new Uint8Array(16));
   const pinKey = await deriveKey(pin, pinSalt, 'pin');
 
-  const nonce = window.crypto.getRandomValues(new Uint8Array(12));
-  const encoder = new TextEncoder();
-  const plaintext = encoder.encode('CrytoTool PIN v2');
+  const nonce = crypto.getRandomValues(new Uint8Array(12));
+  const plaintext = new TextEncoder().encode('CrytoTool PIN v2');
 
-  const ciphertext = await window.crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv: nonce as BufferSource },
-    pinKey,
-    plaintext as BufferSource
-  );
+  const ciphertext = aes_gcm_encrypt(plaintext, pinKey, nonce);
 
   return JSON.stringify({
     pinSalt: bytesToBase64(pinSalt),
     nonce: bytesToBase64(nonce),
-    encryptedHash: bytesToBase64(new Uint8Array(ciphertext)),
+    encryptedHash: bytesToBase64(ciphertext),
   });
 }
 
 export async function verifyPin(pin: string, storedValue: string): Promise<boolean> {
+  await initOnce();
   let parsed: { pinSalt?: string; nonce?: string; encryptedHash?: string };
   try {
     parsed = JSON.parse(storedValue);
@@ -75,13 +78,8 @@ export async function verifyPin(pin: string, storedValue: string): Promise<boole
   const pinKey = await deriveKey(pin, pinSalt, 'pin');
 
   try {
-    const decrypted = await window.crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv: nonce as BufferSource },
-      pinKey,
-      encryptedHash as BufferSource
-    );
-    const decoder = new TextDecoder();
-    const plaintext = decoder.decode(decrypted);
+    const decrypted = aes_gcm_decrypt(encryptedHash, pinKey, nonce);
+    const plaintext = new TextDecoder().decode(decrypted);
     return timingSafeEqual(plaintext, 'CrytoTool PIN v2');
   } catch {
     return false;

@@ -1,221 +1,32 @@
-
-import { argon2id } from 'hash-wasm';
+import { ensureInit, stream_encrypt as wasm_stream_encrypt, stream_decrypt as wasm_stream_decrypt } from '../crypto-core/index';
 import { getArgonParams } from './platform';
 
-/**
- * STREAMING CRYPTO SERVICE
- * 
- * Streaming encryption - processes files in small chunks (4MB)
- * to avoid loading everything into memory. Ideal for devices with limited RAM.
- * 
- * Algorithm: AES-GCM per chunk (4MB)
- * Format: [HEADER] + [chunk_0] + [chunk_1] + ... + [chunk_N]
- * 
- * Each chunk has its own derived IV and authentication GCM tag.
- */
-
-const CHUNK_SIZE = 4 * 1024 * 1024; // 4MB
-const HEADER_MAGIC = 'CRYTO_STREAM';
-const HEADER_VERSION = 1;
-
-interface StreamHeader {
-    magic: string;
-    version: number;
-    algorithm: string;
-    chunkSize: number;
-    totalChunks: number;
-    originalSize: number;
-    salt: Uint8Array;
-    baseIV: Uint8Array;
+let inited = false;
+async function initOnce() {
+  if (!inited) { await ensureInit(); inited = true; }
 }
 
-async function deriveChunkIV(baseIV: Uint8Array, chunkIndex: number): Promise<Uint8Array> {
-    const encoder = new TextEncoder();
-    const info = encoder.encode(`chunk-iv-${chunkIndex}`);
-    const key = await window.crypto.subtle.importKey(
-        'raw',
-        baseIV as BufferSource,
-        { name: 'HMAC', hash: 'SHA-256' },
-        false,
-        ['sign']
-    );
-    const derived = await window.crypto.subtle.sign('HMAC', key, info);
-    return new Uint8Array(derived).slice(0, 12);
-}
-
-async function deriveStreamKey(passphrase: string, salt: Uint8Array): Promise<CryptoKey> {
-    const { iterations, memorySize, parallelism } = await getArgonParams();
-    const keyBytes = await argon2id({
-        password: passphrase,
-        salt,
-        iterations,
-        memorySize,
-        parallelism,
-        hashLength: 32,
-        outputType: 'binary',
-    }) as Uint8Array;
-
-    return await window.crypto.subtle.importKey(
-        'raw',
-        keyBytes as BufferSource,
-        { name: 'AES-GCM' },
-        false,
-        ['encrypt', 'decrypt']
-    );
-}
-
-function encodeHeader(header: StreamHeader): Uint8Array {
-    const encoder = new TextEncoder();
-    const magicBytes = encoder.encode(header.magic);
-    const algoBytes = encoder.encode(header.algorithm);
-    
-    const size = 1 + magicBytes.length + 1 + 1 + algoBytes.length + 4 + 4 + 8 + 16 + 12;
-    const buffer = new Uint8Array(size);
-    let offset = 0;
-    
-    buffer[offset++] = magicBytes.length;
-    buffer.set(magicBytes, offset);
-    offset += magicBytes.length;
-    buffer[offset++] = header.version;
-    buffer[offset++] = algoBytes.length;
-    buffer.set(algoBytes, offset);
-    offset += algoBytes.length;
-    
-    const view = new DataView(buffer.buffer);
-    view.setUint32(offset, header.chunkSize, true); offset += 4;
-    view.setUint32(offset, header.totalChunks, true); offset += 4;
-    view.setBigUint64(offset, BigInt(header.originalSize), true); offset += 8;
-    
-    buffer.set(header.salt, offset); offset += 16;
-    buffer.set(header.baseIV, offset);
-    
-    return buffer;
-}
-
-function decodeHeader(data: Uint8Array): StreamHeader {
-    let offset = 0;
-    const magicLen = data[offset++];
-    const magic = new TextDecoder().decode(data.slice(offset, offset + magicLen));
-    offset += magicLen;
-    const version = data[offset++];
-    const algoLen = data[offset++];
-    const algorithm = new TextDecoder().decode(data.slice(offset, offset + algoLen));
-    offset += algoLen;
-    
-    const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
-    const chunkSize = view.getUint32(offset, true); offset += 4;
-    const totalChunks = view.getUint32(offset, true); offset += 4;
-    const originalSize = Number(view.getBigUint64(offset, true)); offset += 8;
-    
-    const salt = data.slice(offset, offset + 16); offset += 16;
-    const baseIV = data.slice(offset, offset + 12);
-    
-    return { magic, version, algorithm, chunkSize, totalChunks, originalSize, salt, baseIV };
-}
+const CHUNK_SIZE = 4 * 1024 * 1024;
 
 export const streamCrypto = {
-    CHUNK_SIZE,
+  CHUNK_SIZE,
 
-    async encrypt(
-        data: Uint8Array,
-        passphrase: string
-    ): Promise<{ ciphertext: Uint8Array; salt: Uint8Array; algorithm: string }> {
-        const salt = window.crypto.getRandomValues(new Uint8Array(16));
-        const baseIV = window.crypto.getRandomValues(new Uint8Array(12));
-        const key = await deriveStreamKey(passphrase, salt);
-        
-        const totalChunks = Math.ceil(data.length / CHUNK_SIZE);
-        const header: StreamHeader = {
-            magic: HEADER_MAGIC,
-            version: HEADER_VERSION,
-            algorithm: 'AES-GCM-Stream',
-            chunkSize: CHUNK_SIZE,
-            totalChunks,
-            originalSize: data.length,
-            salt,
-            baseIV,
-        };
-        
-        const headerEncoded = encodeHeader(header);
-        const chunks: Uint8Array[] = [headerEncoded];
-        let totalSize = headerEncoded.length;
-        
-        for (let i = 0; i < totalChunks; i++) {
-            const start = i * CHUNK_SIZE;
-            const end = Math.min(start + CHUNK_SIZE, data.length);
-            const chunkData = data.slice(start, end);
-            const chunkIV = await deriveChunkIV(baseIV, i);
-            
-            const encrypted = await window.crypto.subtle.encrypt(
-                { name: 'AES-GCM', iv: chunkIV as BufferSource },
-                key,
-                chunkData as BufferSource
-            );
-            
-            const chunkCipher = new Uint8Array(encrypted);
-            chunks.push(chunkCipher);
-            totalSize += chunkCipher.length;
-        }
-        
-        const result = new Uint8Array(totalSize);
-        let offset = 0;
-        for (const chunk of chunks) {
-            result.set(chunk, offset);
-            offset += chunk.length;
-        }
-        
-        return { ciphertext: result, salt, algorithm: 'AES-GCM-Stream' };
-    },
+  async encrypt(data: Uint8Array, passphrase: string): Promise<{ ciphertext: Uint8Array; salt: Uint8Array; algorithm: string }> {
+    await initOnce();
+    const { iterations, memorySize, parallelism } = await getArgonParams();
+    const fullData = wasm_stream_encrypt(data, passphrase, iterations, memorySize, parallelism);
 
-    async decrypt(
-        encryptedData: Uint8Array,
-        passphrase: string
-    ): Promise<Uint8Array> {
-        const header = decodeHeader(encryptedData);
-        const headerSize = 1 + header.magic.length + 1 + 1 + header.algorithm.length + 4 + 4 + 8 + 16 + 12;
-        
-        if (header.magic !== HEADER_MAGIC) {
-            throw new Error('Format streaming invalid.');
-        }
-        
-        const key = await deriveStreamKey(passphrase, header.salt);
-        const decryptedChunks: Uint8Array[] = [];
-        let offset = headerSize;
-        
-        for (let i = 0; i < header.totalChunks; i++) {
-            const chunkIV = await deriveChunkIV(header.baseIV, i);
-            const remaining = encryptedData.length - offset;
-            if (remaining < 16) {
-                throw new Error('Corrupt stream: insufficient data for chunk');
-            }
-            
-            const chunkSize = (i < header.totalChunks - 1) 
-                ? header.chunkSize + 16 
-                : remaining;
+    const magicLen = fullData[0];
+    const algoLen = fullData[1 + magicLen + 1 + 1];
+    const saltOffset = 1 + magicLen + 1 + 1 + algoLen + 4 + 4 + 8;
+    const salt = fullData.slice(saltOffset, saltOffset + 16);
 
-            if (offset + chunkSize > encryptedData.length) {
-                throw new Error('Corrupt stream: chunk exceeds file bounds');
-            }
-            
-            const chunkCipher = encryptedData.slice(offset, offset + chunkSize);
-            offset += chunkSize;
-            
-            const decrypted = await window.crypto.subtle.decrypt(
-                { name: 'AES-GCM', iv: chunkIV as BufferSource },
-                key,
-                chunkCipher as BufferSource
-            );
-            
-            decryptedChunks.push(new Uint8Array(decrypted));
-        }
-        
-        const result = new Uint8Array(header.originalSize);
-        let resultOffset = 0;
-        for (const chunk of decryptedChunks) {
-            result.set(chunk, resultOffset);
-            resultOffset += chunk.length;
-        }
-        
-        return result;
-    }
+    return { ciphertext: fullData, salt, algorithm: 'AES-GCM-Stream' };
+  },
+
+  async decrypt(encryptedData: Uint8Array, passphrase: string): Promise<Uint8Array> {
+    await initOnce();
+    const { iterations, memorySize, parallelism } = await getArgonParams();
+    return wasm_stream_decrypt(encryptedData, passphrase, iterations, memorySize, parallelism);
+  },
 };

@@ -1,13 +1,5 @@
-
-import { argon2id } from 'hash-wasm';
-import { 
-    aesGcm, 
-    aesCtr, 
-    chacha20Poly1305, 
-    xChacha20Poly1305, 
-    salsa20Poly1305,
-    IV_LENGTHS 
-} from './cryptoPrimitives';
+import { ensureInit, derive_key, aes_gcm_encrypt, aes_gcm_decrypt } from '../crypto-core/index';
+import { aesGcm, aesCtr, chacha20Poly1305, xChacha20Poly1305, salsa20Poly1305, IV_LENGTHS } from './cryptoPrimitives';
 import { streamCrypto } from './streamCrypto';
 import { getArgonParams } from './platform';
 
@@ -20,32 +12,28 @@ export interface EncryptedData {
   algorithm: CryptoAlgorithm;
 }
 
-class EncryptionService {
-  private vaultKey: CryptoKey | null = null;
+let inited = false;
+async function initOnce() {
+  if (!inited) { await ensureInit(); inited = true; }
+}
 
-  // --- MASTER KEY DERIVATION (For Vault Access) ---
-  async deriveMasterKey(password: string, salt: Uint8Array): Promise<CryptoKey> {
+class EncryptionService {
+  private vaultKey: Uint8Array | null = null;
+
+  async deriveMasterKey(password: string, salt: Uint8Array): Promise<Uint8Array> {
+    await initOnce();
     const { iterations, memorySize, parallelism } = await getArgonParams();
-    const hash = await argon2id({
-      password,
+    return derive_key(
+      new TextEncoder().encode(password),
       salt,
       iterations,
       memorySize,
       parallelism,
-      hashLength: 32, 
-      outputType: 'binary',
-    }) as Uint8Array;
-
-    return await window.crypto.subtle.importKey(
-      'raw',
-      hash as BufferSource,
-      { name: 'AES-GCM' },
-      false,
-      ['encrypt', 'decrypt']
+      32,
     );
   }
 
-  setVaultKey(key: CryptoKey) {
+  setVaultKey(key: Uint8Array) {
     this.vaultKey = key;
   }
 
@@ -53,216 +41,162 @@ class EncryptionService {
     this.vaultKey = null;
   }
 
-  async generateVaultKey(): Promise<CryptoKey> {
-    return await window.crypto.subtle.generateKey(
-      { name: 'AES-GCM', length: 256 },
-      true,
-      ['encrypt', 'decrypt']
-    );
+  async generateVaultKey(): Promise<Uint8Array> {
+    return crypto.getRandomValues(new Uint8Array(32));
   }
 
-  // --- UNIFIED ENCRYPTION API ---
-
-  /**
-   * Encrypt data using isolated primitives.
-   */
   async encryptWithPassphrase(
-    data: Blob | Uint8Array, 
-    passphrase: string, 
+    data: Blob | Uint8Array,
+    passphrase: string,
     algorithm: CryptoAlgorithm
   ): Promise<EncryptedData> {
     const rawData = data instanceof Blob ? new Uint8Array(await data.arrayBuffer()) : data;
-    const salt = window.crypto.getRandomValues(new Uint8Array(16));
+    const salt = crypto.getRandomValues(new Uint8Array(16));
 
     const { iterations, memorySize, parallelism } = await getArgonParams();
-    const key = await argon2id({
-        password: passphrase,
-        salt,
-        iterations,
-        memorySize,
-        parallelism,
-        hashLength: 32,
-        outputType: 'binary',
-    }) as Uint8Array;
+    await initOnce();
+    const key = derive_key(
+      new TextEncoder().encode(passphrase),
+      salt,
+      iterations,
+      memorySize,
+      parallelism,
+      32,
+    );
 
-    // Get correct IV length from primitives config
     const ivLength = IV_LENGTHS[algorithm] || 12;
-    const iv = window.crypto.getRandomValues(new Uint8Array(ivLength));
+    const iv = crypto.getRandomValues(new Uint8Array(ivLength));
 
     let ciphertext: Uint8Array;
 
-    // Delegate to isolated primitives
     switch (algorithm) {
-        case 'AES-GCM':
-            ciphertext = await aesGcm.encrypt(rawData, key, iv);
-            break;
-        case 'AES-CTR':
-            ciphertext = await aesCtr.encrypt(rawData, key, iv);
-            break;
-        case 'ChaCha20-Poly1305':
-            ciphertext = await chacha20Poly1305.encrypt(rawData, key, iv);
-            break;
-        case 'XChaCha20-Poly1305':
-            ciphertext = await xChacha20Poly1305.encrypt(rawData, key, iv);
-            break;
-        case 'Salsa20-Poly1305':
-            ciphertext = await salsa20Poly1305.encrypt(rawData, key, iv);
-            break;
-        default:
-            throw new Error(`Algorithm ${algorithm} not supported.`);
+      case 'AES-GCM':
+        ciphertext = await aesGcm.encrypt(rawData, key, iv);
+        break;
+      case 'AES-CTR':
+        ciphertext = await aesCtr.encrypt(rawData, key, iv);
+        break;
+      case 'ChaCha20-Poly1305':
+        ciphertext = await chacha20Poly1305.encrypt(rawData, key, iv);
+        break;
+      case 'XChaCha20-Poly1305':
+        ciphertext = await xChacha20Poly1305.encrypt(rawData, key, iv);
+        break;
+      case 'Salsa20-Poly1305':
+        ciphertext = await salsa20Poly1305.encrypt(rawData, key, iv);
+        break;
+      default:
+        throw new Error(`Algorithm ${algorithm} not supported.`);
     }
 
-    return {
-        ciphertext,
-        iv,
-        salt, // Needed to re-derive key on decrypt
-        algorithm
-    };
+    return { ciphertext, iv, salt, algorithm };
   }
 
-  /**
-   * Decrypt data using isolated primitives.
-   */
   async decryptWithPassphrase(
-    encryptedData: Uint8Array, 
-    passphrase: string, 
-    iv: Uint8Array, 
-    salt: Uint8Array, 
+    encryptedData: Uint8Array,
+    passphrase: string,
+    iv: Uint8Array,
+    salt: Uint8Array,
     algorithm: CryptoAlgorithm
   ): Promise<Uint8Array> {
     if (algorithm === 'AES-GCM-Stream') {
-        return await streamCrypto.decrypt(encryptedData, passphrase);
+      return await streamCrypto.decrypt(encryptedData, passphrase);
     }
 
     const { iterations, memorySize, parallelism } = await getArgonParams();
-    const key = await argon2id({
-        password: passphrase,
-        salt,
-        iterations,
-        memorySize,
-        parallelism,
-        hashLength: 32,
-        outputType: 'binary',
-    }) as Uint8Array;
+    await initOnce();
+    const key = derive_key(
+      new TextEncoder().encode(passphrase),
+      salt,
+      iterations,
+      memorySize,
+      parallelism,
+      32,
+    );
 
     switch (algorithm) {
-        case 'AES-GCM':
-            return await aesGcm.decrypt(encryptedData, key, iv);
-        case 'AES-CTR':
-            return await aesCtr.decrypt(encryptedData, key, iv);
-        case 'ChaCha20-Poly1305':
-            return await chacha20Poly1305.decrypt(encryptedData, key, iv);
-        case 'XChaCha20-Poly1305':
-            return await xChacha20Poly1305.decrypt(encryptedData, key, iv);
-        case 'Salsa20-Poly1305':
-            return await salsa20Poly1305.decrypt(encryptedData, key, iv);
-        default:
-            throw new Error(`Algorithm ${algorithm} not supported.`);
+      case 'AES-GCM':
+        return await aesGcm.decrypt(encryptedData, key, iv);
+      case 'AES-CTR':
+        return await aesCtr.decrypt(encryptedData, key, iv);
+      case 'ChaCha20-Poly1305':
+        return await chacha20Poly1305.decrypt(encryptedData, key, iv);
+      case 'XChaCha20-Poly1305':
+        return await xChacha20Poly1305.decrypt(encryptedData, key, iv);
+      case 'Salsa20-Poly1305':
+        return await salsa20Poly1305.decrypt(encryptedData, key, iv);
+      default:
+        throw new Error(`Algorithm ${algorithm} not supported.`);
     }
   }
 
-  // --- DEFAULT (AUTO) ENCRYPTION ---
-  // Still uses AES-GCM via the Vault Key object directly for performance/compatibility with the global vault state
-  async encrypt(data: Blob | Uint8Array, key: CryptoKey = this.vaultKey!): Promise<EncryptedData> {
-    if (!key) throw new Error("Vault key not initialized");
-    const iv = window.crypto.getRandomValues(new Uint8Array(12));
+  async encrypt(data: Blob | Uint8Array, key?: Uint8Array): Promise<EncryptedData> {
+    const k = key || this.vaultKey;
+    if (!k) throw new Error('Vault key not initialized');
+    await initOnce();
+    const iv = crypto.getRandomValues(new Uint8Array(12));
     const rawData = data instanceof Blob ? new Uint8Array(await data.arrayBuffer()) : data;
-
-    const ciphertext = await window.crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv: iv as BufferSource },
-      key,
-      rawData as BufferSource
-    );
-
-    return {
-      ciphertext: new Uint8Array(ciphertext),
-      iv,
-      salt: new Uint8Array(0),
-      algorithm: 'AES-GCM'
-    };
+    const ciphertext = aes_gcm_encrypt(rawData, k, iv);
+    return { ciphertext, iv, salt: new Uint8Array(0), algorithm: 'AES-GCM' };
   }
 
   async decrypt(
-      encryptedData: Uint8Array, 
-      iv: Uint8Array, 
-      key: CryptoKey = this.vaultKey!, 
-      algorithm: CryptoAlgorithm = 'AES-GCM',
-      salt?: Uint8Array,
-      passphrase?: string // If manual decryption
+    encryptedData: Uint8Array,
+    iv: Uint8Array,
+    key?: Uint8Array,
+    algorithm: CryptoAlgorithm = 'AES-GCM',
+    salt?: Uint8Array,
+    passphrase?: string,
   ): Promise<Uint8Array> {
-    
-    // If we have passphrase, it means custom encryption -> Delegate to new logic
     if (passphrase && salt) {
-        return this.decryptWithPassphrase(encryptedData, passphrase, iv, salt, algorithm);
+      return this.decryptWithPassphrase(encryptedData, passphrase, iv, salt, algorithm);
     }
 
-    if (!key) throw new Error("Vault key not initialized");
+    const k = key || this.vaultKey;
+    if (!k) throw new Error('Vault key not initialized');
 
-    // Default Vault Decryption
     if (algorithm === 'AES-GCM') {
-        const decrypted = await window.crypto.subtle.decrypt(
-          { name: 'AES-GCM', iv: iv as BufferSource },
-          key,
-          encryptedData as BufferSource
-        );
-        return new Uint8Array(decrypted);
-    } 
-    
-    throw new Error("Default Vault only supports AES-GCM.");
+      await initOnce();
+      return aes_gcm_decrypt(encryptedData, k, iv);
+    }
+
+    throw new Error('Default Vault only supports AES-GCM.');
   }
 
   arrayBufferToBase64(buffer: Uint8Array): string {
     let binary = '';
-    const len = buffer.byteLength;
-    for (let i = 0; i < len; i++) {
-      binary += String.fromCharCode(buffer[i]);
-    }
+    for (let i = 0; i < buffer.byteLength; i++) binary += String.fromCharCode(buffer[i]);
     return btoa(binary);
   }
 
   base64ToArrayBuffer(base64: string): Uint8Array {
     const binary = atob(base64);
     const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-      bytes[i] = binary.charCodeAt(i);
-    }
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
     return bytes;
   }
 
-  // --- VAULT STORAGE ENCRYPTION ---
-  // Encrypts a string (e.g., JSON of vault keys) using the Vault Key
-  async encryptString(data: string, key: CryptoKey = this.vaultKey!): Promise<{ ciphertext: string; iv: string }> {
-    if (!key) throw new Error("Vault key not initialized");
-    const encoder = new TextEncoder();
-    const rawData = encoder.encode(data);
-    const iv = window.crypto.getRandomValues(new Uint8Array(12));
-
-    const ciphertext = await window.crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv },
-      key,
-      rawData
-    );
-
+  async encryptString(data: string, key?: Uint8Array): Promise<{ ciphertext: string; iv: string }> {
+    const k = key || this.vaultKey;
+    if (!k) throw new Error('Vault key not initialized');
+    await initOnce();
+    const rawData = new TextEncoder().encode(data);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ciphertext = aes_gcm_encrypt(rawData, k, iv);
     return {
-      ciphertext: this.arrayBufferToBase64(new Uint8Array(ciphertext)),
-      iv: this.arrayBufferToBase64(iv)
+      ciphertext: this.arrayBufferToBase64(ciphertext),
+      iv: this.arrayBufferToBase64(iv),
     };
   }
 
-  // Decrypts a string using the Vault Key
-  async decryptString(ciphertextB64: string, ivB64: string, key: CryptoKey = this.vaultKey!): Promise<string> {
-    if (!key) throw new Error("Vault key not initialized");
+  async decryptString(ciphertextB64: string, ivB64: string, key?: Uint8Array): Promise<string> {
+    const k = key || this.vaultKey;
+    if (!k) throw new Error('Vault key not initialized');
+    await initOnce();
     const ciphertextBytes = this.base64ToArrayBuffer(ciphertextB64);
     const ivBytes = this.base64ToArrayBuffer(ivB64);
-
-    const decrypted = await window.crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv: ivBytes as BufferSource },
-      key,
-      ciphertextBytes as BufferSource
-    );
-
-    const decoder = new TextDecoder();
-    return decoder.decode(decrypted);
+    const decrypted = aes_gcm_decrypt(ciphertextBytes, k, ivBytes);
+    return new TextDecoder().decode(decrypted);
   }
 }
 
