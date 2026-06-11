@@ -30,12 +30,12 @@ All surfaces use the glassmorphism design system defined in `styles/glass.css`:
 - **Background**: `bg-zinc-900/80` with `backdrop-blur-xl`
 - **Cards**: `glass-card` class (semi-transparent, border-zinc-800)
 - **Surfaces**: `glass-surface` for nested elements
-- **Accent**: Gold `#D4AF37` (default), customizable via themes
+- **Accent**: Matte Metallic White `#E8E8E8` (default), customizable via themes
 
 ### Color System
 | Role | Color | Usage |
 |------|-------|-------|
-| Accent (Default) | `#D4AF37` (Gold) | Buttons, active states, success |
+| Accent (Default) | `#E8E8E8` (Matte Metallic White) | Buttons, active states, success |
 | Background | `#2A2A2A` (Charcoal) | Main app background |
 | Card BG | `#1A1A1A` (Rich Dark) | Cards, modals |
 | Border | `#3A3A3A` | Subtle separation |
@@ -164,7 +164,7 @@ transition: { delay: index * 0.05 } // staggered
 
 ### Color Contrast
 - Text on glass: minimum 4.5:1 ratio (Zinc-50 on Zinc-900/80 passes)
-- Accent on dark: Gold `#D4AF37` on dark passes
+- Accent on dark: Matte Metallic White `#E8E8E8` on dark passes
 - Error/Warning text: Red-400, Yellow-400 on dark backgrounds pass
 
 ---

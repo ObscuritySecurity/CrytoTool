@@ -150,7 +150,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     return mode;
   };
   const [accentColor, setAccentColor] = useState(() => {
-    return localStorage.getItem('app_accent_manual') || localStorage.getItem('theme_accent') || '#D4AF37';
+    return localStorage.getItem('app_accent_manual') || localStorage.getItem('theme_accent') || '#E8E8E8';
   });
   const setManualAccent = (color: string) => {
     setAccentColor(color);
@@ -168,7 +168,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         }
       } catch {}
     }
-    setAccentColor('#D4AF37');
+    setAccentColor('#E8E8E8');
   };
   const [activeThemeCategory, setActiveThemeCategory] = useState<ThemeCategory>('Neon');
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
