@@ -14,6 +14,7 @@ use objc2_security::{
 };
 use serde::de::DeserializeOwned;
 use std::ffi::c_void;
+use std::ptr::NonNull;
 use tauri::{plugin::PluginApi, AppHandle, Runtime};
 
 use crate::error::{ErrorResponse, PluginInvokeError};
@@ -279,15 +280,16 @@ impl<R: Runtime> Biometry<R> {
 
             if status == errSecSuccess {
                 if !out.is_null() {
-                    let cf_type = unsafe { CFRetained::<CFType>::from_raw(out) }.ok_or_else(|| {
-                        crate::Error::PluginInvoke(PluginInvokeError::InvokeRejected(ErrorResponse {
-                            code: Some("dataError".to_string()),
-                            message: Some("SecItemCopyMatching returned invalid data pointer".to_string()),
-                            data: (),
-                        }))
-                    })?;
-
-                    let cf_data = cf_type.downcast::<CFData>().ok_or_else(|| {
+                    let cf_type = unsafe { CFRetained::<CFType>::from_raw(
+                        NonNull::new(out as *mut CFType).ok_or_else(|| {
+                            crate::Error::PluginInvoke(PluginInvokeError::InvokeRejected(ErrorResponse {
+                                code: Some("dataError".to_string()),
+                                message: Some("SecItemCopyMatching returned invalid data pointer".to_string()),
+                                data: (),
+                            }))
+                        })?
+                    ) };
+                    let cf_data = cf_type.downcast::<CFData>().map_err(|_| {
                         crate::Error::PluginInvoke(PluginInvokeError::InvokeRejected(ErrorResponse {
                             code: Some("dataError".to_string()),
                             message: Some("SecItemCopyMatching did not return CFData".to_string()),
