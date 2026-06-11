@@ -55,19 +55,17 @@ jobs:
 
       - name: Patch Kotlin version for biometry plugin
         run: |
-          KOTLIN_FILE="src-tauri/gen/android/build.gradle.kts"
-          if [ -f "$KOTLIN_FILE" ] && grep -q 'kotlin.*1\.9\.0' "$KOTLIN_FILE"; then
-            sed -i 's/version "1\.9\.0"/version "2.1.0"/g' "$KOTLIN_FILE"
-            echo "Patched Kotlin 1.9.0 → 2.1.0 in $KOTLIN_FILE"
-          else
-            echo "Kotlin 1.9.0 not found or file missing — checking other files..."
-            find src-tauri/gen/android -name "build.gradle*" -type f 2>/dev/null | while read f; do
-              if grep -q 'kotlin.*1\.9\.0' "$f" 2>/dev/null; then
-                sed -i 's/version "1\.9\.0"/version "2.1.0"/g' "$f"
-                echo "Patched $f"
-              fi
-            done
-          fi
+          echo "=== Generated Android project files ==="
+          find src-tauri/gen/android -name "*.kts" -o -name "*.toml" -o -name "*.properties" | head -30
+          echo "=== Searching for Kotlin version references ==="
+          grep -rn '1\.9\.0' src-tauri/gen/android/ 2>/dev/null || echo "No 1.9.0 references found"
+          grep -rn 'kotlin' src-tauri/gen/android/ --include="*.kts" --include="*.toml" --include="*.properties" 2>/dev/null || echo "No kotlin refs in config files"
+          echo "=== Patching version 1.9.0 → 2.1.0 everywhere ==="
+          find src-tauri/gen/android -type f \( -name "*.kts" -o -name "*.toml" -o -name "*.properties" \) -exec sed -i 's/1\.9\.0/2.1.0/g' {} + 2>/dev/null
+          echo "=== Checking gradle wrapper ==="
+          cat src-tauri/gen/android/gradle/wrapper/gradle-wrapper.properties 2>/dev/null || echo "no wrapper"
+          # Also check for kotlin version in any libs version file
+          find src-tauri/gen/android -name "*.toml" -exec cat {} \; 2>/dev/null || echo "no toml files"
 
       - name: Generate app icons
         run: npm run tauri -- icon src-tauri/icon-sources/icon-manifest.json -o src-tauri/icons
