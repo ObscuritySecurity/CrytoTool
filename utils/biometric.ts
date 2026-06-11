@@ -47,12 +47,26 @@ export async function checkBiometricAvailability(): Promise<{
   }
 }
 
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error('Timeout')), ms)),
+  ]);
+}
+
 export async function storeMasterKeyBiometric(masterKeyBytes: Uint8Array): Promise<boolean> {
   try {
+    await withTimeout(authenticate(
+      'Authenticate to enable biometric unlock for your vault',
+      { allowDeviceCredential: true, cancelTitle: 'Use Master Password' },
+    ), 30000);
     let binary = '';
     for (let i = 0; i < masterKeyBytes.length; i++) binary += String.fromCharCode(masterKeyBytes[i]);
     const b64 = btoa(binary);
-    await setData({ domain: BIOMETRIC_DOMAIN, name: BIOMETRIC_KEY_NAME, data: b64 });
+    await withTimeout(
+      setData({ domain: BIOMETRIC_DOMAIN, name: BIOMETRIC_KEY_NAME, data: b64 }),
+      15000,
+    );
     setBiometricEnabled(true);
     return true;
   } catch {
@@ -62,12 +76,12 @@ export async function storeMasterKeyBiometric(masterKeyBytes: Uint8Array): Promi
 
 export async function retrieveMasterKeyBiometric(): Promise<Uint8Array | null> {
   try {
-    const response = await getData({
+    const response = await withTimeout(getData({
       domain: BIOMETRIC_DOMAIN,
       name: BIOMETRIC_KEY_NAME,
       reason: 'Authenticate to unlock your encrypted vault',
       cancelTitle: 'Use Master Password',
-    });
+    }), 30000);
     const binaryStr = atob(response.data);
     const bytes = new Uint8Array(binaryStr.length);
     for (let i = 0; i < binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);

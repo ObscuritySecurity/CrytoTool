@@ -208,12 +208,21 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
       const recoverySalts: string[] = [];
       const recoveryWrappers: Record<string, { ciphertext: string; iv: string }> = {};
 
-      for (let i = 0; i < codes.length; i++) {
-        const salt = window.crypto.getRandomValues(new Uint8Array(16));
-        recoverySalts.push(bytesToBase64(salt));
-        const key = await deriveKey(codes[i], salt, 'recovery');
-        const paddedIdx = String(i + 1).padStart(2, '0');
-        recoveryWrappers[paddedIdx] = await wrapRawKey(mvkBytes, key);
+      const batchSize = 3;
+      for (let b = 0; b < codes.length; b += batchSize) {
+        const batch = codes.slice(b, b + batchSize);
+        const results = await Promise.all(batch.map(async (code, bi) => {
+          const i = b + bi;
+          const salt = window.crypto.getRandomValues(new Uint8Array(16));
+          const key = await deriveKey(code, salt, 'recovery');
+          const paddedIdx = String(i + 1).padStart(2, '0');
+          const wrapper = await wrapRawKey(mvkBytes, key);
+          return { salt: bytesToBase64(salt), paddedIdx, wrapper };
+        }));
+        for (const r of results) {
+          recoverySalts.push(r.salt);
+          recoveryWrappers[r.paddedIdx] = r.wrapper;
+        }
       }
 
       const meta: CryptoMetadata = {
