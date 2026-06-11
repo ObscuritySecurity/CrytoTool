@@ -1,6 +1,6 @@
-
-import { cryptoService, CryptoAlgorithm } from './crypto';
-import { metadataCrypto, EncryptedMeta } from './metadataCrypto';
+import type { CryptoAlgorithm, EncryptedMeta } from '../types';
+import { encrypt, encrypt_string, decrypt_string, metadata_encrypt, metadata_decrypt, base64_encode, base64_decode } from '../crypto-core/index';
+import { getVaultKey } from './vaultKey';
 
 const DB_NAME = 'CrytoToolVault';
 const DB_VERSION = 3;
@@ -39,7 +39,18 @@ export interface DBItem {
 }
 
 export interface ExportedItem extends Omit<DBItem, 'fileData'> {
-    fileDataBase64?: string;
+  fileDataBase64?: string;
+}
+
+function stripMetaFromItem<T extends Partial<DBItem>>(item: T): T {
+  delete (item as any).name;
+  delete (item as any).tags;
+  delete (item as any).artist;
+  delete (item as any).album;
+  delete (item as any).coverUrl;
+  delete (item as any).customIcon;
+  delete (item as any).externalUrl;
+  return item;
 }
 
 class VaultDB {
@@ -48,7 +59,7 @@ class VaultDB {
   async init(): Promise<void> {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(DB_NAME, DB_VERSION);
-      request.onerror = (e) => reject("Database error");
+      request.onerror = () => reject("Database error");
       request.onsuccess = (e) => {
         this.db = (e.target as IDBOpenDBRequest).result;
         resolve();
@@ -93,7 +104,8 @@ class VaultDB {
 
     if (!item.encryptedMeta && (item.name || item.tags || item.artist || item.album || item.coverUrl || item.customIcon || item.externalUrl)) {
       try {
-        item.encryptedMeta = await metadataCrypto.encrypt({
+        const key = getVaultKey();
+        const metaJson = JSON.stringify({
           name: item.name || 'untitled',
           tags: item.tags,
           artist: item.artist,
@@ -102,19 +114,29 @@ class VaultDB {
           customIcon: item.customIcon,
           externalUrl: item.externalUrl,
         });
-        item = metadataCrypto.stripFromItem(item) as DBItem;
+        const encrypted = metadata_encrypt(metaJson, key);
+        item.encryptedMeta = JSON.parse(encrypted);
+        item = stripMetaFromItem(item) as DBItem;
       } catch {
         // vault key unavailable — store unencrypted
       }
     }
-    
+
     if (item.fileData && !item.isEncrypted) {
-        const encrypted = await cryptoService.encrypt(item.fileData);
-        const ciphertextBuffer = encrypted.ciphertext.buffer.slice(encrypted.ciphertext.byteOffset, encrypted.ciphertext.byteOffset + encrypted.ciphertext.byteLength) as ArrayBuffer;
-        item.fileData = new Blob([ciphertextBuffer]);
-        item.iv = cryptoService.arrayBufferToBase64(encrypted.iv);
+      try {
+        const key = getVaultKey();
+        const blobBuffer = await item.fileData.arrayBuffer();
+        const plaintext = new Uint8Array(blobBuffer);
+        const encryptedJson = encrypt(plaintext, key);
+        const parsed = JSON.parse(encryptedJson);
+        const ciphertext = base64_decode(parsed.ciphertext);
+        item.fileData = new Blob([new Uint8Array(ciphertext)]);
+        item.iv = parsed.iv;
         item.algorithm = 'AES-GCM';
         item.isEncrypted = true;
+      } catch {
+        // vault key unavailable — store unencrypted
+      }
     }
 
     return new Promise((resolve, reject) => {
@@ -131,7 +153,8 @@ class VaultDB {
 
     if (!item.encryptedMeta && (item.name || item.tags || item.artist || item.album || item.coverUrl || item.customIcon || item.externalUrl)) {
       try {
-        item.encryptedMeta = await metadataCrypto.encrypt({
+        const key = getVaultKey();
+        const metaJson = JSON.stringify({
           name: item.name || 'untitled',
           tags: item.tags,
           artist: item.artist,
@@ -140,7 +163,9 @@ class VaultDB {
           customIcon: item.customIcon,
           externalUrl: item.externalUrl,
         });
-        item = metadataCrypto.stripFromItem(item) as DBItem;
+        const encrypted = metadata_encrypt(metaJson, key);
+        item.encryptedMeta = JSON.parse(encrypted);
+        item = stripMetaFromItem(item) as DBItem;
       } catch {
         // vault key unavailable — store unencrypted
       }
@@ -161,10 +186,8 @@ class VaultDB {
       const transaction = this.db!.transaction([STORE_NAME], 'readonly');
       const store = transaction.objectStore(STORE_NAME);
       const request = store.getAll();
-
-      request.onsuccess = async () => {
-        const items = request.result as DBItem[];
-        resolve(items);
+      request.onsuccess = () => {
+        resolve(request.result as DBItem[]);
       };
       request.onerror = () => reject(request.error);
     });
@@ -184,90 +207,90 @@ class VaultDB {
   async clearDatabase(): Promise<void> {
     await this.ensureInit();
     return new Promise((resolve, reject) => {
-        const transaction = this.db!.transaction([STORE_NAME], 'readwrite');
-        const store = transaction.objectStore(STORE_NAME);
-        const request = store.clear();
-        request.onsuccess = () => resolve();
-        request.onerror = () => reject(request.error);
+      const transaction = this.db!.transaction([STORE_NAME], 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.clear();
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
     });
   }
 
-  // --- EXPORT / IMPORT LOGIC ---
-
   async exportDatabase(): Promise<ExportedItem[]> {
-      const items = await this.getAllItems();
-       const exported: ExportedItem[] = await Promise.all(items.map(async (item) => {
-           let b64 = undefined;
-           if (item.fileData) {
-               b64 = await new Promise<string>((resolve) => {
-                   const reader = new FileReader();
-                   reader.onloadend = () => {
-                       const res = reader.result as string;
-                       resolve(res.split(',')[1]);
-                   };
-                   reader.readAsDataURL(item.fileData!);
-               });
-           }
-           const { fileData, ...rest } = item;
-           return { ...rest, fileDataBase64: b64 };
-       }));
-      return exported;
+    const items = await this.getAllItems();
+    const exported: ExportedItem[] = await Promise.all(items.map(async (item) => {
+      let b64 = undefined;
+      if (item.fileData) {
+        b64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const res = reader.result as string;
+            resolve(res.split(',')[1]);
+          };
+          reader.readAsDataURL(item.fileData!);
+        });
+      }
+      const { fileData, ...rest } = item;
+      return { ...rest, fileDataBase64: b64 };
+    }));
+    return exported;
   }
 
   async importDatabase(items: ExportedItem[]): Promise<void> {
-      await this.clearDatabase();
-      await this.ensureInit();
-      
-      const transaction = this.db!.transaction([STORE_NAME], 'readwrite');
-      const store = transaction.objectStore(STORE_NAME);
+    await this.clearDatabase();
+    await this.ensureInit();
 
-      for (const item of items) {
-          try {
-              if (typeof item.id !== 'string' || typeof item.name !== 'string') {
-                if (!item.id && !item.name) {
-                  console.warn('Skipping invalid item during import (missing id/name):', item.id);
-                  continue;
-                }
-              }
-              const validTypes = ['file', 'folder', 'note', 'encrypted'];
-              if (item.type && !validTypes.includes(item.type)) {
-                console.warn('Skipping item with invalid type during import:', item.id, item.type);
-                continue;
-              }
-              if (item.fileDataBase64 !== undefined && typeof item.fileDataBase64 !== 'string') {
-                console.warn('Skipping item with invalid fileDataBase64 during import:', item.id);
-                continue;
-              }
-              if (item.encryptedMeta !== undefined) {
-                if (typeof item.encryptedMeta !== 'object' || item.encryptedMeta === null || typeof (item.encryptedMeta as any).iv !== 'string' || typeof (item.encryptedMeta as any).ciphertext !== 'string') {
-                  console.warn('Skipping item with invalid encryptedMeta during import:', item.id);
-                  continue;
-                }
-              }
+    const transaction = this.db!.transaction([STORE_NAME], 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
 
-              let blob = undefined;
-              if (item.fileDataBase64) {
-                  const byteCharacters = atob(item.fileDataBase64);
-                  const byteNumbers = new Array(byteCharacters.length);
-                  for (let i = 0; i < byteCharacters.length; i++) {
-                      byteNumbers[i] = byteCharacters.charCodeAt(i);
-                  }
-                  const byteArray = new Uint8Array(byteNumbers);
-                  blob = new Blob([byteArray]);
-              }
-              
-              const { fileDataBase64, ...rest } = item;
-              const dbItem: DBItem = { ...rest, fileData: blob };
-              store.add(dbItem);
-          } catch (e) {
-              console.warn('Skipping item due to validation error during import:', item.id, e);
+    for (const item of items) {
+      try {
+        if (typeof item.id !== 'string' || typeof item.name !== 'string') {
+          if (!item.id && !item.name) {
+            console.warn('Skipping invalid item during import (missing id/name):', item.id);
+            continue;
           }
+        }
+        const validTypes = ['file', 'folder', 'note', 'encrypted'];
+        if (item.type && !validTypes.includes(item.type)) {
+          console.warn('Skipping item with invalid type during import:', item.id, item.type);
+          continue;
+        }
+        if (item.fileDataBase64 !== undefined && typeof item.fileDataBase64 !== 'string') {
+          console.warn('Skipping item with invalid fileDataBase64 during import:', item.id);
+          continue;
+        }
+        if (item.encryptedMeta !== undefined) {
+          if (typeof item.encryptedMeta !== 'object' || item.encryptedMeta === null ||
+              typeof (item.encryptedMeta as any).iv !== 'string' ||
+              typeof (item.encryptedMeta as any).ciphertext !== 'string') {
+            console.warn('Skipping item with invalid encryptedMeta during import:', item.id);
+            continue;
+          }
+        }
+
+        let blob = undefined;
+        if (item.fileDataBase64) {
+          const byteCharacters = atob(item.fileDataBase64);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          blob = new Blob([byteArray]);
+        }
+
+        const { fileDataBase64, ...rest } = item;
+        const dbItem: DBItem = { ...rest, fileData: blob };
+        store.add(dbItem);
+      } catch (e) {
+        console.warn('Skipping item due to validation error during import:', item.id, e);
       }
-      
-      return new Promise((resolve, reject) => {
-          transaction.oncomplete = () => resolve();
-          transaction.onerror = () => reject(transaction.error);
-      });
+    }
+
+    return new Promise((resolve, reject) => {
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+    });
   }
 
   private async ensureInit() {

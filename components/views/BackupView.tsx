@@ -55,7 +55,7 @@ export const BackupView: React.FC<BackupViewProps> = ({ onBack, theme }) => {
         const jsonString = JSON.stringify(appState);
         const encryptedBlob = await backupCryptoService.encryptBackup(jsonString, generatedKey);
 
-        const url = URL.createObjectURL(encryptedBlob);
+        const url = URL.createObjectURL(new Blob([new Uint8Array(encryptedBlob)]));
         const a = document.createElement('a');
         a.href = url;
         a.download = `crytotool-backup-${new Date().toISOString().slice(0,10)}.enc`;

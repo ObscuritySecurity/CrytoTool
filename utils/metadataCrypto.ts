@@ -1,71 +1,55 @@
+import { metadata_encrypt, metadata_decrypt, base64_decode, base64_encode } from '../crypto-core/index';
+import { getVaultKey } from './vaultKey';
+import type { EncryptedMeta, MetadataPlaintext } from '../types';
 
-import { cryptoService } from './crypto';
-import type { Tag } from './db';
-
-export interface MetadataPlaintext {
-  name: string;
-  tags?: Tag[];
-  artist?: string;
-  album?: string;
-  coverUrl?: string;
-  customIcon?: string;
-  externalUrl?: string;
-}
-
-export interface EncryptedMeta {
-  ciphertext: string;
-  iv: string;
+function vaultKey(): Uint8Array {
+  try {
+    return getVaultKey();
+  } catch {
+    throw new Error('Vault key not available');
+  }
 }
 
 export const metadataCrypto = {
-  async encrypt(meta: MetadataPlaintext): Promise<EncryptedMeta> {
-    const json = JSON.stringify(meta);
-    return await cryptoService.encryptString(json);
+  async encrypt(plaintext: MetadataPlaintext): Promise<EncryptedMeta> {
+    const key = vaultKey();
+    const json = JSON.stringify(plaintext);
+    const encrypted = metadata_encrypt(json, key);
+    return JSON.parse(encrypted);
   },
 
   async decrypt(encrypted: EncryptedMeta): Promise<MetadataPlaintext> {
-    const json = await cryptoService.decryptString(encrypted.ciphertext, encrypted.iv);
-    return JSON.parse(json);
+    const key = vaultKey();
+    const json = JSON.stringify(encrypted);
+    const decrypted = metadata_decrypt(json, key);
+    return JSON.parse(decrypted);
   },
 
-  hasEncryptedMeta(item: any): item is { encryptedMeta: EncryptedMeta } {
-    return !!item?.encryptedMeta?.ciphertext && !!item?.encryptedMeta?.iv;
+  hasEncryptedMeta(item: any): boolean {
+    return !!(item && item.encryptedMeta && item.encryptedMeta.ciphertext);
   },
 
   async extractPlaintext(item: any): Promise<MetadataPlaintext | null> {
-    if (this.hasEncryptedMeta(item)) {
+    if (!this.hasEncryptedMeta(item)) return null;
+    try {
       return await this.decrypt(item.encryptedMeta);
+    } catch {
+      return null;
     }
-    if (item.name) {
-      return {
-        name: item.name,
-        tags: item.tags,
-        artist: item.artist,
-        album: item.album,
-        coverUrl: item.coverUrl,
-        customIcon: item.customIcon,
-        externalUrl: item.externalUrl,
-      };
-    }
-    return null;
   },
 
-  async getDisplayName(item: any): Promise<string> {
-    if (this.hasEncryptedMeta(item)) {
-      const meta = await this.decrypt(item.encryptedMeta);
-      return meta.name;
-    }
-    return item.name || 'Unknown';
+  getDisplayName(item: any): string {
+    return item?.decryptedName || item?.name || 'untitled';
   },
 
   stripFromItem(item: any): any {
-    const stripped = { ...item, name: '' };
-    delete stripped.tags;
-    delete stripped.artist;
-    delete stripped.album;
-    delete stripped.coverUrl;
-    delete stripped.customIcon;
-    delete stripped.externalUrl;
-    return stripped;
+    delete item.name;
+    delete item.tags;
+    delete item.artist;
+    delete item.album;
+    delete item.coverUrl;
+    delete item.customIcon;
+    delete item.externalUrl;
+    return item;
   },
 };

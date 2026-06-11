@@ -52,4 +52,37 @@ export interface FontConfig {
 }
 
 // --- CRYPTO TYPES ---
-export type CryptoAlgorithm = 'AES-GCM' | 'AES-CTR' | 'ChaCha20-Poly1305' | 'XChaCha20-Poly1305' | 'Salsa20-Poly1305';
+export type CryptoAlgorithm = 'AES-GCM' | 'AES-CTR' | 'ChaCha20-Poly1305' | 'XChaCha20-Poly1305' | 'Salsa20-Poly1305' | 'AES-GCM-Stream';
+export type ArgonPurpose = 'master' | 'recovery' | 'pin';
+
+export interface EncryptedData {
+  ciphertext: Uint8Array;
+  iv: Uint8Array;
+  salt: Uint8Array;
+  algorithm: CryptoAlgorithm;
+}
+
+export interface EncryptedMeta {
+  ciphertext: string;
+  iv: string;
+}
+
+export interface MetadataPlaintext {
+  name: string;
+  tags?: Tag[];
+  artist?: string;
+  album?: string;
+  coverUrl?: string;
+  customIcon?: string;
+  externalUrl?: string;
+}
+
+export interface CryptoMetadata {
+  master_salt: string;
+  recovery_salts: string[];
+}
+
+export interface VaultWrappers {
+  master: { ciphertext: string; iv: string };
+  recovery: Record<string, { ciphertext: string; iv: string }>;
+}

@@ -475,7 +475,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
          const item: any = { ...i, url: i.externalUrl, rawBlob: i.fileData };
          if (metadataCrypto.hasEncryptedMeta(i)) {
            try {
-             const meta = await metadataCrypto.decrypt(i.encryptedMeta);
+             const meta = await metadataCrypto.decrypt(i.encryptedMeta!);
              item.decryptedName = meta.name;
              item.decryptedTags = meta.tags;
              item.decryptedArtist = meta.artist;
@@ -685,7 +685,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       if (item && item.type !== 'system') {
           const dbItem: any = { ...item, fileData: item.rawBlob };
           if (metadataCrypto.hasEncryptedMeta(item)) {
-            const meta = await metadataCrypto.decrypt(item.encryptedMeta);
+            const meta = await metadataCrypto.decrypt(item.encryptedMeta!);
             meta.name = renameValue;
             dbItem.encryptedMeta = await metadataCrypto.encrypt(meta);
             dbItem.name = '';
