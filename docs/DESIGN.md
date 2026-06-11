@@ -30,15 +30,15 @@ All surfaces use the glassmorphism design system defined in `styles/glass.css`:
 - **Background**: `bg-zinc-900/80` with `backdrop-blur-xl`
 - **Cards**: `glass-card` class (semi-transparent, border-zinc-800)
 - **Surfaces**: `glass-surface` for nested elements
-- **Accent**: Neon Green `#39ff14` (default), customizable via themes
+- **Accent**: Gold `#D4AF37` (default), customizable via themes
 
 ### Color System
 | Role | Color | Usage |
 |------|-------|-------|
-| Accent (Default) | `#39ff14` (Neon Green) | Buttons, active states, success |
-| Background | `#09090b` (Zinc-950) | Main app background |
-| Card BG | `rgba(24,24,27,0.8)` | Cards, modals |
-| Border | `#27272a` (Zinc-800) | Subtle separation |
+| Accent (Default) | `#D4AF37` (Gold) | Buttons, active states, success |
+| Background | `#2A2A2A` (Charcoal) | Main app background |
+| Card BG | `#1A1A1A` (Rich Dark) | Cards, modals |
+| Border | `#3A3A3A` | Subtle separation |
 | Text Primary | `#fafafa` (Zinc-50) | Headings, active text |
 | Text Muted | `#71717a` (Zinc-500) | Secondary text, labels |
 | Danger | `#ef4444` (Red-500) | Warnings, delete actions |
@@ -98,8 +98,8 @@ All modals follow this structure (`components/EncryptionModal.tsx`, `components/
 ### Buttons
 | Variant | Class | Usage |
 |----------|-------|-------|
-| Primary | `bg-neon-green text-black font-bold uppercase` | Main actions (Encrypt, Save, Download) |
-| Outline | `bg-transparent border border-zinc-800 hover:border-neon-green` | Secondary actions |
+| Primary | `bg-accent text-black font-bold uppercase` | Main actions (Encrypt, Save, Download) |
+| Outline | `bg-transparent border border-zinc-800 hover:border-accent` | Secondary actions |
 | Danger | `bg-red-500/5 border-red-500/20 text-red-400` | Delete, destructive actions |
 | Glass | `glass-button` | Navigation, back buttons |
 
@@ -164,7 +164,7 @@ transition: { delay: index * 0.05 } // staggered
 
 ### Color Contrast
 - Text on glass: minimum 4.5:1 ratio (Zinc-50 on Zinc-900/80 passes)
-- Accent on dark: Neon Green `#39ff14` on dark passes
+- Accent on dark: Gold `#D4AF37` on dark passes
 - Error/Warning text: Red-400, Yellow-400 on dark backgrounds pass
 
 ---

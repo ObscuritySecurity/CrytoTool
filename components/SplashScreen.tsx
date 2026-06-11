@@ -10,7 +10,7 @@ interface SplashScreenProps {
 export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
   const [showText, setShowText] = useState(false);
   
-  const accentColor = localStorage.getItem('theme_accent') || '#e4e4e7';
+  const accentColor = localStorage.getItem('theme_accent') || '#D4AF37';
   const rgb = (() => {
     const c = accentColor.replace('#', '');
     return `${parseInt(c.slice(0, 2), 16)}, ${parseInt(c.slice(2, 4), 16)}, ${parseInt(c.slice(4, 6), 16)}`;

@@ -28,7 +28,7 @@ export const generateThemes = (): Record<ThemeCategory, ThemeConfig[]> => {
     Neon: [], Dark: [], Light: [], Nature: [], Ocean: [], Space: [], Retro: [], Royal: [], Sunset: [], Tech: []
   };
 
-  const neons = ['#e4e4e7', '#ff00ff', '#00ffff', '#ffff00', '#ff0000', '#00ff00', '#7df9ff', '#ff1493', '#ccff00', '#ff4500'];
+  const neons = ['#D4AF37', '#ff00ff', '#00ffff', '#ffff00', '#ff0000', '#00ff00', '#7df9ff', '#ff1493', '#ccff00', '#ff4500'];
   neons.forEach((c, i) => categories.Neon.push(create('Neon', `Neon ${i+1}`, c, '#000000')));
 
   const darks = ['#000000', '#0a0a0a', '#121212', '#18181b', '#0f172a', '#1c1917', '#020617', '#111827', '#171717', '#0c0a09'];
