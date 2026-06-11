@@ -53,6 +53,22 @@ jobs:
       - name: Init Android project
         run: echo "y" | npm run tauri android init
 
+      - name: Patch Kotlin version for biometry plugin
+        run: |
+          KOTLIN_FILE="src-tauri/gen/android/build.gradle.kts"
+          if [ -f "$KOTLIN_FILE" ] && grep -q 'kotlin.*1\.9\.0' "$KOTLIN_FILE"; then
+            sed -i 's/version "1\.9\.0"/version "2.1.0"/g' "$KOTLIN_FILE"
+            echo "Patched Kotlin 1.9.0 → 2.1.0 in $KOTLIN_FILE"
+          else
+            echo "Kotlin 1.9.0 not found or file missing — checking other files..."
+            find src-tauri/gen/android -name "build.gradle*" -type f 2>/dev/null | while read f; do
+              if grep -q 'kotlin.*1\.9\.0' "$f" 2>/dev/null; then
+                sed -i 's/version "1\.9\.0"/version "2.1.0"/g' "$f"
+                echo "Patched $f"
+              fi
+            done
+          fi
+
       - name: Generate app icons
         run: npm run tauri -- icon src-tauri/icon-sources/icon-manifest.json -o src-tauri/icons
 
