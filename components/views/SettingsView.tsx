@@ -1051,7 +1051,7 @@ export const FontsGalleryView: React.FC<{
 export const AboutView: React.FC<{
   onBack: () => void;
   accentColor?: string;
-}> = ({ onBack, accentColor = '#e4e4e7' }) => {
+}> = ({ onBack, accentColor = '#D4AF37' }) => {
   const { t } = useI18n();
   return (
     <motion.div key="about-view" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="absolute inset-0 z-50 flex flex-col bg-background">
