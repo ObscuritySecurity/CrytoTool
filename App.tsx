@@ -216,6 +216,7 @@ const App: React.FC = () => {
           'raw', rawBytes as BufferSource, { name: 'AES-GCM' },
           false, ['encrypt', 'decrypt'],
         );
+        rawBytes.fill(0);
         const wrappersRaw = localStorage.getItem('crytotool_vault_wrappers');
         if (!wrappersRaw) return;
         const wrappers = JSON.parse(wrappersRaw);
@@ -275,6 +276,7 @@ const App: React.FC = () => {
     setIsBlurred(false);
     cryptoService.clearKeys();
     masterKeyRef.current = null;
+    biometricAttemptedRef.current = false;
   };
 
   const enableBiometric = async (): Promise<boolean> => {
@@ -377,6 +379,13 @@ const App: React.FC = () => {
       cryptoService.setVaultKey(mvk);
       masterKeyRef.current = newMasterKey;
       syncRecoveryCount();
+
+      if (biometricEnabled) {
+        const newRaw = await window.crypto.subtle.exportKey('raw', newMasterKey);
+        const newBytes = new Uint8Array(newRaw);
+        await storeMasterKeyBiometric(newBytes);
+        newBytes.fill(0);
+      }
 
       return { success: true };
     } catch (e) {

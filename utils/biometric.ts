@@ -49,7 +49,9 @@ export async function checkBiometricAvailability(): Promise<{
 
 export async function storeMasterKeyBiometric(masterKeyBytes: Uint8Array): Promise<boolean> {
   try {
-    const b64 = btoa(String.fromCharCode(...masterKeyBytes));
+    let binary = '';
+    for (let i = 0; i < masterKeyBytes.length; i++) binary += String.fromCharCode(masterKeyBytes[i]);
+    const b64 = btoa(binary);
     await setData({ domain: BIOMETRIC_DOMAIN, name: BIOMETRIC_KEY_NAME, data: b64 });
     setBiometricEnabled(true);
     return true;
