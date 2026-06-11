@@ -36,9 +36,9 @@ All surfaces use the glassmorphism design system defined in `styles/glass.css`:
 | Role | Color | Usage |
 |------|-------|-------|
 | Accent (Default) | `#E8E8E8` (Matte Metallic White) | Buttons, active states, success |
-| Background | `#2A2A2A` (Charcoal) | Main app background |
-| Card BG | `#1A1A1A` (Rich Dark) | Cards, modals |
-| Border | `#3A3A3A` | Subtle separation |
+| Background | `#000000` (Black) | Main app background |
+| Card BG | `#09090b` (Zinc-950) | Cards, modals |
+| Border | `#27272a` (Zinc-800) | Subtle separation |
 | Text Primary | `#fafafa` (Zinc-50) | Headings, active text |
 | Text Muted | `#71717a` (Zinc-500) | Secondary text, labels |
 | Danger | `#ef4444` (Red-500) | Warnings, delete actions |

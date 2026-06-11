@@ -411,10 +411,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
             root.style.setProperty('--text-main', '#09090b');
             root.style.setProperty('--text-muted', '#52525b');
           } else {
-            root.style.setProperty('--bg-main', '#2A2A2A');
-            root.style.setProperty('--bg-card', '#1A1A1A');
-            root.style.setProperty('--bg-surface', '#333333');
-            root.style.setProperty('--border-color', '#3A3A3A');
+            root.style.setProperty('--bg-main', '#000000');
+            root.style.setProperty('--bg-card', '#09090b');
+            root.style.setProperty('--bg-surface', '#18181b');
+            root.style.setProperty('--border-color', '#27272a');
             root.style.setProperty('--text-main', '#ffffff');
             root.style.setProperty('--text-muted', '#a1a1aa');
           }
