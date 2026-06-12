@@ -1,6 +1,10 @@
 import type { CryptoAlgorithm, EncryptedMeta } from '../types';
-import { encrypt, encrypt_string, decrypt_string, metadata_encrypt, metadata_decrypt, base64_encode, base64_decode } from '../crypto-core/index';
-import { getVaultKey } from './vaultKey';
+import { encrypt, encrypt_string, decrypt_string, metadata_encrypt, metadata_decrypt, base64_encode, base64_decode } from './index';
+
+let vaultKey: Uint8Array | null = null;
+
+export function setVaultKey(key: Uint8Array | null) { vaultKey = key; }
+export function getVaultKey(): Uint8Array | null { return vaultKey; }
 
 const DB_NAME = 'CrytoToolVault';
 const DB_VERSION = 3;
@@ -105,6 +109,7 @@ class VaultDB {
     if (!item.encryptedMeta && (item.name || item.tags || item.artist || item.album || item.coverUrl || item.customIcon || item.externalUrl)) {
       try {
         const key = getVaultKey();
+        if (!key) throw new Error('no vault key');
         const metaJson = JSON.stringify({
           name: item.name || 'untitled',
           tags: item.tags,
@@ -118,13 +123,13 @@ class VaultDB {
         item.encryptedMeta = JSON.parse(encrypted);
         item = stripMetaFromItem(item) as DBItem;
       } catch {
-        // vault key unavailable — store unencrypted
       }
     }
 
     if (item.fileData && !item.isEncrypted) {
       try {
         const key = getVaultKey();
+        if (!key) throw new Error('no vault key');
         const blobBuffer = await item.fileData.arrayBuffer();
         const plaintext = new Uint8Array(blobBuffer);
         const encryptedJson = encrypt(plaintext, key);
@@ -135,7 +140,6 @@ class VaultDB {
         item.algorithm = 'AES-GCM';
         item.isEncrypted = true;
       } catch {
-        // vault key unavailable — store unencrypted
       }
     }
 
@@ -154,6 +158,7 @@ class VaultDB {
     if (!item.encryptedMeta && (item.name || item.tags || item.artist || item.album || item.coverUrl || item.customIcon || item.externalUrl)) {
       try {
         const key = getVaultKey();
+        if (!key) throw new Error('no vault key');
         const metaJson = JSON.stringify({
           name: item.name || 'untitled',
           tags: item.tags,
@@ -167,7 +172,6 @@ class VaultDB {
         item.encryptedMeta = JSON.parse(encrypted);
         item = stripMetaFromItem(item) as DBItem;
       } catch {
-        // vault key unavailable — store unencrypted
       }
     }
 

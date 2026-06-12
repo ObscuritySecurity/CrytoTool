@@ -7,18 +7,15 @@ import {
   Shuffle, Heart, Repeat, Share2, Menu, Moon, Lock, Copy, Move
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { db, DBItem } from '../utils/db';
-import { cryptoService } from '../utils/crypto';
-import { metadataCrypto } from '../utils/metadataCrypto';
+import { db, DBItem, getVaultKey } from '../crypto-core/db';
+import { is_safe_image_url as isSafeImageUrl, decrypt, base64_encode, base64_decode, metadata_encrypt, metadata_decrypt } from '../crypto-core/index';
 import { FileSystemItem, ViewState, AppTheme, ThemeConfig, ThemeCategory } from '../types';
 import { useI18n } from '../locales/i18nContext';
 import { FullPlayer } from './FullPlayer';
 
 // Import Shared Components
 import { FileItem } from './FileItem';
-import { timingSafeEqual } from '../utils/security';
 import { CustomizeModal } from './CustomizeModal';
-import { isSafeImageUrl } from '../utils/sanitize';
 import { FileActionMenu } from './FileActionMenu';
 import { TopActions } from './TopActions';
 import { PinModal } from './PinModal';
@@ -306,7 +303,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const handleSettingsUnlock = (e: React.FormEvent) => {
     e.preventDefault();
-    if (timingSafeEqual(settingsUnlockInput, settingsLock.password || '')) {
+    if (settingsUnlockInput === (settingsLock.password || '')) {
       setShowSettingsUnlock(false);
       setCurrentView('settings');
     } else {
@@ -329,8 +326,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
       } 
       else {
           const encryptedData = new Uint8Array(await item.rawBlob.arrayBuffer());
-          const iv = cryptoService.base64ToArrayBuffer(item.iv);
-          const decryptedData = await cryptoService.decrypt(encryptedData, iv);
+          const key = getVaultKey();
+          if (!key) return null;
+          const decryptedData = await decrypt(base64_encode(encryptedData), item.iv, key);
           
           const sourceName = (item as any).decryptedName || item.name;
           const ext = sourceName.split('.').pop()?.toLowerCase() || '';
@@ -473,9 +471,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       const loadedItems: FileSystemItem[] = await Promise.all(dbItems.map(async (i) => {
          const item: any = { ...i, url: i.externalUrl, rawBlob: i.fileData };
-         if (metadataCrypto.hasEncryptedMeta(i)) {
-           try {
-             const meta = await metadataCrypto.decrypt(i.encryptedMeta!);
+          if (i.encryptedMeta) {
+            try {
+              const key = getVaultKey();
+              if (!key) throw new Error('no vault key');
+              const meta = JSON.parse(metadata_decrypt(JSON.stringify(i.encryptedMeta), key));
              item.decryptedName = meta.name;
              item.decryptedTags = meta.tags;
              item.decryptedArtist = meta.artist;
@@ -684,10 +684,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
       const item = allItems.find(i => i.id === renamingId);
       if (item && item.type !== 'system') {
           const dbItem: any = { ...item, fileData: item.rawBlob };
-          if (metadataCrypto.hasEncryptedMeta(item)) {
-            const meta = await metadataCrypto.decrypt(item.encryptedMeta!);
+          if (item.encryptedMeta) {
+            const key = getVaultKey();
+            if (!key) throw new Error('no vault key');
+            const meta = JSON.parse(metadata_decrypt(JSON.stringify(item.encryptedMeta), key));
             meta.name = renameValue;
-            dbItem.encryptedMeta = await metadataCrypto.encrypt(meta);
+            dbItem.encryptedMeta = JSON.parse(metadata_encrypt(JSON.stringify(meta), key));
             dbItem.name = '';
             delete dbItem.tags; delete dbItem.artist; delete dbItem.album;
             delete dbItem.coverUrl; delete dbItem.customIcon; delete dbItem.externalUrl;

@@ -2,9 +2,9 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Folder, FolderOpen, ArrowLeft, ArrowRight, Copy, Move, Check } from 'lucide-react';
 import { FileSystemItem } from '../types';
-import { isSafeImageUrl } from '../utils/sanitize';
+import { is_safe_image_url as isSafeImageUrl } from '../crypto-core/index';
 import { useI18n } from '../locales/i18nContext';
-import { db, DBItem } from '../utils/db';
+import { db, DBItem } from '../crypto-core/db';
 
 interface CopyMoveModalProps {
   isOpen: boolean;

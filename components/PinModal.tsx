@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Delete, Lock, ShieldAlert, CheckCircle, X } from 'lucide-react';
-import { validatePin, getBackoffTime, verifyPin, timingSafeEqual } from '../utils/security';
+import { validate_pin, get_backoff_time, pin_verify } from '../crypto-core/index';
 import { useI18n } from '../locales/i18nContext';
 
 interface PinModalProps {
@@ -64,8 +64,7 @@ export const PinModal: React.FC<PinModalProps> = ({ mode, onSuccess, onClose, sa
       if (step === 'enter') {
         if (pin.length !== 6) { setError(t('pinIncomplete')); return; }
         
-        const validation = validatePin(pin);
-        if (!validation.valid) { setError(validation.error || t('pinInvalid')); return; }
+        try { validate_pin(pin); } catch (e: any) { setError(e.message || t('pinInvalid')); return; }
         
         setStep('confirm');
       } else {
@@ -85,13 +84,13 @@ export const PinModal: React.FC<PinModalProps> = ({ mode, onSuccess, onClose, sa
       if (pin.length !== 6) { setError(t('pinIncomplete')); return; }
       
       if (savedPin && typeof savedPin === 'string' && savedPin.length === 64) {
-        const isValid = await verifyPin(pin, savedPin);
+        const isValid = await pin_verify(pin, savedPin, 2, 32768, 1);
         if (isValid) {
           onSuccess(pin);
         } else {
           const newFail = failedAttempts + 1;
           setFailedAttempts(newFail);
-          const backoff = getBackoffTime(newFail);
+          const backoff = get_backoff_time(newFail);
           
           if (backoff > 0) {
             setLockUntil(Date.now() + backoff * 1000);
@@ -101,12 +100,12 @@ export const PinModal: React.FC<PinModalProps> = ({ mode, onSuccess, onClose, sa
           }
           setPin('');
         }
-      } else if (timingSafeEqual(pin, savedPin || '')) {
+      } else if (pin === (savedPin || '')) {
         onSuccess(pin);
       } else {
         const newFail = failedAttempts + 1;
         setFailedAttempts(newFail);
-        const backoff = getBackoffTime(newFail);
+        const backoff = get_backoff_time(newFail);
         
         if (backoff > 0) {
           setLockUntil(Date.now() + backoff * 1000);

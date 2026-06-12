@@ -7,7 +7,7 @@ import {
   MoreHorizontal, Eye, Archive, FolderInput, Move, Square
 } from 'lucide-react';
 import { FileSystemItem } from '../types';
-import { isSafeImageUrl } from '../utils/sanitize';
+import { is_safe_image_url as isSafeImageUrl } from '../crypto-core/index';
 import { useI18n } from '../locales/i18nContext';
 
 interface FileActionMenuProps {

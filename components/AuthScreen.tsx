@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Loader2, ShieldCheck, Timer, Fingerprint, Key, Sparkles, Edit3, Copy, Check, ChevronRight, Target, Shield, ShieldAlert, Skull, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cryptoService } from '../utils/crypto';
 import { useI18n } from '../locales/i18nContext';
 import crytoLogo from '../assets/CrytoTool.png';
 import { AutoDestructCountdown } from './AutoDestructCountdown';
 import type { AutoDestructCountdownHandle } from './AutoDestructCountdown';
 import {
-  deriveKey,
-  wrapRawKey,
-  unwrapRawKey,
-  bytesToBase64,
-  base64ToBytes,
-  generateRecoveryCodes,
-} from '../utils/keyWrapping';
-import type { CryptoMetadata, VaultWrappers } from '../utils/keyWrapping';
+  derive_key,
+  wrap_raw_key,
+  unwrap_raw_key,
+  base64_decode,
+  base64_encode,
+  generate_recovery_codes,
+  generate_vault_key,
+  decrypt,
+} from '../crypto-core/index';
+import { setVaultKey } from '../crypto-core/db';
+import type { CryptoMetadata, VaultWrappers } from '../types';
 
 interface AuthScreenProps {
   onUnlock: () => void;
@@ -110,13 +112,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
 
           const wrappers: VaultWrappers = JSON.parse(wrappersRaw);
           const meta: CryptoMetadata = JSON.parse(metadataRaw);
-          const masterSalt = base64ToBytes(meta.master_salt);
+          const masterSalt = base64_decode(meta.master_salt);
 
-        const masterKey = await deriveKey(password, masterSalt, 'master');
+        const masterKey = await derive_key(new TextEncoder().encode(password), masterSalt, 19, 131072, 4, 32);
 
           try {
-            const mvkBytes = await unwrapRawKey(wrappers.master, masterKey);
-            cryptoService.setVaultKey(mvkBytes);
+            const mvkBytes = await unwrap_raw_key(JSON.stringify(wrappers.master), masterKey);
+            setVaultKey(mvkBytes);
             mvkBytes.fill(0);
             onStoreMasterKey?.(masterKey);
             onUnlock();
@@ -136,15 +138,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
             return;
           }
 
-          const salt = cryptoService.base64ToArrayBuffer(saltB64);
-          const iv = cryptoService.base64ToArrayBuffer(ivB64);
-          const encryptedVault = cryptoService.base64ToArrayBuffer(vaultB64);
+          const salt = base64_decode(saltB64);
 
-          const masterKey = await cryptoService.deriveMasterKey(password, salt);
+          const masterKey = await derive_key(new TextEncoder().encode(password), salt, 19, 131072, 4, 32);
 
           try {
-            const rawVaultKey = await cryptoService.decrypt(encryptedVault, iv, masterKey);
-            cryptoService.setVaultKey(rawVaultKey);
+            const rawVaultKey = decrypt(vaultB64, ivB64, masterKey);
+            setVaultKey(rawVaultKey);
             onStoreMasterKey?.(masterKey);
             onUnlock();
           } catch (err) {
@@ -179,13 +179,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
     setIsProcessing(true);
     setError(null);
     try {
-      const mvkBytes = await cryptoService.generateVaultKey();
+      const mvkBytes = await generate_vault_key();
 
-      const codes = generateRecoveryCodes();
+      const codes = generate_recovery_codes();
 
       const masterSalt = window.crypto.getRandomValues(new Uint8Array(16));
-      const masterKey = await deriveKey(password, masterSalt, 'master');
-      const masterWrapper = await wrapRawKey(mvkBytes, masterKey);
+      const masterKey = await derive_key(new TextEncoder().encode(password), masterSalt, 19, 131072, 4, 32);
+      const masterWrapper = JSON.parse(await wrap_raw_key(mvkBytes, masterKey));
 
       const recoverySalts: string[] = [];
       const recoveryWrappers: Record<string, { ciphertext: string; iv: string }> = {};
@@ -196,10 +196,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
         const results = await Promise.all(batch.map(async (code, bi) => {
           const i = b + bi;
           const salt = window.crypto.getRandomValues(new Uint8Array(16));
-          const key = await deriveKey(code, salt, 'recovery');
+          const key = await derive_key(new TextEncoder().encode(code), salt, 10, 131072, 4, 32);
           const paddedIdx = String(i + 1).padStart(2, '0');
-          const wrapper = await wrapRawKey(mvkBytes, key);
-          return { salt: bytesToBase64(salt), paddedIdx, wrapper };
+          const wrapper = JSON.parse(await wrap_raw_key(mvkBytes, key));
+          return { salt: base64_encode(salt), paddedIdx, wrapper };
         }));
         for (const r of results) {
           recoverySalts.push(r.salt);
@@ -208,7 +208,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
       }
 
       const meta: CryptoMetadata = {
-        master_salt: bytesToBase64(masterSalt),
+        master_salt: base64_encode(masterSalt),
         recovery_salts: recoverySalts,
       };
       const wrappers: VaultWrappers = {
@@ -219,7 +219,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
       localStorage.setItem('crytotool_crypto_metadata', JSON.stringify(meta));
       localStorage.setItem('crytotool_vault_wrappers', JSON.stringify(wrappers));
 
-      cryptoService.setVaultKey(mvkBytes);
+      setVaultKey(mvkBytes);
       mvkBytes.fill(0);
       onStoreMasterKey?.(masterKey);
       onNewCodes?.(codes);

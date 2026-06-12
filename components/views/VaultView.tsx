@@ -7,7 +7,18 @@ import {
   Globe, StickyNote, X, ChevronRight, Hash, Copy, Check, Trash2, Eye, EyeOff
 } from 'lucide-react';
 import { useI18n } from '../../locales/i18nContext';
-import { vaultStorage, VaultKeyEntry } from '../../utils/vaultStorage';
+import { vault_encrypt_keys, vault_decrypt_keys } from '../../crypto-core/index';
+import { getVaultKey } from '../../crypto-core/db';
+
+interface VaultKeyEntry {
+  id: string;
+  key: string;
+  algorithm: string;
+  fileName?: string;
+  categoryId: string;
+  fileId: string;
+  date: string;
+}
 
 interface VaultViewProps {
   onBack: () => void;
@@ -49,20 +60,20 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
   });
   const [totalCount, setTotalCount] = useState(0);
 
-  // Load counts async
+  // Load counts
   useEffect(() => {
-    const loadCounts = async () => {
-      const updated = await Promise.all(
-        categories.map(async (c) => ({
+    const raw = localStorage.getItem('crytotool_vault_keys');
+    const vk = getVaultKey();
+    if (raw && vk) {
+      try {
+        const allKeys: VaultKeyEntry[] = JSON.parse(vault_decrypt_keys(raw, vk));
+        setCategories(prev => prev.map(c => ({
           ...c,
-          count: await vaultStorage.countByCategory(c.id)
-        }))
-      );
-      setCategories(updated);
-      const total = await vaultStorage.totalCount();
-      setTotalCount(total);
-    };
-    loadCounts();
+          count: allKeys.filter(k => k.categoryId === c.id).length
+        })));
+        setTotalCount(allKeys.length);
+      } catch {}
+    }
   }, []);
 
   const [activeCategory, setActiveCategory] = useState<VaultCategory | null>(null);
@@ -80,11 +91,16 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
 
   useEffect(() => {
     if (activeCategory) {
-      const loadItems = async () => {
-        const items = await vaultStorage.getByCategory(activeCategory.id);
-        setItems(items);
-      };
-      loadItems();
+      const raw = localStorage.getItem('crytotool_vault_keys');
+      const vk = getVaultKey();
+      let items: VaultKeyEntry[] = [];
+      if (raw && vk) {
+        try {
+          const all: VaultKeyEntry[] = JSON.parse(vault_decrypt_keys(raw, vk));
+          items = all.filter(k => k.categoryId === activeCategory.id);
+        } catch {}
+      }
+      setItems(items);
     }
   }, [activeCategory]);
 
@@ -112,15 +128,20 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
   };
 
   const handleDelete = (id: string) => {
-    const doDelete = async () => {
-      await vaultStorage.delete(id);
-      setItems(prev => prev.filter(i => i.id !== id));
-      setCategories(prev => prev.map(c => 
-        c.id === activeCategory?.id ? { ...c, count: Math.max(0, c.count - 1) } : c
-      ));
-      setDeleteConfirm(null);
-    };
-    doDelete();
+    const raw = localStorage.getItem('crytotool_vault_keys');
+    const vk = getVaultKey();
+    if (raw && vk) {
+      try {
+        const all: VaultKeyEntry[] = JSON.parse(vault_decrypt_keys(raw, vk));
+        const filtered = all.filter(k => k.id !== id);
+        localStorage.setItem('crytotool_vault_keys', vault_encrypt_keys(JSON.stringify(filtered), vk));
+      } catch {}
+    }
+    setItems(prev => prev.filter(i => i.id !== id));
+    setCategories(prev => prev.map(c => 
+      c.id === activeCategory?.id ? { ...c, count: Math.max(0, c.count - 1) } : c
+    ));
+    setDeleteConfirm(null);
   };
 
   const toggleVisibility = (id: string) => {
@@ -247,7 +268,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
                         <button
                           onClick={async () => {
                             if (confirm(t('vaultDeleteAllConfirm'))) {
-                              await vaultStorage.clear();
+                              localStorage.removeItem('crytotool_vault_keys');
                               setCategories(prev => prev.map(c => ({ ...c, count: 0 })));
                               setTotalCount(0);
                             }
@@ -271,7 +292,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
                     <div className="space-y-3">
                         {items
                           .filter(item => 
-                            item.fileName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            (item.fileName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                             item.algorithm.toLowerCase().includes(searchQuery.toLowerCase()) ||
                             item.id.toLowerCase().includes(searchQuery.toLowerCase())
                           )

@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Lock, Eye, EyeOff, Loader2, AlertTriangle, Shield, Key, Check } from 'lucide-react';
 import { FileSystemItem } from '../types';
-import { cryptoService } from '../utils/crypto';
-import { vaultStorage } from '../utils/vaultStorage';
 import { useI18n } from '../locales/i18nContext';
 import { PinModal } from './PinModal';
-import { verifyPin } from '../utils/security';
+import { decrypt_with_passphrase, base64_decode, pin_verify, vault_decrypt_keys } from '../crypto-core/index';
+import { getVaultKey } from '../crypto-core/db';
 
 interface DecryptModalProps {
   isOpen: boolean;
@@ -45,13 +44,23 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
       return;
     }
 
-    const isValid = await verifyPin(pin, vaultPin);
+    const isValid = await pin_verify(pin, vaultPin, 2, 32768, 4);
     if (!isValid) {
       setPinError(t('wrongPin'));
       return;
     }
 
-    const foundKey = await vaultStorage.getByFileId(item.id.toString());
+    const vaultKey = getVaultKey();
+    if (!vaultKey) { setPinError(t('vaultKeyMissing' as any)); return; }
+    const encryptedKeys = localStorage.getItem('crytotool_vault_keys');
+    let foundKey = null;
+    if (encryptedKeys) {
+      try {
+        const decrypted = vault_decrypt_keys(encryptedKeys, vaultKey);
+        const allKeys = JSON.parse(decrypted);
+        foundKey = allKeys.find((k: any) => k.fileId === item.id.toString());
+      } catch {}
+    }
     if (foundKey) {
       setPassphrase(foundKey.key);
       setVaultKeyFound(foundKey.id);
@@ -89,24 +98,19 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
       let decryptedData: Uint8Array;
       
       if (item.algorithm === 'AES-GCM-Stream') {
-        decryptedData = await cryptoService.decryptWithPassphrase(
-          encryptedData,
-          passphrase,
-          new Uint8Array(0),
-          new Uint8Array(0),
-          'AES-GCM-Stream'
+        decryptedData = await decrypt_with_passphrase(
+          encryptedData, passphrase,
+          new Uint8Array(0), new Uint8Array(0),
+          'AES-GCM-Stream', 3, 65536, 4
         );
       } else {
-        const iv = cryptoService.base64ToArrayBuffer(item.iv!);
-        const salt = cryptoService.base64ToArrayBuffer(item.salt!);
+        const iv = base64_decode(item.iv!);
+        const salt = base64_decode(item.salt!);
 
-
-        decryptedData = await cryptoService.decryptWithPassphrase(
-          encryptedData,
-          passphrase,
-          iv,
-          salt,
-          item.algorithm || 'AES-GCM'
+        decryptedData = await decrypt_with_passphrase(
+          encryptedData, passphrase,
+          iv, salt,
+          item.algorithm || 'AES-GCM', 3, 65536, 4
         );
       }
 

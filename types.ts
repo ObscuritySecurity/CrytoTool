@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { DBItem, Tag } from './utils/db';
+import { DBItem, Tag } from './crypto-core/db';
 
 export interface FeatureCardProps {
   title: string;

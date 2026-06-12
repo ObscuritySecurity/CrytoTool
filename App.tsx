@@ -5,24 +5,23 @@ import { Dashboard } from './components/Dashboard';
 import { AuthScreen } from './components/AuthScreen';
 import { AutoDestructCountdown } from './components/AutoDestructCountdown';
 import type { AutoDestructCountdownHandle } from './components/AutoDestructCountdown';
-import { cryptoService } from './utils/crypto';
-import { db } from './utils/db';
+import { db, setVaultKey } from './crypto-core/db';
 import { I18nProvider } from './locales/i18nContext';
-import { hashPin } from './utils/security';
+import { pin_hash as hashPin } from './crypto-core/index';
 import {
   checkBiometricAvailability, retrieveMasterKeyBiometric, storeMasterKeyBiometric,
   removeBiometricKey, isBiometricEnabled, setBiometricEnabled,
 } from './utils/biometric';
 import {
-  deriveKey,
-  wrapRawKey,
-  unwrapRawKey,
-  base64ToBytes,
-  bytesToBase64,
-  generateRecoveryCodes,
-  parseCodeIndex,
-} from './utils/keyWrapping';
-import type { CryptoMetadata, VaultWrappers } from './utils/keyWrapping';
+  derive_key,
+  wrap_raw_key,
+  unwrap_raw_key,
+  base64_decode,
+  base64_encode,
+  generate_recovery_codes,
+  parse_code_index,
+} from './crypto-core/index';
+import type { CryptoMetadata, VaultWrappers } from './types';
 import CryptoTest from './CryptoTest';
 
 const App: React.FC = () => {
@@ -65,7 +64,7 @@ const App: React.FC = () => {
   const updateVaultSettings = async (enabled: boolean, pin: string | null) => {
     setVaultEnabled(enabled);
     if (pin) {
-      const hash = await hashPin(pin);
+      const hash = await hashPin(pin, 2, 32768, 1);
       localStorage.setItem('crytotool_vault_pin_hash', hash);
       setVaultPin(hash);
     } else {
@@ -216,8 +215,8 @@ const App: React.FC = () => {
         const wrappersRaw = localStorage.getItem('crytotool_vault_wrappers');
         if (!wrappersRaw) return;
         const wrappers = JSON.parse(wrappersRaw);
-        const mvkBytes = await unwrapRawKey(wrappers.master, rawBytes);
-        cryptoService.setVaultKey(mvkBytes);
+        const mvkBytes = await unwrap_raw_key(wrappers.master, rawBytes);
+        setVaultKey(mvkBytes);
         mvkBytes.fill(0);
         masterKeyRef.current = rawBytes;
         handleUnlock();
@@ -232,7 +231,7 @@ const App: React.FC = () => {
       await db.clearDatabase();
       localStorage.clear();
       sessionStorage.clear();
-      cryptoService.clearKeys();
+      setVaultKey(null);
       window.location.reload();
     } catch (e) {
       localStorage.clear();
@@ -266,7 +265,7 @@ const App: React.FC = () => {
   const handleLock = () => {
     setIsAuthenticated(false);
     setIsBlurred(false);
-    cryptoService.clearKeys();
+    setVaultKey(null);
     masterKeyRef.current = null;
     biometricAttemptedRef.current = false;
   };
@@ -322,7 +321,7 @@ const App: React.FC = () => {
 
   const resetMasterPasswordWithRecovery = async (code: string, newPassword: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const idx = parseCodeIndex(code);
+      const idx = parse_code_index(code);
       if (!idx) return { success: false, error: 'Format cod invalid' };
 
       const wrappersRaw = localStorage.getItem('crytotool_vault_wrappers');
@@ -338,28 +337,28 @@ const App: React.FC = () => {
       const saltIdx = parseInt(idx, 10) - 1;
       if (saltIdx < 0 || saltIdx >= meta.recovery_salts.length) return { success: false, error: 'Salt lipsă' };
 
-      const recoverySalt = base64ToBytes(meta.recovery_salts[saltIdx]);
-      const recoveryKey = await deriveKey(code, recoverySalt, 'recovery');
+      const recoverySalt = base64_decode(meta.recovery_salts[saltIdx]);
+      const recoveryKey = await derive_key(new TextEncoder().encode(code), recoverySalt, 10, 131072, 4, 32);
 
       let mvkBytes: Uint8Array;
       try {
-        mvkBytes = await unwrapRawKey(recoveryWrapper, recoveryKey);
+        mvkBytes = await unwrap_raw_key(JSON.stringify(recoveryWrapper), recoveryKey);
       } catch {
         return { success: false, error: 'Cod de recuperare invalid' };
       }
 
       const newMasterSalt = window.crypto.getRandomValues(new Uint8Array(16));
-      const newMasterKey = await deriveKey(newPassword, newMasterSalt, 'master');
-      const newMasterWrapper = await wrapRawKey(mvkBytes, newMasterKey);
+      const newMasterKey = await derive_key(new TextEncoder().encode(newPassword), newMasterSalt, 19, 131072, 4, 32);
+      const newMasterWrapper = await wrap_raw_key(mvkBytes, newMasterKey);
 
       delete wrappers.recovery[idx];
-      meta.master_salt = bytesToBase64(newMasterSalt);
-      wrappers.master = newMasterWrapper;
+      meta.master_salt = base64_encode(newMasterSalt);
+      wrappers.master = JSON.parse(newMasterWrapper);
 
       localStorage.setItem('crytotool_crypto_metadata', JSON.stringify(meta));
       localStorage.setItem('crytotool_vault_wrappers', JSON.stringify(wrappers));
 
-      cryptoService.setVaultKey(mvkBytes);
+      setVaultKey(mvkBytes);
       masterKeyRef.current = newMasterKey;
       syncRecoveryCount();
 
@@ -385,21 +384,21 @@ const App: React.FC = () => {
 
     let mvkBytes: Uint8Array;
     try {
-      mvkBytes = await unwrapRawKey(wrappers.master, masterKeyRef.current);
+      mvkBytes = await unwrap_raw_key(JSON.stringify(wrappers.master), masterKeyRef.current);
     } catch {
       return;
     }
 
-    const codes = generateRecoveryCodes();
+    const codes = generate_recovery_codes();
     const salts: string[] = [];
     const recoveryWrappers: Record<string, { ciphertext: string; iv: string }> = {};
 
     for (let i = 0; i < codes.length; i++) {
       const salt = window.crypto.getRandomValues(new Uint8Array(16));
-      salts.push(bytesToBase64(salt));
-      const key = await deriveKey(codes[i], salt, 'recovery');
+      salts.push(base64_encode(salt));
+      const key = await derive_key(new TextEncoder().encode(codes[i]), salt, 10, 131072, 4, 32);
       const paddedIdx = String(i + 1).padStart(2, '0');
-      recoveryWrappers[paddedIdx] = await wrapRawKey(mvkBytes, key);
+      recoveryWrappers[paddedIdx] = JSON.parse(await wrap_raw_key(mvkBytes, key));
     }
 
     mvkBytes.fill(0);
@@ -479,8 +478,8 @@ const App: React.FC = () => {
                 const wrappersRaw = localStorage.getItem('crytotool_vault_wrappers');
                 if (!wrappersRaw) throw new Error('No vault wrappers');
                 const wrappers = JSON.parse(wrappersRaw);
-                const mvkBytes = await unwrapRawKey(wrappers.master, rawBytes);
-                cryptoService.setVaultKey(mvkBytes);
+        const mvkBytes = await unwrap_raw_key(JSON.stringify(wrappers.master), rawBytes);
+                setVaultKey(mvkBytes);
                 mvkBytes.fill(0);
                 masterKeyRef.current = rawBytes;
                 handleUnlock();

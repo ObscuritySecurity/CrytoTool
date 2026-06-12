@@ -12,11 +12,11 @@ import * as RiIcons from 'react-icons/ri';
 import * as TbIcons from 'react-icons/tb';
 
 import { FileSystemItem } from '../types';
-import { Tag } from '../utils/db';
+import { Tag } from '../crypto-core/db';
 import { FileItem } from './FileItem';
 import { CustomColorPicker } from './CustomColorPicker';
 import { useI18n } from '../locales/i18nContext';
-import { isSafeImageUrl } from '../utils/sanitize';
+import { is_safe_image_url as isSafeImageUrl } from '../crypto-core/index';
 
 // --- CONFIG & UTILS ---
 

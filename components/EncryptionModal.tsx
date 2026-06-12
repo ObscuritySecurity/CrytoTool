@@ -3,19 +3,17 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Shield, Zap, Cpu, Lock, Key, Copy, Check, ArrowRight, ArrowLeft, Loader2, HelpCircle, Smartphone, Monitor, Server, AlertTriangle } from 'lucide-react';
 import { FileSystemItem } from '../types';
-import { cryptoService, CryptoAlgorithm } from '../utils/crypto';
-import { db, DBItem } from '../utils/db';
+import { db, DBItem, getVaultKey } from '../crypto-core/db';
+import type { CryptoAlgorithm } from '../types';
 import { useI18n } from '../locales/i18nContext';
-
-interface EncryptionModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onRefresh: () => void;
-  item: FileSystemItem;
-}
-
-import { streamCrypto } from '../utils/streamCrypto';
-import { vaultStorage } from '../utils/vaultStorage';
+import {
+  encrypt_with_passphrase,
+  decrypt,
+  stream_encrypt, stream_decrypt,
+  base64_decode, base64_encode,
+  vault_encrypt_keys, vault_decrypt_keys,
+  encrypt, random_bytes,
+} from '../crypto-core/index';
 
 type TierKey = 'low' | 'mid' | 'flagship';
 type AlgoEntry = { id: CryptoAlgorithm; name: string; desc: string; badge: string };
@@ -220,8 +218,9 @@ export const EncryptionModal: React.FC<EncryptionModalProps> = ({ isOpen, onClos
           
           if (item.isEncrypted && item.iv && !item.salt) {
               const encryptedData = new Uint8Array(await item.rawBlob.arrayBuffer());
-              const iv = cryptoService.base64ToArrayBuffer(item.iv);
-              const decryptedData = await cryptoService.decrypt(encryptedData, iv);
+              const key = getVaultKey();
+              if (!key) throw new Error('no vault key');
+              const decryptedData = await decrypt(base64_encode(encryptedData), item.iv, key);
               rawData = decryptedData;
           } else {
               rawData = new Uint8Array(await item.rawBlob.arrayBuffer());
@@ -230,21 +229,29 @@ export const EncryptionModal: React.FC<EncryptionModalProps> = ({ isOpen, onClos
           let result: { ciphertext: Uint8Array; salt: Uint8Array; iv: Uint8Array; algorithm: string };
           
           if (selectedAlgo === 'AES-GCM-Stream') {
-              const streamResult = await streamCrypto.encrypt(rawData, generatedKey);
-              result = { ...streamResult, iv: streamResult.salt };
+              const streamResult = await stream_encrypt(rawData, generatedKey, 3, 65536, 4);
+              result = {
+                ciphertext: streamResult,
+                salt: random_bytes(16),
+                iv: random_bytes(12),
+                algorithm: 'AES-GCM-Stream',
+              };
           } else {
-              result = await cryptoService.encryptWithPassphrase(
-                  rawData, 
-                  generatedKey, 
-                  selectedAlgo
-              );
+              const encStr = await encrypt_with_passphrase(rawData, generatedKey, selectedAlgo, 3, 65536, 4);
+              const parsed = JSON.parse(encStr);
+              result = {
+                ciphertext: base64_decode(parsed.ciphertext),
+                salt: base64_decode(parsed.salt),
+                iv: base64_decode(parsed.iv),
+                algorithm: selectedAlgo,
+              };
           }
 
           const updatedItem: DBItem = {
               ...item,
               fileData: new Blob([result.ciphertext as any]),
-              iv: cryptoService.arrayBufferToBase64(result.iv),
-              salt: cryptoService.arrayBufferToBase64(result.salt),
+              iv: base64_encode(result.iv),
+              salt: base64_encode(result.salt),
               algorithm: result.algorithm as CryptoAlgorithm,
               isEncrypted: true,
           };
@@ -255,13 +262,16 @@ export const EncryptionModal: React.FC<EncryptionModalProps> = ({ isOpen, onClos
           await db.updateItem(updatedItem);
 
           if (saveToVault && selectedVaultCategory) {
-              await vaultStorage.save({
-                  key: generatedKey,
-                  algorithm: result.algorithm,
-                  fileName: item.name,
-                  categoryId: selectedVaultCategory,
-                  fileId: item.id.toString(),
-              });
+              const existingRaw = localStorage.getItem('crytotool_vault_keys');
+              let existingKeys: any[] = [];
+              const vk = getVaultKey();
+              if (existingRaw && vk) {
+                try { existingKeys = JSON.parse(vault_decrypt_keys(existingRaw, vk)); } catch {}
+              }
+              existingKeys.push({ id: Date.now().toString(), key: generatedKey, algorithm: result.algorithm, fileName: item.name, categoryId: selectedVaultCategory, fileId: item.id.toString(), date: new Date().toISOString() });
+              if (vk) {
+                localStorage.setItem('crytotool_vault_keys', vault_encrypt_keys(JSON.stringify(existingKeys), vk));
+              }
           }
           
           setTimeout(() => {

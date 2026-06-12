@@ -4,8 +4,8 @@ import {
   ArrowLeft, Download, Upload, RefreshCw, Copy, Check, Key, FileLock2, 
   AlertTriangle, Loader2, Database, CheckCircle, Clock, XCircle
 } from 'lucide-react';
-import { backupCryptoService } from '../../utils/backupCrypto';
-import { db } from '../../utils/db';
+import { backup_encrypt, backup_decrypt, generate_passphrase } from '../../crypto-core/index';
+import { db } from '../../crypto-core/db';
 import { useI18n } from '../../locales/i18nContext';
 import { AppTheme } from '../../types';
 
@@ -28,7 +28,7 @@ export const BackupView: React.FC<BackupViewProps> = ({ onBack, theme }) => {
   const [restoreError, setRestoreError] = useState('');
 
   const startBackup = () => {
-    const key = backupCryptoService.generatePassphrase();
+    const key = generate_passphrase();
     setGeneratedKey(key);
     setStep('create_gen');
   };
@@ -53,7 +53,8 @@ export const BackupView: React.FC<BackupViewProps> = ({ onBack, theme }) => {
         };
 
         const jsonString = JSON.stringify(appState);
-        const encryptedBlob = await backupCryptoService.encryptBackup(jsonString, generatedKey);
+        const plaintext = new TextEncoder().encode(jsonString);
+        const encryptedBlob = await backup_encrypt(plaintext, generatedKey, 3, 65536, 4);
 
         const url = URL.createObjectURL(new Blob([new Uint8Array(encryptedBlob)]));
         const a = document.createElement('a');
@@ -89,7 +90,9 @@ export const BackupView: React.FC<BackupViewProps> = ({ onBack, theme }) => {
       setRestoreError('');
 
       try {
-          const jsonString = await backupCryptoService.decryptBackup(restoreFile, restoreKey);
+          const fileBytes = new Uint8Array(await restoreFile.arrayBuffer());
+          const jsonBytes = await backup_decrypt(fileBytes, restoreKey, 3, 65536, 4);
+          const jsonString = new TextDecoder().decode(jsonBytes);
           const data = JSON.parse(jsonString);
 
           if (!data.db || !data.localStorage) throw new Error("Format invalid");

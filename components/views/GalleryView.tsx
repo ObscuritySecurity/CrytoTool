@@ -6,7 +6,7 @@ import {
   Grid3X3, Share2, Trash2, Info, Lock, Unlock
 } from 'lucide-react';
 import { FileSystemItem, AppTheme } from '../../types';
-import { sanitizeUrl } from '../../utils/sanitize';
+import { sanitize_url as sanitizeUrl } from '../../crypto-core/index';
 import { useI18n } from '../../locales/i18nContext';
 
 type GallerySubTab = 'all' | 'photos' | 'videos' | 'favorites' | 'albums';
@@ -94,7 +94,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({ items, onNavigate, the
                         />
                     ) : (
                         <img 
-                            src={sanitizeUrl(decryptedUrls[lightboxItem.id] || lightboxItem.url || lightboxItem.customIcon || '')} 
+                            src={sanitizeUrl(decryptedUrls[lightboxItem.id] || lightboxItem.url || lightboxItem.customIcon || '', '')} 
                             alt={(lightboxItem as any).decryptedName || lightboxItem.name} 
                             className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
                             onClick={(e) => e.stopPropagation()}

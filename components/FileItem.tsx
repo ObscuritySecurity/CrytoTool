@@ -12,7 +12,7 @@ import * as TbIcons from 'react-icons/tb';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileSystemItem, AppTheme } from '../types';
-import { isSafeImageUrl } from '../utils/sanitize';
+import { is_safe_image_url as isSafeImageUrl } from '../crypto-core/index';
 import { useI18n } from '../locales/i18nContext';
 
 // Map namespaces
