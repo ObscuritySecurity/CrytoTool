@@ -25,11 +25,6 @@
       }
     ]
   },
-  "mobile": {
-    "android": {
-      "minSdkVersion": 26
-    }
-  },
   "bundle": {
     "active": true,
     "targets": "all",
