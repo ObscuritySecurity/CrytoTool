@@ -57,7 +57,7 @@ jobs:
         run: npm run build
 
       - name: Init Android project
-        run: echo "y" | npm run tauri android init --min-sdk 26
+        run: echo "y" | npm run tauri -- android init --min-sdk 26
 
       - name: Patch Kotlin version for biometry plugin
         run: |
