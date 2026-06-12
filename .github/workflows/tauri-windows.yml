@@ -29,8 +29,14 @@ jobs:
         with:
           workspaces: './src-tauri -> target'
 
+      - name: Setup wasm-pack
+        uses: jetli/wasm-pack-action@v0.4.0
+
       - name: Install dependencies
         run: npm ci
+
+      - name: Build WASM
+        run: npm run build:wasm
 
       - name: Patch version for MSI compatibility
         shell: powershell

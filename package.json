@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "build:wasm": "wasm-pack build crypto-core --target web --out-dir pkg",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri"
