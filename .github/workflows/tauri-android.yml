@@ -57,7 +57,17 @@ jobs:
         run: npm run build
 
       - name: Init Android project
-        run: echo "y" | npm run tauri -- android init --min-sdk 26
+        run: echo "y" | npm run tauri android init
+
+      - name: Patch Android minSdkVersion for biometry plugin
+        run: |
+          BUILD_FILE="src-tauri/gen/android/app/build.gradle.kts"
+          if [ -f "$BUILD_FILE" ]; then
+            sed -i 's/minSdk = 24/minSdk = 26/' "$BUILD_FILE"
+            echo "Patched minSdk to 26 in $BUILD_FILE"
+          else
+            echo "Warning: $BUILD_FILE not found"
+          fi
 
       - name: Patch Kotlin version for biometry plugin
         run: |
