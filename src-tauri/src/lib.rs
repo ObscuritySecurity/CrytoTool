@@ -145,27 +145,27 @@ fn stream_decrypt(
 
 #[tauri::command]
 fn random_bytes(count: usize) -> Vec<u8> {
-    crypto_core::ops::random_bytes(count)
+    crypto_core::crypto::random_bytes(count)
 }
 
 #[tauri::command]
 fn base64_encode(data: Vec<u8>) -> String {
-    crypto_core::ops::base64_encode(&data)
+    crypto_core::crypto::base64_encode(&data)
 }
 
 #[tauri::command]
 fn base64_decode(encoded: String) -> Result<Vec<u8>, String> {
-    crypto_core::ops::base64_decode(&encoded)
+    crypto_core::crypto::base64_decode(&encoded)
 }
 
 #[tauri::command]
 fn generate_passphrase() -> String {
-    crypto_core::ops::generate_passphrase()
+    crypto_core::backup_crypto::generate_passphrase()
 }
 
 #[tauri::command]
 fn generate_recovery_codes() -> Vec<String> {
-    crypto_core::ops::generate_recovery_codes()
+    crypto_core::key_wrapping::generate_recovery_codes()
 }
 
 #[tauri::command]
@@ -173,7 +173,7 @@ fn encrypt_with_passphrase(
     data: Vec<u8>, passphrase: String, algorithm: String,
     argon_iterations: u32, argon_memory_kib: u32, argon_parallelism: u32,
 ) -> Result<String, String> {
-    crypto_core::ops::encrypt_with_passphrase(&data, &passphrase, &algorithm, argon_iterations, argon_memory_kib, argon_parallelism)
+    crypto_core::crypto::encrypt_with_passphrase(&data, &passphrase, &algorithm, argon_iterations, argon_memory_kib, argon_parallelism)
 }
 
 #[tauri::command]
@@ -181,27 +181,27 @@ fn decrypt_with_passphrase(
     data: Vec<u8>, passphrase: String, iv: Vec<u8>, salt: Vec<u8>, algorithm: String,
     argon_iterations: u32, argon_memory_kib: u32, argon_parallelism: u32,
 ) -> Result<Vec<u8>, String> {
-    crypto_core::ops::decrypt_with_passphrase(&data, &passphrase, &iv, &salt, &algorithm, argon_iterations, argon_memory_kib, argon_parallelism)
+    crypto_core::crypto::decrypt_with_passphrase(&data, &passphrase, &iv, &salt, &algorithm, argon_iterations, argon_memory_kib, argon_parallelism)
 }
 
 #[tauri::command]
 fn encrypt(data: Vec<u8>, key: Vec<u8>) -> Result<String, String> {
-    crypto_core::ops::encrypt(&data, &key)
+    crypto_core::crypto::encrypt(&data, &key)
 }
 
 #[tauri::command]
 fn decrypt(ciphertext_b64: String, iv_b64: String, key: Vec<u8>) -> Result<Vec<u8>, String> {
-    crypto_core::ops::decrypt(&ciphertext_b64, &iv_b64, &key)
+    crypto_core::crypto::decrypt(&ciphertext_b64, &iv_b64, &key)
 }
 
 #[tauri::command]
 fn encrypt_string(data: String, key: Vec<u8>) -> Result<String, String> {
-    crypto_core::ops::encrypt_string(&data, &key)
+    crypto_core::crypto::encrypt_string(&data, &key)
 }
 
 #[tauri::command]
 fn decrypt_string(ciphertext_b64: String, iv_b64: String, key: Vec<u8>) -> Result<String, String> {
-    crypto_core::ops::decrypt_string(&ciphertext_b64, &iv_b64, &key)
+    crypto_core::crypto::decrypt_string(&ciphertext_b64, &iv_b64, &key)
 }
 
 #[tauri::command]
@@ -209,7 +209,7 @@ fn backup_encrypt(
     plaintext: Vec<u8>, passphrase: String,
     argon_iterations: u32, argon_memory_kib: u32, argon_parallelism: u32,
 ) -> Result<Vec<u8>, String> {
-    crypto_core::ops::backup_encrypt(&plaintext, &passphrase, argon_iterations, argon_memory_kib, argon_parallelism)
+    crypto_core::backup_crypto::backup_encrypt(&plaintext, &passphrase, argon_iterations, argon_memory_kib, argon_parallelism)
 }
 
 #[tauri::command]
@@ -217,27 +217,27 @@ fn backup_decrypt(
     data: Vec<u8>, passphrase: String,
     argon_iterations: u32, argon_memory_kib: u32, argon_parallelism: u32,
 ) -> Result<Vec<u8>, String> {
-    crypto_core::ops::backup_decrypt(&data, &passphrase, argon_iterations, argon_memory_kib, argon_parallelism)
+    crypto_core::backup_crypto::backup_decrypt(&data, &passphrase, argon_iterations, argon_memory_kib, argon_parallelism)
 }
 
 #[tauri::command]
 fn wrap_raw_key(raw_key: Vec<u8>, wrapping_key: Vec<u8>) -> Result<String, String> {
-    crypto_core::ops::wrap_raw_key(&raw_key, &wrapping_key)
+    crypto_core::key_wrapping::wrap_raw_key(&raw_key, &wrapping_key)
 }
 
 #[tauri::command]
 fn unwrap_raw_key(wrapper_json: String, wrapping_key: Vec<u8>) -> Result<Vec<u8>, String> {
-    crypto_core::ops::unwrap_raw_key(&wrapper_json, &wrapping_key)
+    crypto_core::key_wrapping::unwrap_raw_key(&wrapper_json, &wrapping_key)
 }
 
 #[tauri::command]
 fn metadata_encrypt(meta_json: String, key: Vec<u8>) -> Result<String, String> {
-    crypto_core::ops::metadata_encrypt(&meta_json, &key)
+    crypto_core::metadata_crypto::metadata_encrypt(&meta_json, &key)
 }
 
 #[tauri::command]
 fn metadata_decrypt(encrypted_json: String, key: Vec<u8>) -> Result<String, String> {
-    crypto_core::ops::metadata_decrypt(&encrypted_json, &key)
+    crypto_core::metadata_crypto::metadata_decrypt(&encrypted_json, &key)
 }
 
 #[tauri::command]
@@ -245,7 +245,7 @@ fn pin_hash(
     pin: String,
     argon_iterations: u32, argon_memory_kib: u32, argon_parallelism: u32,
 ) -> Result<String, String> {
-    crypto_core::ops::pin_hash(&pin, argon_iterations, argon_memory_kib, argon_parallelism)
+    crypto_core::security::pin_hash(&pin, argon_iterations, argon_memory_kib, argon_parallelism)
 }
 
 #[tauri::command]
@@ -253,10 +253,10 @@ fn pin_verify(
     pin: String, stored_json: String,
     argon_iterations: u32, argon_memory_kib: u32, argon_parallelism: u32,
 ) -> Result<bool, String> {
-    crypto_core::ops::pin_verify(&pin, &stored_json, argon_iterations, argon_memory_kib, argon_parallelism)
+    crypto_core::security::pin_verify(&pin, &stored_json, argon_iterations, argon_memory_kib, argon_parallelism)
 }
 
 #[tauri::command]
 fn get_argon_params(purpose: String, is_mobile: bool) -> Result<String, String> {
-    crypto_core::ops::get_argon_params(&purpose, is_mobile)
+    crypto_core::platform::get_argon_params(&purpose, is_mobile)
 }
