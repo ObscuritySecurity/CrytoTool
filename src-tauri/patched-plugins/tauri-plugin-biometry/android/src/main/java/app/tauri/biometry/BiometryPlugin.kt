@@ -95,12 +95,7 @@ class BiometryPlugin(activity: Activity) : Plugin(activity) {
 
     private fun decryptWithCipher(cipher: Cipher, encryptedData: String): String {
         val combined = Base64.getDecoder().decode(encryptedData)
-        val ivSize = 12 
-        val iv = combined.copyOfRange(0, ivSize)
-        val encrypted = combined.copyOfRange(ivSize, combined.size)
-        val spec = GCMParameterSpec(gcmTagLength, iv)
-        cipher.init(Cipher.DECRYPT_MODE, cipher.key, spec)
-        val decrypted = cipher.doFinal(encrypted)
+        val decrypted = cipher.doFinal(combined)
         return String(decrypted, Charsets.UTF_8)
     }
 
