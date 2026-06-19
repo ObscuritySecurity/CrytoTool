@@ -1,0 +1,43 @@
+name: Crypto Finder
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '0 6 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: Cryptography scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - name: Run Crypto Finder
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/workspace \
+            ghcr.io/scanoss/crypto-finder:0.11.0 \
+            scan --output /workspace/results.json --scanner opengrep /workspace
+
+      - name: Generate CBOM
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/workspace \
+            ghcr.io/scanoss/crypto-finder:0.11.0 \
+            convert /workspace/results.json --output /workspace/cbom.json
+
+      - name: Upload results
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd6aabebe3543e4b351
+        if: always()
+        with:
+          name: crypto-finder-results
+          path: |
+            ${{ github.workspace }}/results.json
+            ${{ github.workspace }}/cbom.json
+          retention-days: 30
