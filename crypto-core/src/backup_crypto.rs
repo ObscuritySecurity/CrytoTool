@@ -99,10 +99,10 @@ mod tests {
     #[test]
     fn test_backup_roundtrip() {
         let data = b"secret backup data";
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let encrypted = backup_encrypt(data, "test-passphrase", 3, 65536, 4).unwrap();
         assert_eq!(encrypted.len(), 16 + 12 + data.len() + 16);
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let decrypted = backup_decrypt(&encrypted, "test-passphrase", 3, 65536, 4).unwrap();
         assert_eq!(decrypted, data);
     }
@@ -110,16 +110,16 @@ mod tests {
     #[test]
     fn test_backup_wrong_passphrase() {
         let data = b"secret";
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let encrypted = backup_encrypt(data, "correct", 3, 65536, 4).unwrap();
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let result = backup_decrypt(&encrypted, "wrong", 3, 65536, 4);
         assert!(result.is_err());
     }
 
     #[test]
     fn test_backup_too_short() {
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let result = backup_decrypt(&[0u8; 10], "p", 3, 65536, 4);
         assert!(result.is_err());
     }

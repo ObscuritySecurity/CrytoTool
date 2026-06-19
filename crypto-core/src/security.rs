@@ -100,7 +100,7 @@ mod tests {
 
     #[test]
     fn test_pin_hash_verify() {
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let hash = pin_hash("123456", 2, 32768, 4).unwrap();
         assert!(pin_verify("123456", &hash, 2, 32768, 4).unwrap());
         assert!(!pin_verify("000000", &hash, 2, 32768, 4).unwrap());

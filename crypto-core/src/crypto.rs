@@ -204,13 +204,13 @@ mod tests {
     fn test_encrypt_with_passphrase_roundtrip() {
         let data = b"test data for passphrase encryption";
         let algo = "AES-GCM";
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let encrypted = encrypt_with_passphrase(data, "mypass", algo, 3, 65536, 4).unwrap();
         let parsed: serde_json::Value = serde_json::from_str(&encrypted).unwrap();
         let iv = base64_decode(parsed["iv"].as_str().unwrap()).unwrap();
         let salt = base64_decode(parsed["salt"].as_str().unwrap()).unwrap();
         let ct = base64_decode(parsed["ciphertext"].as_str().unwrap()).unwrap();
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let decrypted = decrypt_with_passphrase(&ct, "mypass", &iv, &salt, algo, 3, 65536, 4).unwrap();
         assert_eq!(decrypted, data);
     }
@@ -220,13 +220,13 @@ mod tests {
         let data = b"test data";
         let algs = ["AES-GCM", "AES-CTR", "ChaCha20-Poly1305", "XChaCha20-Poly1305", "Salsa20-Poly1305"];
         for alg in algs {
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
             let encrypted = encrypt_with_passphrase(data, "pass", alg, 3, 65536, 4).unwrap();
             let parsed: serde_json::Value = serde_json::from_str(&encrypted).unwrap();
             let iv = base64_decode(parsed["iv"].as_str().unwrap()).unwrap();
             let salt = base64_decode(parsed["salt"].as_str().unwrap()).unwrap();
             let ct = base64_decode(parsed["ciphertext"].as_str().unwrap()).unwrap();
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
             let decrypted = decrypt_with_passphrase(&ct, "pass", &iv, &salt, alg, 3, 65536, 4).unwrap();
             assert_eq!(decrypted, data, "Failed for algorithm {}", alg);
         }
