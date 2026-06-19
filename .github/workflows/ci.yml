@@ -28,6 +28,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Setup wasm-pack
+        uses: jetli/wasm-pack-action@0d096b08b4e5a7de8c28de67e11e945404e9eefa
+
+      - name: Build WASM crypto-core
+        run: npm run build:wasm
+
       - name: Type check
         run: npx tsc --noEmit
 
@@ -48,6 +54,12 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Setup wasm-pack
+        uses: jetli/wasm-pack-action@0d096b08b4e5a7de8c28de67e11e945404e9eefa
+
+      - name: Build WASM crypto-core
+        run: npm run build:wasm
 
       - name: Build
         run: npm run build
