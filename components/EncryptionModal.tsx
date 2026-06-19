@@ -9,10 +9,10 @@ import { useI18n } from '../locales/i18nContext';
 import {
   encrypt_with_passphrase,
   decrypt,
-  stream_encrypt, stream_decrypt,
+  stream_encrypt,
   base64_decode, base64_encode,
   vault_encrypt_keys, vault_decrypt_keys,
-  encrypt, random_bytes,
+  random_bytes,
 } from '../crypto-core/index';
 import { LiquidGlassOverlay } from './LiquidGlassOverlay';
 
