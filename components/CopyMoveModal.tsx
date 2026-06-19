@@ -2,9 +2,10 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Folder, FolderOpen, ArrowLeft, ArrowRight, Copy, Move, Check } from 'lucide-react';
 import { FileSystemItem } from '../types';
-import { isSafeImageUrl } from '../utils/sanitize';
+import { is_safe_image_url as isSafeImageUrl } from '../crypto-core/index';
 import { useI18n } from '../locales/i18nContext';
-import { db, DBItem } from '../utils/db';
+import { db, DBItem } from '../crypto-core/db';
+import { LiquidGlassOverlay } from './LiquidGlassOverlay';
 
 interface CopyMoveModalProps {
   isOpen: boolean;
@@ -63,8 +64,9 @@ export const CopyMoveModal: React.FC<CopyMoveModalProps> = ({
 
     try {
       if (mode === 'copy') {
-        const ext = item.name.includes('.') ? '.' + item.name.split('.').pop() : '';
-        const baseName = ext ? item.name.slice(0, -ext.length) : item.name;
+        const displayName = (item as any).decryptedName || item.name || '';
+        const ext = displayName.includes('.') ? '.' + displayName.split('.').pop() : '';
+        const baseName = ext ? displayName.slice(0, -ext.length) : displayName;
         let newName = `${baseName}${ext}`;
         
         const existingInTarget = allItems.filter(i => 
@@ -135,9 +137,10 @@ export const CopyMoveModal: React.FC<CopyMoveModalProps> = ({
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="w-full max-w-md glass-card rounded-[32px] overflow-hidden"
+          className="relative w-full max-w-md glass-card rounded-[32px] overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
+            <LiquidGlassOverlay />
           <div className="px-6 py-4 border-b border-zinc-800 bg-zinc-900/50 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${mode === 'copy' ? 'bg-neon-green/10 text-neon-green' : 'bg-blue-500/10 text-blue-500'}`}>
@@ -181,17 +184,20 @@ export const CopyMoveModal: React.FC<CopyMoveModalProps> = ({
                       setSelectedFolderId(folder.id);
                       setCurrentFolderId(folder.id);
                     }}
-                    className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all ${selectedFolderId === folder.id ? 'bg-neon-green/10 border-neon-green' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-600'}`}
+                    className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all relative overflow-hidden ${selectedFolderId === folder.id ? 'bg-neon-green/10 border-neon-green' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-600'}`}
                   >
-                    {folder.customIcon && isSafeImageUrl(folder.customIcon) ? (
-                      <img src={folder.customIcon} className="w-8 h-8 rounded-lg object-cover" />
-                    ) : (
-                      <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
-                        <FolderOpen size={16} className="text-neon-green" />
-                      </div>
-                    )}
-                    <span className="text-sm font-bold text-white truncate">{folder.name}</span>
-                    {selectedFolderId === folder.id && <Check size={16} className="text-neon-green ml-auto" />}
+                    <LiquidGlassOverlay intensity="subtle" />
+                    <span className="relative z-10 flex items-center gap-3 w-full">
+                      {folder.customIcon && isSafeImageUrl(folder.customIcon) ? (
+                        <img src={folder.customIcon} className="w-8 h-8 rounded-lg object-cover" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
+                          <FolderOpen size={16} className="text-neon-green" />
+                        </div>
+                      )}
+                      <span className="text-sm font-bold text-white truncate">{folder.name}</span>
+                      {selectedFolderId === folder.id && <Check size={16} className="text-neon-green ml-auto" />}
+                    </span>
                   </button>
                 ))
               )}
@@ -215,16 +221,19 @@ export const CopyMoveModal: React.FC<CopyMoveModalProps> = ({
             <button
               onClick={handleConfirm}
               disabled={!selectedFolderId || isProcessing}
-              className={`flex-1 py-2 rounded-xl font-bold text-sm uppercase tracking-wider flex items-center justify-center gap-2 ${selectedFolderId ? 'bg-neon-green text-black' : 'bg-zinc-800 text-zinc-500'}`}
+              className={`flex-1 py-2 rounded-xl font-bold text-sm uppercase tracking-wider flex items-center justify-center gap-2 relative overflow-hidden ${selectedFolderId ? 'bg-neon-green text-black' : 'bg-zinc-800 text-zinc-500'}`}
             >
-              {isProcessing ? (
-                <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-              ) : (
-                <>
-                  {mode === 'copy' ? <Copy size={16} /> : <Move size={16} />}
-                  {mode === 'copy' ? t('copyFile') : t('moveAction')}
-                </>
-              )}
+              <LiquidGlassOverlay intensity="subtle" />
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                {isProcessing ? (
+                  <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                ) : (
+                  <>
+                    {mode === 'copy' ? <Copy size={16} /> : <Move size={16} />}
+                    {mode === 'copy' ? t('copyFile') : t('moveAction')}
+                  </>
+                )}
+              </span>
             </button>
           </div>
         </motion.div>

@@ -44,14 +44,30 @@ jobs:
         with:
           workspaces: './src-tauri -> target'
 
+      - name: Setup wasm-pack
+        uses: jetli/wasm-pack-action@v0.4.0
+
       - name: Install dependencies
         run: npm ci
+
+      - name: Build WASM
+        run: npm run build:wasm
 
       - name: Build web assets
         run: npm run build
 
       - name: Init Android project
         run: echo "y" | npm run tauri android init
+
+      - name: Patch Android minSdkVersion for biometry plugin
+        run: |
+          BUILD_FILE="src-tauri/gen/android/app/build.gradle.kts"
+          if [ -f "$BUILD_FILE" ]; then
+            sed -i 's/minSdk = 24/minSdk = 26/' "$BUILD_FILE"
+            echo "Patched minSdk to 26 in $BUILD_FILE"
+          else
+            echo "Warning: $BUILD_FILE not found"
+          fi
 
       - name: Patch Kotlin version for biometry plugin
         run: |

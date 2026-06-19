@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Lock, Eye, EyeOff, Loader2, AlertTriangle, Shield, Key, Check } from 'lucide-react';
 import { FileSystemItem } from '../types';
-import { cryptoService } from '../utils/crypto';
-import { vaultStorage } from '../utils/vaultStorage';
 import { useI18n } from '../locales/i18nContext';
 import { PinModal } from './PinModal';
-import { verifyPin } from '../utils/security';
+import { decrypt_with_passphrase, base64_decode, pin_verify, vault_decrypt_keys, get_argon_params } from '../crypto-core/index';
+import { getVaultKey } from '../crypto-core/db';
+import { LiquidGlassOverlay } from './LiquidGlassOverlay';
 
 interface DecryptModalProps {
   isOpen: boolean;
@@ -14,9 +14,10 @@ interface DecryptModalProps {
   onSuccess: (decryptedBlob: Blob, mimeType: string) => void;
   item: FileSystemItem;
   vaultPin?: string | null;
+  vaultTier?: number;
 }
 
-export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onSuccess, item, vaultPin }) => {
+export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onSuccess, item, vaultPin, vaultTier }) => {
   const { t } = useI18n();
   const [passphrase, setPassphrase] = useState('');
   const [showKey, setShowKey] = useState(false);
@@ -45,13 +46,25 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
       return;
     }
 
-    const isValid = await verifyPin(pin, vaultPin);
+    const tierId = vaultTier || 1;
+    const pinParams = JSON.parse(get_argon_params('pin', tierId));
+    const isValid = await pin_verify(pin, vaultPin, pinParams.iterations, pinParams.memorySize, pinParams.parallelism);
     if (!isValid) {
       setPinError(t('wrongPin'));
       return;
     }
 
-    const foundKey = await vaultStorage.getByFileId(item.id.toString());
+    const vaultKey = getVaultKey();
+    if (!vaultKey) { setPinError(t('vaultKeyMissing' as any)); return; }
+    const encryptedKeys = localStorage.getItem('crytotool_vault_keys');
+    let foundKey = null;
+    if (encryptedKeys) {
+      try {
+        const decrypted = vault_decrypt_keys(encryptedKeys, vaultKey);
+        const allKeys = JSON.parse(decrypted);
+        foundKey = allKeys.find((k: any) => k.fileId === item.id.toString());
+      } catch {}
+    }
     if (foundKey) {
       setPassphrase(foundKey.key);
       setVaultKeyFound(foundKey.id);
@@ -89,30 +102,26 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
       let decryptedData: Uint8Array;
       
       if (item.algorithm === 'AES-GCM-Stream') {
-        decryptedData = await cryptoService.decryptWithPassphrase(
-          encryptedData,
-          passphrase,
-          new Uint8Array(0),
-          new Uint8Array(0),
-          'AES-GCM-Stream'
+        decryptedData = await decrypt_with_passphrase(
+          encryptedData, passphrase,
+          new Uint8Array(0), new Uint8Array(0),
+          'AES-GCM-Stream', 3, 65536, 4
         );
       } else {
-        const iv = cryptoService.base64ToArrayBuffer(item.iv!);
-        const salt = cryptoService.base64ToArrayBuffer(item.salt!);
+        const iv = base64_decode(item.iv!);
+        const salt = base64_decode(item.salt!);
 
-
-        decryptedData = await cryptoService.decryptWithPassphrase(
-          encryptedData,
-          passphrase,
-          iv,
-          salt,
-          item.algorithm || 'AES-GCM'
+        decryptedData = await decrypt_with_passphrase(
+          encryptedData, passphrase,
+          iv, salt,
+          item.algorithm || 'AES-GCM', 3, 65536, 4
         );
       }
 
 
 
-      const ext = item.name.split('.').pop()?.toLowerCase() || '';
+      const displayName = (item as any).decryptedName || item.name || '';
+      const ext = displayName.split('.').pop()?.toLowerCase() || '';
       const mimeType = ext === 'gif' ? 'image/gif' :
                        ext === 'png' ? 'image/png' :
                        ext === 'webp' ? 'image/webp' :
@@ -162,7 +171,8 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
           className="relative w-full max-w-[95vw] md:max-w-lg glass-card rounded-lg md:rounded-2xl overflow-hidden flex flex-col max-h-[95vh] md:max-h-[85vh]"
           onClick={(e) => e.stopPropagation()}
           onKeyDown={handleKeyDown}
-        >
+                  >
+            <LiquidGlassOverlay />
           <div className="px-3 py-2 md:px-6 md:py-4 border-b border-zinc-800 bg-zinc-900/50 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2 md:gap-3">
               <div className="w-6 h-6 md:w-10 md:h-10 rounded md:rounded-xl bg-neon-green/10 flex items-center justify-center border border-neon-green/20 text-neon-green">
@@ -210,9 +220,10 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
                     <>
                       <button
                         onClick={() => setShowPinModal(true)}
-                        className={`w-full flex items-center justify-between p-2 md:p-3 rounded-lg md:rounded-xl border transition-all ${autoFillFromVault && vaultKeyFound ? 'bg-neon-green/5 border-neon-green/30' : 'bg-black/50 border-zinc-800 hover:border-zinc-700'}`}
+                        className={`w-full flex items-center justify-between p-2 md:p-3 rounded-lg md:rounded-xl border transition-all relative overflow-hidden ${autoFillFromVault && vaultKeyFound ? 'bg-neon-green/5 border-neon-green/30' : 'bg-black/50 border-zinc-800 hover:border-zinc-700'}`}
                       >
-                        <div className="flex items-center gap-2 md:gap-3">
+                        <LiquidGlassOverlay intensity="subtle" />
+                        <div className="flex items-center gap-2 md:gap-3 relative z-10">
                           <div className={`w-5 h-5 md:w-8 md:h-8 rounded-lg md:rounded-xl flex items-center justify-center ${autoFillFromVault && vaultKeyFound ? 'bg-neon-green/20 text-neon-green' : 'bg-zinc-800 text-zinc-500'}`}>
                             {autoFillFromVault && vaultKeyFound ? <Check size={10} className="md:size-4" /> : <Shield size={10} className="md:size-4" />}
                           </div>
@@ -292,9 +303,10 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
               <button
                 onClick={handleDecrypt}
                 disabled={!passphrase.trim()}
-                className="ml-auto px-4 md:px-8 py-2 md:py-3 rounded-lg md:rounded-xl bg-white text-black text-[9px] md:text-xs font-bold uppercase tracking-wider flex items-center gap-1 disabled:opacity-30"
+                className="ml-auto px-4 md:px-8 py-2 md:py-3 rounded-lg md:rounded-xl bg-white text-black text-[9px] md:text-xs font-bold uppercase tracking-wider flex items-center gap-1 disabled:opacity-30 relative overflow-hidden"
               >
-                {t('decryptButton')}
+                <LiquidGlassOverlay intensity="subtle" />
+                <span className="relative z-10">{t('decryptButton')}</span>
               </button>
             </div>
           )}
@@ -306,6 +318,7 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
         <PinModal
           mode="unlock"
           savedPin={vaultPin}
+          tier={vaultTier}
           onSuccess={handleVaultAutoFill}
           onClose={() => { setShowPinModal(false); setPinError(null); }}
         />

@@ -4,10 +4,11 @@ import {
   ArrowLeft, Download, Upload, RefreshCw, Copy, Check, Key, FileLock2, 
   AlertTriangle, Loader2, Database, CheckCircle, Clock, XCircle
 } from 'lucide-react';
-import { backupCryptoService } from '../../utils/backupCrypto';
-import { db } from '../../utils/db';
+import { backup_encrypt, backup_decrypt, generate_passphrase } from '../../crypto-core/index';
+import { db } from '../../crypto-core/db';
 import { useI18n } from '../../locales/i18nContext';
 import { AppTheme } from '../../types';
+import { LiquidGlassOverlay } from '../LiquidGlassOverlay';
 
 interface BackupViewProps {
   onBack: () => void;
@@ -28,7 +29,7 @@ export const BackupView: React.FC<BackupViewProps> = ({ onBack, theme }) => {
   const [restoreError, setRestoreError] = useState('');
 
   const startBackup = () => {
-    const key = backupCryptoService.generatePassphrase();
+    const key = generate_passphrase();
     setGeneratedKey(key);
     setStep('create_gen');
   };
@@ -36,6 +37,9 @@ export const BackupView: React.FC<BackupViewProps> = ({ onBack, theme }) => {
   const executeBackupDownload = async () => {
     setIsProcessing(true);
     try {
+        const metaRaw = localStorage.getItem('crytotool_crypto_metadata');
+        const tier = metaRaw ? (JSON.parse(metaRaw).tier || 1) : 1;
+
         const dbItems = await db.exportDatabase();
         const appState = {
             localStorage: {
@@ -53,12 +57,14 @@ export const BackupView: React.FC<BackupViewProps> = ({ onBack, theme }) => {
         };
 
         const jsonString = JSON.stringify(appState);
-        const encryptedBlob = await backupCryptoService.encryptBackup(jsonString, generatedKey);
+        const plaintext = new TextEncoder().encode(jsonString);
+        const encryptedBlob = await backup_encrypt(plaintext, generatedKey, 3, 65536, 4);
 
-        const url = URL.createObjectURL(encryptedBlob);
+        const url = URL.createObjectURL(new Blob([new Uint8Array(encryptedBlob)]));
         const a = document.createElement('a');
         a.href = url;
-        a.download = `crytotool-backup-${new Date().toISOString().slice(0,10)}.enc`;
+        const rand = () => Math.random().toString(36).substring(2, 10);
+        a.download = tier >= 2 ? `backup-${rand()}.enc` : `crytotool-backup-${new Date().toISOString().slice(0,10)}.enc`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -89,7 +95,9 @@ export const BackupView: React.FC<BackupViewProps> = ({ onBack, theme }) => {
       setRestoreError('');
 
       try {
-          const jsonString = await backupCryptoService.decryptBackup(restoreFile, restoreKey);
+          const fileBytes = new Uint8Array(await restoreFile.arrayBuffer());
+          const jsonBytes = await backup_decrypt(fileBytes, restoreKey, 3, 65536, 4);
+          const jsonString = new TextDecoder().decode(jsonBytes);
           const data = JSON.parse(jsonString);
 
           if (!data.db || !data.localStorage) throw new Error("Format invalid");
@@ -167,6 +175,7 @@ export const BackupView: React.FC<BackupViewProps> = ({ onBack, theme }) => {
                       onClick={startBackup}
                       className="group relative p-6 rounded-[32px] glass-card hover:border-neon-green/50 transition-all cursor-pointer overflow-hidden"
                     >
+                        <LiquidGlassOverlay />
                         <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none group-hover:opacity-05 transition-opacity">
                             <Download size={80} className="text-primary" />
                         </div>
@@ -191,6 +200,7 @@ export const BackupView: React.FC<BackupViewProps> = ({ onBack, theme }) => {
                       onClick={() => setStep('restore_input')}
                       className="group relative p-6 rounded-[32px] glass-card hover:border-neon-green/50 transition-all cursor-pointer overflow-hidden"
                     >
+                        <LiquidGlassOverlay />
                         <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none group-hover:opacity-05 transition-opacity">
                             <Upload size={80} className="text-primary" />
                         </div>
@@ -274,17 +284,21 @@ export const BackupView: React.FC<BackupViewProps> = ({ onBack, theme }) => {
                     <button 
                         onClick={executeBackupDownload}
                         disabled={isProcessing}
-                        className="w-full py-5 rounded-2xl bg-neon-green text-black font-bold uppercase tracking-widest hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-3 text-lg shadow-lg shadow-neon-green/20"
+                        className="w-full py-5 rounded-2xl bg-neon-green text-black font-bold uppercase tracking-widest hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-3 text-lg shadow-lg shadow-neon-green/20 relative overflow-hidden"
                     >
-                        {isProcessing ? <Loader2 className="animate-spin" /> : <Download size={22} />}
-                        {isProcessing ? t('processing') : t('downloadBackup')}
+                        <LiquidGlassOverlay intensity="subtle" />
+                        <span className="relative z-10 flex items-center justify-center gap-3">
+                          {isProcessing ? <Loader2 className="animate-spin" /> : <Download size={22} />}
+                          {isProcessing ? t('processing') : t('downloadBackup')}
+                        </span>
                     </button>
 
                     <button 
                         onClick={() => setStep('menu')}
-                        className="w-full py-4 rounded-2xl bg-surface border border-border text-muted font-bold uppercase tracking-widest hover:text-primary hover:border-primary transition-all"
+                        className="w-full py-4 rounded-2xl bg-surface border border-border text-muted font-bold uppercase tracking-widest hover:text-primary hover:border-primary transition-all relative overflow-hidden"
                     >
-                        {t('back')}
+                        <LiquidGlassOverlay intensity="subtle" />
+                        <span className="relative z-10">{t('back')}</span>
                     </button>
                 </motion.div>
             )}
@@ -307,8 +321,9 @@ export const BackupView: React.FC<BackupViewProps> = ({ onBack, theme }) => {
                         <Clock size={12} />
                         <span>{new Date().toLocaleDateString()}</span>
                     </div>
-                    <button onClick={() => setStep('menu')} className="px-10 py-4 rounded-2xl bg-surface border border-border text-primary font-bold uppercase tracking-widest hover:border-neon-green hover:text-neon-green transition-all">
-                        {t('backToMenu')}
+                    <button onClick={() => setStep('menu')} className="px-10 py-4 rounded-2xl bg-surface border border-border text-primary font-bold uppercase tracking-widest hover:border-neon-green hover:text-neon-green transition-all relative overflow-hidden">
+                        <LiquidGlassOverlay intensity="subtle" />
+                        <span className="relative z-10">{t('backToMenu')}</span>
                     </button>
                 </motion.div>
             )}
@@ -384,17 +399,21 @@ export const BackupView: React.FC<BackupViewProps> = ({ onBack, theme }) => {
                     <button 
                         onClick={executeRestore}
                         disabled={isProcessing}
-                        className="w-full py-5 rounded-2xl bg-white text-black font-bold uppercase tracking-widest hover:bg-zinc-200 transition-all flex items-center justify-center gap-3 text-lg shadow-lg"
+                        className="w-full py-5 rounded-2xl bg-white text-black font-bold uppercase tracking-widest hover:bg-zinc-200 transition-all flex items-center justify-center gap-3 text-lg shadow-lg relative overflow-hidden"
                     >
-                        {isProcessing ? <Loader2 className="animate-spin" /> : <RefreshCw size={22} />}
-                        {isProcessing ? t('restoring') : t('restoreAll')}
+                        <LiquidGlassOverlay intensity="subtle" />
+                        <span className="relative z-10 flex items-center justify-center gap-3">
+                          {isProcessing ? <Loader2 className="animate-spin" /> : <RefreshCw size={22} />}
+                          {isProcessing ? t('restoring') : t('restoreAll')}
+                        </span>
                     </button>
 
                     <button 
                         onClick={() => { setStep('menu'); setRestoreFile(null); setRestoreKey(''); }}
-                        className="w-full py-4 rounded-2xl bg-surface border border-border text-muted font-bold uppercase tracking-widest hover:text-primary hover:border-primary transition-all"
+                        className="w-full py-4 rounded-2xl bg-surface border border-border text-muted font-bold uppercase tracking-widest hover:text-primary hover:border-primary transition-all relative overflow-hidden"
                     >
-                        {t('back')}
+                        <LiquidGlassOverlay intensity="subtle" />
+                        <span className="relative z-10">{t('back')}</span>
                     </button>
                 </motion.div>
             )}
@@ -413,8 +432,9 @@ export const BackupView: React.FC<BackupViewProps> = ({ onBack, theme }) => {
                         <h3 className="text-2xl font-bold text-primary">{t('restoreSuccess')}</h3>
                         <p className="text-base text-muted">{t('appReload')}</p>
                     </div>
-                    <button onClick={() => window.location.reload()} className="px-10 py-4 rounded-2xl bg-neon-green text-black font-bold uppercase tracking-widest text-lg shadow-lg shadow-neon-green/20 hover:opacity-90 transition-all">
-                        {t('reload')}
+                    <button onClick={() => window.location.reload()} className="px-10 py-4 rounded-2xl bg-neon-green text-black font-bold uppercase tracking-widest text-lg shadow-lg shadow-neon-green/20 hover:opacity-90 transition-all relative overflow-hidden">
+                        <LiquidGlassOverlay intensity="subtle" />
+                        <span className="relative z-10">{t('reload')}</span>
                     </button>
                 </motion.div>
             )}

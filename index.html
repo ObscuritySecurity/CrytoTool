@@ -7,7 +7,6 @@
     <meta name="theme-color" content="#000000" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self';" />
     <title>CrytoTool</title>
     
     <script>
@@ -52,6 +51,30 @@
            const b = parseInt(accentHex.slice(5, 7), 16);
            root.style.setProperty('--accent-rgb', `${r}, ${g}, ${b}`);
         }
+
+        // Glass intensity (0-100, default 100 = full)
+        const glassIntensity = parseInt(localStorage.getItem('app_glass_intensity') || '100') / 100;
+        const gm = Math.max(0, Math.min(1, glassIntensity));
+        root.style.setProperty('--glass-blur-light', `${12 * gm}px`);
+        root.style.setProperty('--glass-blur-medium', `${20 * gm}px`);
+        root.style.setProperty('--glass-blur-heavy', `${32 * gm}px`);
+        root.style.setProperty('--glass-blur-xl', `${40 * gm}px`);
+        root.style.setProperty('--glass-bg-ultra-light', `rgba(255,255,255,${0.03 * gm})`);
+        root.style.setProperty('--glass-bg-light', `rgba(255,255,255,${0.06 * gm})`);
+        root.style.setProperty('--glass-bg-medium', `rgba(255,255,255,${0.1 * gm})`);
+        root.style.setProperty('--glass-bg-heavy', `rgba(255,255,255,${0.15 * gm})`);
+        root.style.setProperty('--glass-border-subtle', `rgba(255,255,255,${0.05 * gm})`);
+        root.style.setProperty('--glass-border-light', `rgba(255,255,255,${0.1 * gm})`);
+        root.style.setProperty('--glass-border-medium', `rgba(255,255,255,${0.15 * gm})`);
+        root.style.setProperty('--glass-border-strong', `rgba(255,255,255,${0.2 * gm})`);
+        root.style.setProperty('--glass-accent-glow', `rgba(var(--accent-rgb),${0.15 * gm})`);
+        root.style.setProperty('--glass-card-bg', `linear-gradient(135deg, rgba(255,255,255,${0.12 * gm}) 0%, rgba(255,255,255,${0.03 * gm}) 100%)`);
+        root.style.setProperty('--glass-card-border-top', `rgba(255,255,255,${0.18 * gm})`);
+        root.style.setProperty('--glass-card-border-left', `rgba(255,255,255,${0.12 * gm})`);
+        root.style.setProperty('--glass-card-border-bottom', `rgba(255,255,255,${0.06 * gm})`);
+        root.style.setProperty('--glass-card-border-right', `rgba(255,255,255,${0.06 * gm})`);
+        root.style.setProperty('--glass-modal-bg', `linear-gradient(180deg, rgba(20,20,20,${0.85 * gm}) 0%, rgba(10,10,10,${0.95 * gm}) 100%)`);
+        root.style.setProperty('--glass-modal-border-top', `rgba(255,255,255,${0.12 * gm})`);
       })();
 
     </script>

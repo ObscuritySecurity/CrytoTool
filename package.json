@@ -5,12 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "build:wasm": "wasm-pack build crypto-core --target web --out-dir pkg",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri"
   },
   "dependencies": {
-    "@choochmeque/tauri-plugin-biometry-api": "^0.2.8",
     "@fontsource/caveat": "^5.2.8",
     "@fontsource/cinzel": "^5.2.8",
     "@fontsource/dancing-script": "^5.2.8",
@@ -40,22 +40,27 @@
     "lucide-react": "^1.18.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "react-icons": "^4.11.0"
+    "react-icons": "^4.11.0",
+    "tauri-plugin-keyring-api": "^0.1.1"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.11.2",
+"@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^25.9.3",
     "@types/prop-types": "^15.7.15",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.2",
     "autoprefixer": "^10.4.16",
+    "jsdom": "^29.1.1",
     "postcss": "^8.5.15",
     "sharp": "^0.35.1",
     "tailwindcss": "^3.3.5",
     "typescript": "^5.2.2",
     "vite": "^8.0.16",
-    "vite-plugin-mkcert": "^2.1.0"
+    "vite-plugin-mkcert": "^2.1.0",
+    "vitest": "^4.1.9"
   },
   "overrides": {
     "@xmldom/xmldom": "^0.8.13",
