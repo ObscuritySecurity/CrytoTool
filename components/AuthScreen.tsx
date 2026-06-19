@@ -659,7 +659,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
               <div className="w-full max-w-sm space-y-2">
                 {TIERS.map((tier) => {
                   const Icon = tier.icon;
-                  const cfg = tier.config;
                   const isSelected = selectedTier === tier.id;
                   const isBlocked = tier.blocked;
                   const showBlockedWarning = blockedTier === tier.id && isBlocked;
