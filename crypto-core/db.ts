@@ -1,5 +1,5 @@
 import type { CryptoAlgorithm, EncryptedMeta } from '../types';
-import { encrypt, encrypt_string, decrypt_string, metadata_encrypt, metadata_decrypt, base64_encode, base64_decode } from './index';
+import { encrypt, metadata_encrypt, base64_decode } from './index';
 
 let vaultKey: Uint8Array | null = null;
 
