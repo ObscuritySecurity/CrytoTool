@@ -17,6 +17,7 @@ import { THEME_COLLECTIONS, CATEGORY_KEYS, getAllThemes } from '../../styles/the
 import { FONT_LIST, FONT_CATEGORIES, getFontsByCategory } from '../../styles/fonts';
 import { LANGUAGES } from '../../locales';
 import { useI18n } from '../../locales/i18nContext';
+import { LiquidGlassOverlay } from '../LiquidGlassOverlay';
 
 interface SettingsViewProps {
   onBack: () => void;
@@ -47,6 +48,7 @@ interface SettingsViewProps {
   settingsLock: {
     password: string | null;
     setPassword: (pwd: string | null) => void;
+    required?: boolean;
   };
   recoverySettings: {
     codes: string[] | null;
@@ -59,13 +61,14 @@ interface SettingsViewProps {
     pin: string | null;
     openVault: () => void;
     disableVault: () => void;
+    vaultPinAllowed?: boolean;
   };
   biometricSettings: {
     available: boolean;
     enabled: boolean;
     enable: () => Promise<boolean>;
     disable: () => Promise<boolean>;
-    setAvailable: (v: boolean) => void;
+    biometricAllowed?: boolean;
   };
   openThemes: () => void;
   openFonts: () => void;
@@ -82,6 +85,36 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
     const [isLangOpen, setIsLangOpen] = useState(false);
     const [isRegionOpen, setIsRegionOpen] = useState(false);
     const [lockedLang, setLockedLang] = useState<string | null>(null);
+    // Glass intensity state
+    const [glassIntensity, setGlassIntensity] = useState(() => parseInt(localStorage.getItem('app_glass_intensity') || '100'));
+
+    const applyGlassIntensity = (val: number) => {
+      const v = Math.max(0, Math.min(100, val));
+      const gm = v / 100;
+      const root = document.documentElement;
+      root.style.setProperty('--glass-blur-light', `${12 * gm}px`);
+      root.style.setProperty('--glass-blur-medium', `${20 * gm}px`);
+      root.style.setProperty('--glass-blur-heavy', `${32 * gm}px`);
+      root.style.setProperty('--glass-blur-xl', `${40 * gm}px`);
+      root.style.setProperty('--glass-bg-ultra-light', `rgba(255,255,255,${0.03 * gm})`);
+      root.style.setProperty('--glass-bg-light', `rgba(255,255,255,${0.06 * gm})`);
+      root.style.setProperty('--glass-bg-medium', `rgba(255,255,255,${0.1 * gm})`);
+      root.style.setProperty('--glass-bg-heavy', `rgba(255,255,255,${0.15 * gm})`);
+      root.style.setProperty('--glass-border-subtle', `rgba(255,255,255,${0.05 * gm})`);
+      root.style.setProperty('--glass-border-light', `rgba(255,255,255,${0.1 * gm})`);
+      root.style.setProperty('--glass-border-medium', `rgba(255,255,255,${0.15 * gm})`);
+      root.style.setProperty('--glass-border-strong', `rgba(255,255,255,${0.2 * gm})`);
+      root.style.setProperty('--glass-accent-glow', `rgba(var(--accent-rgb),${0.15 * gm})`);
+      root.style.setProperty('--glass-card-bg', `linear-gradient(135deg, rgba(255,255,255,${0.12 * gm}) 0%, rgba(255,255,255,${0.03 * gm}) 100%)`);
+      root.style.setProperty('--glass-card-border-top', `rgba(255,255,255,${0.18 * gm})`);
+      root.style.setProperty('--glass-card-border-left', `rgba(255,255,255,${0.12 * gm})`);
+      root.style.setProperty('--glass-card-border-bottom', `rgba(255,255,255,${0.06 * gm})`);
+      root.style.setProperty('--glass-card-border-right', `rgba(255,255,255,${0.06 * gm})`);
+      root.style.setProperty('--glass-modal-bg', `linear-gradient(180deg, rgba(20,20,20,${0.85 * gm}) 0%, rgba(10,10,10,${0.95 * gm}) 100%)`);
+      root.style.setProperty('--glass-modal-border-top', `rgba(255,255,255,${0.12 * gm})`);
+      localStorage.setItem('app_glass_intensity', String(v));
+    };
+
     // State for settings password modification
     const [isSettingPassword, setIsSettingPassword] = useState(false);
     const [newSettingsPwd, setNewSettingsPwd] = useState('');
@@ -105,6 +138,9 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
         else if (totalSecs % 60 === 0) { setInactivityUnit('min'); setInactivityValue(totalSecs / 60); }
         else { setInactivityUnit('sec'); setInactivityValue(totalSecs); }
     }, []);
+
+    // Apply glass intensity on mount
+    useEffect(() => { applyGlassIntensity(glassIntensity); }, []);
 
     // Handler pentru schimbarea timpului de autodistrugere
     const handleInactivityChange = (val: number, unit: 'sec' | 'min' | 'hour' | 'day') => {
@@ -169,6 +205,7 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
             className="absolute inset-0 bg-black/80 backdrop-blur-sm"
           />
           <div className="relative w-full max-w-sm glass-card rounded-[32px] overflow-hidden p-6">
+              <LiquidGlassOverlay />
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-lg">
                 <Lock size={20} />
@@ -206,6 +243,7 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                 <h3 className={`text-[10px] font-black uppercase tracking-[0.2em] mb-4 flex items-center gap-2 text-muted`}><Monitor size={14} />{t('themes')}</h3>
                 <div className="grid grid-cols-2 gap-4 mb-4">
                     <div onClick={props.openThemes} className="p-5 rounded-[24px] glass-card cursor-pointer hover:border-neon-green/50 transition-all group relative overflow-hidden flex flex-col justify-between h-40">
+                        <LiquidGlassOverlay />
                         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                             <LayoutGrid size={64} className="text-primary" />
                         </div>
@@ -218,6 +256,7 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                         </div>
                     </div>
                     <div onClick={props.openFonts} className="p-5 rounded-[24px] glass-card cursor-pointer hover:border-neon-green/50 transition-all group relative overflow-hidden flex flex-col justify-between h-40">
+                        <LiquidGlassOverlay />
                         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                             <Type size={64} className="text-primary" />
                         </div>
@@ -234,14 +273,15 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                 <button onClick={() => {
                   const darkTheme = THEME_COLLECTIONS.Dark[0];
                   props.applyFullTheme(darkTheme);
-                }} className={`py-2.5 rounded-lg flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-all ${props.appTheme === 'dark' ? 'glass-pressed text-primary' : 'text-muted hover:text-primary'}`}><Moon size={12} />{t('darkMode')}</button>
+                }} className={`py-2.5 rounded-lg flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-all relative overflow-hidden ${props.appTheme === 'dark' ? 'glass-pressed text-primary' : 'text-muted hover:text-primary'}`}><LiquidGlassOverlay intensity="subtle" /><span className="relative z-10 flex items-center justify-center gap-1.5"><Moon size={12} />{t('darkMode')}</span></button>
                 <button onClick={() => {
                   const lightTheme = THEME_COLLECTIONS.Light[0];
                   props.applyFullTheme(lightTheme);
-                }} className={`py-2.5 rounded-lg flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-all ${props.appTheme === 'light' ? 'glass-pressed text-primary' : 'text-muted hover:text-primary'}`}><Sun size={12} />{t('lightMode')}</button>
-                <button onClick={() => props.setAppTheme('system')} className={`py-2.5 rounded-lg flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-all ${props.appTheme === 'system' ? 'glass-pressed text-primary' : 'text-muted hover:text-primary'}`}><Monitor size={12} />{t('systemButton')}</button>
+                }} className={`py-2.5 rounded-lg flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-all relative overflow-hidden ${props.appTheme === 'light' ? 'glass-pressed text-primary' : 'text-muted hover:text-primary'}`}><LiquidGlassOverlay intensity="subtle" /><span className="relative z-10 flex items-center justify-center gap-1.5"><Sun size={12} />{t('lightMode')}</span></button>
+                <button onClick={() => props.setAppTheme('system')} className={`py-2.5 rounded-lg flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-all relative overflow-hidden ${props.appTheme === 'system' ? 'glass-pressed text-primary' : 'text-muted hover:text-primary'}`}><LiquidGlassOverlay intensity="subtle" /><span className="relative z-10 flex items-center justify-center gap-1.5"><Monitor size={12} />{t('systemButton')}</span></button>
                 </div>
-                <div className="mt-4 p-4 rounded-2xl glass-card">
+                <div className="relative mt-4 p-4 rounded-2xl glass-card overflow-hidden">
+                  <LiquidGlassOverlay />
                 <div className="flex items-center gap-2 mb-3">
                     <PaintBucket size={14} className="text-muted" />
                     <span className="text-[10px] font-black uppercase tracking-widest text-muted">{t('accentManual')}</span>
@@ -259,12 +299,33 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                   </button>
                 </div>
                 </div>
+
+                <div className="relative mt-4 p-4 rounded-2xl glass-card overflow-hidden">
+                  <LiquidGlassOverlay />
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles size={14} className="text-muted" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted">{t('glassIntensity' as any)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={glassIntensity}
+                    onChange={e => {
+                      const val = parseInt(e.target.value);
+                      setGlassIntensity(val);
+                      applyGlassIntensity(val);
+                    }}
+                    className="w-full h-1 appearance-none bg-zinc-800 rounded-full cursor-pointer accent-[var(--accent-color)] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:cursor-pointer"
+                  />
+                </div>
             </section>
 
                 {/* SECTION 2: LANGUAGE & REGION */}
             <section>
                 <h3 className={`text-[10px] font-black uppercase tracking-[0.2em] mb-4 flex items-center gap-2 text-muted`}><Globe size={14} /> {t('languageAndRegion')}</h3>
                 <div className={`p-5 rounded-[32px] glass-card space-y-4 relative overflow-hidden ${isLangOpen || isRegionOpen ? 'z-50' : ''}`}>
+                      <LiquidGlassOverlay />
                     <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
                         <Globe size={120} className="text-primary" />
                     </div>
@@ -272,9 +333,10 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                     {/* Language Trigger */}
                     <div 
                         onClick={() => { setIsLangOpen(!isLangOpen); setIsRegionOpen(false); }}
-                        className="w-full h-16 px-4 rounded-2xl border border-border cursor-pointer flex items-center justify-between bg-surface hover:border-neon-green/50 hover:bg-surface/80 transition-all group shadow-sm"
+                        className="w-full h-16 px-4 rounded-2xl border border-border cursor-pointer flex items-center justify-between bg-surface hover:border-neon-green/50 hover:bg-surface/80 transition-all group shadow-sm relative overflow-hidden"
                     >
-                        <div className="flex items-center gap-4">
+                        <LiquidGlassOverlay intensity="subtle" />
+                        <div className="flex items-center gap-4 relative z-10">
                             <div className="w-8 h-8 rounded-lg bg-black border border-border flex items-center justify-center text-muted group-hover:text-neon-green group-hover:border-neon-green transition-colors">
                                 <Languages size={18} />
                             </div>
@@ -283,7 +345,7 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                                 <span className="text-sm font-bold text-primary">{languageOptions.find(l => l.value === language)?.label}</span>
                             </div>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 relative z-10">
                             <div className="px-3 py-1 rounded-full bg-black border border-border text-[10px] font-mono text-neon-green">
                                 {language.toUpperCase()}
                             </div>
@@ -358,9 +420,10 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                     {/* Region Trigger */}
                     <div 
                         onClick={() => { setIsRegionOpen(!isRegionOpen); setIsLangOpen(false); }}
-                        className="w-full h-16 px-4 rounded-2xl border border-border cursor-pointer flex items-center justify-between bg-surface hover:border-neon-green/50 hover:bg-surface/80 transition-all group shadow-sm"
+                        className="w-full h-16 px-4 rounded-2xl border border-border cursor-pointer flex items-center justify-between bg-surface hover:border-neon-green/50 hover:bg-surface/80 transition-all group shadow-sm relative overflow-hidden"
                     >
-                        <div className="flex items-center gap-4">
+                        <LiquidGlassOverlay intensity="subtle" />
+                        <div className="flex items-center gap-4 relative z-10">
                             <div className="w-8 h-8 rounded-lg bg-black border border-border flex items-center justify-center text-muted group-hover:text-neon-green group-hover:border-neon-green transition-colors">
                                 <MapPin size={18} />
                             </div>
@@ -369,7 +432,7 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                                 <span className="text-sm font-bold text-primary">{regionOptions.find(r => r.value === region)?.label}</span>
                             </div>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 relative z-10">
                             <div className="px-3 py-1 rounded-full bg-black border border-border text-[10px] font-mono text-neon-green">
                                 {region.substring(0, 2).toUpperCase()}
                             </div>
@@ -429,65 +492,70 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
             {/* SECTION 3: SECURITY */}
             <section>
                 <h3 className={`text-[10px] font-black uppercase tracking-[0.2em] mb-4 flex items-center gap-2 text-muted`}><Shield size={14} /> {t('securityAndInfo')}</h3>
-                <div className="p-6 rounded-[32px] glass-card space-y-8">
+                <div className="relative p-6 rounded-[32px] glass-card space-y-8 overflow-hidden">
+                  <LiquidGlassOverlay />
                 
 {/* --- VAULT (NEW) --- */}
-                 <div className="pb-6 border-b border-border">
-                     <div className="flex items-center justify-between mb-2">
-                         <div className="flex items-center gap-2">
-                              <Key size={16} className={props.vaultSettings.enabled ? "text-neon-green" : "text-muted"} />
-                              <label className="text-sm font-bold uppercase tracking-wider text-primary">{t('vaultKeys')}</label>
-                         </div>
-                         <div className="flex items-center gap-2">
+{props.vaultSettings.vaultPinAllowed !== false && (
+<div className="pb-6 border-b border-border">
+    <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+             <Key size={16} className={props.vaultSettings.enabled ? "text-neon-green" : "text-muted"} />
+             <label className="text-sm font-bold uppercase tracking-wider text-primary">{t('vaultKeys')}</label>
+        </div>
+        <div className="flex items-center gap-2">
 <button
-                                  onClick={props.vaultSettings.enabled ? props.vaultSettings.disableVault : props.vaultSettings.openVault}
-                                  className={`w-12 h-7 rounded-full transition-colors flex items-center px-1 ${props.vaultSettings.enabled ? 'bg-neon-green' : 'bg-surface border border-border'}`}
-                              >
-                                  <motion.div
-                                      layout
-                                      className={`w-5 h-5 rounded-full bg-white shadow-sm`}
-                                      animate={{ x: props.vaultSettings.enabled ? 18 : 0 }}
-                                  />
-                              </button>
-                          </div>
-                      </div>
-                      <p className="text-[10px] text-muted mb-3">{t('vaultKeysDesc')}</p>
-                  </div>
+                                 onClick={props.vaultSettings.enabled ? props.vaultSettings.disableVault : props.vaultSettings.openVault}
+                                 className={`w-12 h-7 rounded-full transition-colors flex items-center px-1 ${props.vaultSettings.enabled ? 'bg-neon-green' : 'bg-surface border border-border'}`}
+                            >
+                                <motion.div
+                                    layout
+                                    className={`w-5 h-5 rounded-full bg-white shadow-sm`}
+                                    animate={{ x: props.vaultSettings.enabled ? 18 : 0 }}
+                                />
+                            </button>
+                        </div>
+                    </div>
+                    <p className="text-[10px] text-muted mb-3">{t('vaultKeysDesc')}</p>
+                </div>
+)}
 
 {/* --- BIOMETRIC UNLOCK --- */}
-                  <div className="pb-6 border-b border-border">
-                      <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                               <Fingerprint size={16} className={props.biometricSettings.enabled ? "text-neon-green" : "text-muted"} />
-                               <label className="text-sm font-bold uppercase tracking-wider text-primary">{t('biometricUnlockLabel')}</label>
-                          </div>
-                          <div className="flex items-center gap-2">
-                              <button
-                                  onClick={async () => {
-                                      if (props.biometricSettings.enabled) {
-                                          await props.biometricSettings.disable();
-                                      } else {
-                                          await props.biometricSettings.enable();
-                                      }
-                                  }}
-                                  className={`w-12 h-7 rounded-full transition-colors flex items-center px-1 ${props.biometricSettings.enabled ? 'bg-neon-green' : 'bg-surface border border-border'}`}
-                              >
-                                  <motion.div
-                                      layout
-                                      className={`w-5 h-5 rounded-full bg-white shadow-sm`}
-                                      animate={{ x: props.biometricSettings.enabled ? 18 : 0 }}
-                                  />
-                              </button>
-                          </div>
-                      </div>
-                      <p className="text-[10px] text-muted mb-2">{t('biometricUnlockDesc')}</p>
-                      {!props.biometricSettings.available && (
-                          <p className="text-[10px] text-zinc-600 flex items-center gap-1">
-                              <ShieldAlert size={10} />
-                              {t('biometricNotAvailable')}
-                          </p>
-                      )}
-                  </div>
+{props.biometricSettings.biometricAllowed !== false && (
+<div className="pb-6 border-b border-border">
+    <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+             <Fingerprint size={16} className={props.biometricSettings.enabled ? "text-neon-green" : "text-muted"} />
+             <label className="text-sm font-bold uppercase tracking-wider text-primary">{t('biometricUnlockLabel')}</label>
+        </div>
+        <div className="flex items-center gap-2">
+            <button
+                onClick={async () => {
+                    if (props.biometricSettings.enabled) {
+                        await props.biometricSettings.disable();
+                    } else {
+                        await props.biometricSettings.enable();
+                    }
+                }}
+                className={`w-12 h-7 rounded-full transition-colors flex items-center px-1 ${props.biometricSettings.enabled ? 'bg-neon-green' : 'bg-surface border border-border'}`}
+            >
+                <motion.div
+                    layout
+                    className={`w-5 h-5 rounded-full bg-white shadow-sm`}
+                    animate={{ x: props.biometricSettings.enabled ? 18 : 0 }}
+                />
+            </button>
+        </div>
+    </div>
+    <p className="text-[10px] text-muted mb-2">{t('biometricUnlockDesc')}</p>
+    {!props.biometricSettings.available && (
+        <p className="text-[10px] text-zinc-600 flex items-center gap-1">
+            <ShieldAlert size={10} />
+            {t('biometricNotAvailable')}
+        </p>
+    )}
+</div>
+)}
 
                   {/* === ZONA DE PERICOL: AUTODISTRUGERE === */}
                   <div className="border-t border-border pt-6 bg-red-500/5 -mx-6 px-6 pb-6 mt-6 border-b">
@@ -586,6 +654,7 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                         </div>
                         <button 
                             onClick={() => {
+                                if (props.settingsLock.required) return;
                                 if (props.settingsLock.password) {
                                     setIsSettingPassword(!isSettingPassword); 
                                     setNewSettingsPwd(''); 
@@ -594,7 +663,7 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                                     setIsSettingPassword(!isSettingPassword);
                                 }
                             }}
-                            className={`w-12 h-7 rounded-full transition-colors flex items-center px-1 ${props.settingsLock.password ? 'bg-neon-green' : 'bg-surface border border-border'}`}
+                            className={`w-12 h-7 rounded-full transition-colors flex items-center px-1 ${props.settingsLock.password || props.settingsLock.required ? 'bg-neon-green' : 'bg-surface border border-border'} ${props.settingsLock.required ? 'opacity-100 cursor-not-allowed' : ''}`}
                         >
                             <motion.div 
                                 layout 
@@ -618,7 +687,9 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                                             onChange={(e) => setCurrentSettingsPwd(e.target.value)}
                                             className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-primary"
                                         />
+                                        {!props.settingsLock.required && (
                                         <button onClick={handleRemoveSettingsPassword} className="w-full py-2 bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg text-xs font-bold uppercase hover:bg-red-500 hover:text-white transition-colors">{t('disableProtection')}</button>
+                                        )}
                                     </>
                                 ) : (
                                     <>
@@ -742,18 +813,21 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                 <div className="border-t border-border pt-2">
                     <button 
                         onClick={props.onOpenAbout}
-                        className="w-full py-4 mt-2 rounded-xl bg-surface border border-border flex items-center justify-between px-6 hover:border-neon-green hover:bg-surface/80 group transition-all"
+                        className="w-full py-4 mt-2 rounded-xl bg-surface border border-border flex items-center justify-between px-6 hover:border-neon-green hover:bg-surface/80 group transition-all relative overflow-hidden"
                     >
-                        <div className="flex items-center gap-4">
-                            <div className="p-2 bg-black rounded-full border border-border text-neon-green group-hover:scale-110 transition-transform">
-                                <Info size={20} />
+                        <LiquidGlassOverlay intensity="subtle" />
+                        <span className="relative z-10 flex items-center justify-between w-full">
+                            <div className="flex items-center gap-4">
+                                <div className="p-2 bg-black rounded-full border border-border text-neon-green group-hover:scale-110 transition-transform">
+                                    <Info size={20} />
+                                </div>
+                                <div className="text-left">
+                                    <h4 className="text-sm font-bold text-primary">{t('aboutUs')}</h4>
+                                    <p className="text-[10px] text-muted">{t('obscuritySecurity')}</p>
+                                </div>
                             </div>
-                            <div className="text-left">
-                                <h4 className="text-sm font-bold text-primary">{t('aboutUs')}</h4>
-                                <p className="text-[10px] text-muted">{t('obscuritySecurity')}</p>
-                            </div>
-                        </div>
-                        <ArrowLeft className="rotate-180 text-muted group-hover:text-neon-green transition-colors" size={18} />
+                            <ArrowLeft className="rotate-180 text-muted group-hover:text-neon-green transition-colors" size={18} />
+                        </span>
                     </button>
                 </div>
 

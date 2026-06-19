@@ -7,6 +7,7 @@ import {
   Shuffle, Heart, Repeat, Share2, Menu, Moon, Lock, Copy, Move
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { LiquidGlassOverlay } from './LiquidGlassOverlay';
 import { db, DBItem, getVaultKey } from '../crypto-core/db';
 import { is_safe_image_url as isSafeImageUrl, decrypt, base64_encode, base64_decode, metadata_encrypt, metadata_decrypt } from '../crypto-core/index';
 import { FileSystemItem, ViewState, AppTheme, ThemeConfig, ThemeCategory } from '../types';
@@ -38,6 +39,7 @@ interface DashboardProps {
   settingsLock: {
     password: string | null;
     setPassword: (pwd: string | null) => void;
+    required?: boolean;
   };
   recoverySettings: {
     codes: string[] | null;
@@ -49,6 +51,8 @@ interface DashboardProps {
     enabled: boolean;
     pin: string | null;
     update: (enabled: boolean, pin: string | null) => void;
+    tier?: number;
+    vaultPinAllowed?: boolean;
   };
   biometricSettings: {
     available: boolean;
@@ -56,6 +60,7 @@ interface DashboardProps {
     enable: () => Promise<boolean>;
     disable: () => Promise<boolean>;
     setAvailable: (v: boolean) => void;
+    biometricAllowed?: boolean;
   };
   autoBlurSettings: { value: number; setValue: (val: number) => void; };
   autoLockSettings: { value: number; setValue: (val: number) => void; };
@@ -98,29 +103,32 @@ const formatTime = (seconds: number) => {
     onClick: () => void;
     icon: React.ReactNode;
     label: string;
-  }> = ({ active, onClick, icon, label }) => {
+  }> = ({ active, onClick, icon }) => {
     return (
-      <button 
+      <motion.button
         onClick={onClick}
-        className="flex flex-col items-center gap-1 p-2 w-1/4 transition-all duration-300 group relative"
+        className="relative flex items-center justify-center p-2"
+        whileTap={{ scale: 0.85 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 17 }}
       >
         {active && (
-          <div className="absolute inset-0 bg-gradient-to-t from-neon-green/10 via-neon-green/5 to-transparent rounded-2xl border-t border-neon-green/20" />
+          <motion.div
+            layoutId="nav-active"
+            className="absolute inset-0 rounded-xl bg-white/10 backdrop-blur-sm border border-white/[0.08]"
+            transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+          />
         )}
-        <div className="relative z-10">
-          {active && (
-            <div className="absolute -inset-3 bg-gradient-to-t from-neon-green/40 to-transparent blur-xl rounded-full opacity-60" />
-          )}
-          <div className={`relative transition-all duration-300 ${active ? '' : 'group-hover:-translate-y-1.5 group-hover:scale-110'}`}>
-            <div className="w-6 h-6 flex items-center justify-center text-neon-green drop-shadow-[0_0_12px_rgba(228,228,231,0.8)]">
-              {icon}
-            </div>
-          </div>
+        <div className={`relative z-10 transition-all duration-200 ${
+          active
+            ? 'text-white drop-shadow-[0_0_10px_rgba(var(--accent-rgb),0.9)]'
+            : 'text-white/35 group-hover:text-white/60'
+        }`}>
+          {React.cloneElement(icon as React.ReactElement<any>, {
+            size: 20,
+            strokeWidth: active ? 2.5 : 1.8,
+          })}
         </div>
-        <span className="text-[9px] font-bold tracking-widest uppercase z-10 text-neon-green drop-shadow-[0_0_10px_rgba(228,228,231,0.8)]">
-          {label}
-        </span>
-      </button>
+      </motion.button>
     );
   };
 
@@ -734,8 +742,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   const handleDuplicate = async (item: FileSystemItem) => {
-    const ext = item.name.includes('.') ? '.' + item.name.split('.').pop() : '';
-    const baseName = ext ? item.name.slice(0, -ext.length) : item.name;
+    const displayName = (item as any).decryptedName || item.name || '';
+    const ext = displayName.includes('.') ? '.' + displayName.split('.').pop() : '';
+    const baseName = ext ? displayName.slice(0, -ext.length) : displayName;
     let counter = 1;
     let newName = `${baseName} (copy)${ext}`;
     
@@ -800,6 +809,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <PinModal 
                 mode={pinModalMode} 
                 savedPin={vaultSettings.pin} 
+                tier={vaultSettings.tier}
                 onSuccess={handlePinSuccess}
                 onClose={() => { setShowPinModal(false); setPendingVaultAction(null); }}
             />
@@ -879,6 +889,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             }}
             item={itemToDecrypt}
             vaultPin={vaultSettings.pin}
+            vaultTier={vaultSettings.tier}
           />
       )}
 
@@ -1032,7 +1043,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       (() => {
                         const docItems = items.filter(i => i.category === 'doc');
                         return docItems.length === 0 ? (
-                          <div className="flex-1 flex flex-col items-center justify-center text-muted px-8 pt-56">
+                          <div className="flex-1 flex flex-col items-center justify-center text-muted px-8 pt-10">
                             <div className="w-20 h-20 rounded-full bg-surface border border-border flex items-center justify-center mb-5">
                               <FileText size={36} className="opacity-30" />
                             </div>
@@ -1125,13 +1136,27 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   )}
                 </AnimatePresence>
 
-                <nav className="fixed bottom-0 left-0 right-0 border-t border-border px-2 py-3 pb-safe z-40 bg-background">
-                   <div className="flex justify-between items-end max-w-lg mx-auto w-full">
-                     <NavButton active={activeTab === 'files'} onClick={() => setActiveTab('files')} icon={<Folder />} label={t('files')} />
-                     <NavButton active={activeTab === 'gallery'} onClick={() => setActiveTab('gallery')} icon={<ImageIcon />} label={t('gallery')} />
-                     <NavButton active={activeTab === 'music'} onClick={() => setActiveTab('music')} icon={<Music />} label={t('music')} />
-                     <NavButton active={activeTab === 'docs'} onClick={() => setActiveTab('docs')} icon={<FileText />} label={t('documentsTab')} />
-                   </div>
+                <nav className="fixed bottom-0 left-0 right-0 z-40 pointer-events-none"
+                  style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 16px))' }}
+                >
+                  <div className="mx-auto max-w-[260px] pointer-events-auto">
+                    <div className="rounded-[28px] px-3 py-2.5 relative overflow-hidden"
+                      style={{
+                        background: 'linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.03) 100%)',
+                        backdropFilter: 'blur(24px) saturate(180%)',
+                        WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+                        boxShadow: '0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.12)',
+                      }}
+                    >
+                      <LiquidGlassOverlay intensity="medium" />
+                      <div className="flex justify-around items-center relative z-10">
+                        <NavButton active={activeTab === 'files'} onClick={() => setActiveTab('files')} icon={<Folder />} label={t('files')} />
+                        <NavButton active={activeTab === 'gallery'} onClick={() => setActiveTab('gallery')} icon={<ImageIcon />} label={t('gallery')} />
+                        <NavButton active={activeTab === 'music'} onClick={() => setActiveTab('music')} icon={<Music />} label={t('music')} />
+                        <NavButton active={activeTab === 'docs'} onClick={() => setActiveTab('docs')} icon={<FileText />} label={t('documentsTab')} />
+                      </div>
+                    </div>
+                  </div>
                 </nav>
              </motion.div>
           )}

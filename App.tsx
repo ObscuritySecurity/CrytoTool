@@ -20,9 +20,9 @@ import {
   base64_encode,
   generate_recovery_codes,
   parse_code_index,
+  get_argon_params,
 } from './crypto-core/index';
 import type { CryptoMetadata, VaultWrappers } from './types';
-import CryptoTest from './CryptoTest';
 
 const App: React.FC = () => {
   const [showSplash, setShowSplash] = useState(true);
@@ -64,7 +64,11 @@ const App: React.FC = () => {
   const updateVaultSettings = async (enabled: boolean, pin: string | null) => {
     setVaultEnabled(enabled);
     if (pin) {
-      const hash = await hashPin(pin, 2, 32768, 1);
+      const metaRaw = localStorage.getItem('crytotool_crypto_metadata');
+      const meta: CryptoMetadata | null = metaRaw ? JSON.parse(metaRaw) : null;
+      const tierId = meta?.tier || 1;
+      const pinParams = JSON.parse(get_argon_params('pin', tierId));
+      const hash = await hashPin(pin, pinParams.iterations, pinParams.memorySize, pinParams.parallelism);
       localStorage.setItem('crytotool_vault_pin_hash', hash);
       setVaultPin(hash);
     } else {
@@ -129,14 +133,15 @@ const App: React.FC = () => {
     } catch { setRecoveryWrappersCount(0); }
   };
 
-  const downloadCodes = (codes: string[]) => {
+  const downloadCodes = (codes: string[], randomFilename?: boolean) => {
     const header = 'CrytoTool Recovery Codes\nGenerated: ' + new Date().toISOString().split('T')[0] + '\n\u2500'.repeat(30) + '\n\n';
     const content = header + codes.join('\n');
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'crytotool-recovery-codes.txt';
+    const rand = () => Math.random().toString(36).substring(2, 10);
+    a.download = randomFilename ? `codes-${rand()}.txt` : 'crytotool-recovery-codes.txt';
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -338,7 +343,8 @@ const App: React.FC = () => {
       if (saltIdx < 0 || saltIdx >= meta.recovery_salts.length) return { success: false, error: 'Salt lipsă' };
 
       const recoverySalt = base64_decode(meta.recovery_salts[saltIdx]);
-      const recoveryKey = await derive_key(new TextEncoder().encode(code), recoverySalt, 10, 131072, 4, 32);
+      const recoveryParams = JSON.parse(get_argon_params('recovery', meta.tier || 1));
+      const recoveryKey = await derive_key(new TextEncoder().encode(code), recoverySalt, recoveryParams.iterations, recoveryParams.memorySize, recoveryParams.parallelism, 32);
 
       let mvkBytes: Uint8Array;
       try {
@@ -348,7 +354,8 @@ const App: React.FC = () => {
       }
 
       const newMasterSalt = window.crypto.getRandomValues(new Uint8Array(16));
-      const newMasterKey = await derive_key(new TextEncoder().encode(newPassword), newMasterSalt, 19, 131072, 4, 32);
+      const ap = meta.argon || { iterations: 2, memoryKib: 19456, parallelism: 1 };
+      const newMasterKey = derive_key(new TextEncoder().encode(newPassword), newMasterSalt, ap.iterations, ap.memoryKib, ap.parallelism, 32);
       const newMasterWrapper = await wrap_raw_key(mvkBytes, newMasterKey);
 
       delete wrappers.recovery[idx];
@@ -392,11 +399,12 @@ const App: React.FC = () => {
     const codes = generate_recovery_codes();
     const salts: string[] = [];
     const recoveryWrappers: Record<string, { ciphertext: string; iv: string }> = {};
+    const recoveryParams = JSON.parse(get_argon_params('recovery', meta.tier || 1));
 
     for (let i = 0; i < codes.length; i++) {
       const salt = window.crypto.getRandomValues(new Uint8Array(16));
       salts.push(base64_encode(salt));
-      const key = await derive_key(new TextEncoder().encode(codes[i]), salt, 10, 131072, 4, 32);
+      const key = await derive_key(new TextEncoder().encode(codes[i]), salt, recoveryParams.iterations, recoveryParams.memorySize, recoveryParams.parallelism, 32);
       const paddedIdx = String(i + 1).padStart(2, '0');
       recoveryWrappers[paddedIdx] = JSON.parse(await wrap_raw_key(mvkBytes, key));
     }
@@ -409,7 +417,7 @@ const App: React.FC = () => {
     localStorage.setItem('crytotool_vault_wrappers', JSON.stringify(wrappers));
 
     setNewlyGeneratedCodes(codes);
-    downloadCodes(codes);
+    downloadCodes(codes, (meta.tier || 1) >= 2);
     syncRecoveryCount();
   };
 
@@ -424,6 +432,8 @@ const App: React.FC = () => {
     autoBlurSeconds: number; autoLockSeconds: number; failedAttemptsThreshold: number;
     progressiveLockSeconds: number; autoDestructEnabled: boolean; autoDestructAttempts: number;
     autoDestructInactivity: number; destructCountdownSeconds: number;
+    minPasswordLength?: number; settingsPasswordRequired?: boolean;
+    biometricAllowed?: boolean; vaultPinAllowed?: boolean;
   }) => {
     setAutoBlurSeconds(config.autoBlurSeconds);
     localStorage.setItem('crytotool_blur_time', config.autoBlurSeconds.toString());
@@ -441,6 +451,18 @@ const App: React.FC = () => {
     localStorage.setItem('crytotool_ad_inactivity', config.autoDestructInactivity.toString());
     setDestructCountdownSeconds(config.destructCountdownSeconds);
     localStorage.setItem('crytotool_ad_countdown', config.destructCountdownSeconds.toString());
+
+    if (config.settingsPasswordRequired && !settingsPassword) {
+      localStorage.setItem('crytotool_settings_password_required', 'true');
+    } else if (config.settingsPasswordRequired === false) {
+      localStorage.removeItem('crytotool_settings_password_required');
+    }
+    if (config.biometricAllowed === false && biometricEnabled) {
+      disableBiometric();
+    }
+    if (config.vaultPinAllowed === false && vaultEnabled) {
+      updateVaultSettings(false, null);
+    }
   };
 
   return (
@@ -465,11 +487,12 @@ const App: React.FC = () => {
                onSetupComplete={handleSetupComplete}
                destructRef={destructRef}
                onDestructComplete={performWipe}
-               onNewCodes={(codes) => {
-                setNewlyGeneratedCodes(codes);
-                downloadCodes(codes);
-                syncRecoveryCount();
-              }}
+                onNewCodes={(codes) => {
+                 setNewlyGeneratedCodes(codes);
+                 const tier = (() => { try { return JSON.parse(localStorage.getItem('crytotool_crypto_metadata') || '{}').tier || 1; } catch { return 1; } })();
+                 downloadCodes(codes, tier >= 2);
+                 syncRecoveryCount();
+               }}
               biometricAvailable={biometricAvailable}
               biometricEnabled={biometricEnabled}
               onBiometricUnlock={async () => {
@@ -491,7 +514,8 @@ const App: React.FC = () => {
               <Dashboard
                 settingsLock={{
                   password: settingsPassword,
-                  setPassword: updateSettingsPassword
+                  setPassword: updateSettingsPassword,
+                  required: localStorage.getItem('crytotool_settings_password_required') === 'true'
                 }}
                 recoverySettings={{
                   codes: newlyGeneratedCodes,
@@ -502,7 +526,19 @@ const App: React.FC = () => {
                 vaultSettings={{
                   enabled: vaultEnabled,
                   pin: vaultPin,
-                  update: updateVaultSettings
+                  update: updateVaultSettings,
+                  tier: (() => {
+                    try {
+                      const m = JSON.parse(localStorage.getItem('crytotool_crypto_metadata') || '{}');
+                      return m.tier || 1;
+                    } catch { return 1; }
+                  })(),
+                  vaultPinAllowed: (() => {
+                    try {
+                      const m = JSON.parse(localStorage.getItem('crytotool_crypto_metadata') || '{}');
+                      return (m.tier || 1) < 3;
+                    } catch { return true; }
+                  })()
                 }}
                 biometricSettings={{
                   available: biometricAvailable,
@@ -510,6 +546,12 @@ const App: React.FC = () => {
                   enable: enableBiometric,
                   disable: disableBiometric,
                   setAvailable: setBiometricAvailable,
+                  biometricAllowed: (() => {
+                    try {
+                      const m = JSON.parse(localStorage.getItem('crytotool_crypto_metadata') || '{}');
+                      return (m.tier || 1) < 3;
+                    } catch { return true; }
+                  })()
                 }}
                autoBlurSettings={{
                  value: autoBlurSeconds,
@@ -575,7 +617,6 @@ const App: React.FC = () => {
             </motion.div>
          )}
        </AnimatePresence>
-      <CryptoTest />
     </div>
     </I18nProvider>
   );

@@ -46,12 +46,24 @@ import init, {
 } from './pkg/crypto_core.js';
 
 let initialized = false;
+let initError: Error | null = null;
+
+const initPromise = init().then(() => {
+  initialized = true;
+}).catch((e: Error) => {
+  initError = e;
+  console.error('WASM eager init failed:', e);
+});
 
 export async function ensureInit(): Promise<void> {
-  if (!initialized) {
-    await init();
-    initialized = true;
-  }
+  if (initialized) return;
+  if (initError) throw initError;
+  await initPromise;
+}
+
+export async function generate_vault_key(): Promise<Uint8Array> {
+  await ensureInit();
+  return wasm_generate_vault_key();
 }
 
 export function aes_gcm_encrypt(plaintext: Uint8Array, key: Uint8Array, nonce: Uint8Array): Uint8Array {
@@ -212,8 +224,8 @@ export function pin_verify(
   return wasm_pin_verify(pin, storedJson, argonIterations, argonMemoryKib, argonParallelism);
 }
 
-export function get_argon_params(purpose: string, isMobile: boolean): string {
-  return wasm_get_argon_params(purpose, isMobile);
+export function get_argon_params(purpose: string, tier: number): string {
+  return wasm_get_argon_params(purpose, tier);
 }
 
 export function vault_encrypt_keys(keysJson: string, key: Uint8Array): string {
@@ -226,10 +238,6 @@ export function vault_decrypt_keys(encryptedJson: string, key: Uint8Array): stri
 
 export function derive_master_key(password: string, salt: Uint8Array, isMobile: boolean): Uint8Array {
   return wasm_derive_master_key(password, salt, isMobile);
-}
-
-export function generate_vault_key(): Uint8Array {
-  return wasm_generate_vault_key();
 }
 
 export function validate_pin(pin: string): void {

@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, Loader2, ShieldCheck, Timer, Fingerprint, Key, Sparkles, Edit3, Copy, Check, ChevronRight, Target, Shield, ShieldAlert, Skull, AlertTriangle } from 'lucide-react';
+import { Eye, EyeOff, Loader2, ShieldCheck, Timer, Fingerprint, Key, Sparkles, Edit3, Copy, Check, ChevronRight, Target, Shield, ShieldAlert, Skull, AlertTriangle, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '../locales/i18nContext';
 import crytoLogo from '../assets/CrytoTool.png';
 import { AutoDestructCountdown } from './AutoDestructCountdown';
+import { LiquidGlassOverlay } from './LiquidGlassOverlay';
 import type { AutoDestructCountdownHandle } from './AutoDestructCountdown';
 import {
   derive_key,
+  derive_master_key,
   wrap_raw_key,
   unwrap_raw_key,
   base64_decode,
@@ -14,6 +16,7 @@ import {
   generate_recovery_codes,
   generate_vault_key,
   decrypt,
+  get_argon_params,
 } from '../crypto-core/index';
 import { setVaultKey } from '../crypto-core/db';
 import type { CryptoMetadata, VaultWrappers } from '../types';
@@ -31,7 +34,7 @@ interface AuthScreenProps {
   onDestructComplete: () => void;
   onNewCodes?: (codes: string[]) => void;
   onStoreMasterKey?: (key: Uint8Array) => void;
-  onApplyThreatModel?: (config: { autoBlurSeconds: number; autoLockSeconds: number; failedAttemptsThreshold: number; progressiveLockSeconds: number; autoDestructEnabled: boolean; autoDestructAttempts: number; autoDestructInactivity: number; destructCountdownSeconds: number }) => void;
+  onApplyThreatModel?: (config: { autoBlurSeconds: number; autoLockSeconds: number; failedAttemptsThreshold: number; progressiveLockSeconds: number; autoDestructEnabled: boolean; autoDestructAttempts: number; autoDestructInactivity: number; destructCountdownSeconds: number; minPasswordLength?: number; settingsPasswordRequired?: boolean; biometricAllowed?: boolean; vaultPinAllowed?: boolean }) => void;
   biometricAvailable?: boolean;
   biometricEnabled?: boolean;
   onBiometricUnlock?: () => Promise<void>;
@@ -50,9 +53,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
   const [isDestructing, setIsDestructing] = useState(false);
   const [setupStep, setSetupStep] = useState<'welcome' | 'create' | 'biometric-threat'>('welcome');
   const [selectedTier, setSelectedTier] = useState<number | null>(null);
+  const [infoTier, setInfoTier] = useState<number | null>(null);
   const [blockedTier, setBlockedTier] = useState<number | null>(null);
+  const [confirmTier, setConfirmTier] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
   const [enableBiometricOn, setEnableBiometricOn] = useState(false);
+
+  const [setupProgress, setSetupProgress] = useState(0);
+  const [setupProgressLabel, setSetupProgressLabel] = useState('');
 
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
   const [recoveryStep, setRecoveryStep] = useState<1 | 2>(1);
@@ -97,6 +105,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
     if (isLocked && !isDestructing) return;
     setError(null);
     setIsProcessing(true);
+    await new Promise(r => setTimeout(r, 16));
 
     try {
       if (isSetup) return;
@@ -113,8 +122,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
           const wrappers: VaultWrappers = JSON.parse(wrappersRaw);
           const meta: CryptoMetadata = JSON.parse(metadataRaw);
           const masterSalt = base64_decode(meta.master_salt);
+          const ap = meta.argon || { iterations: 2, memoryKib: 19456, parallelism: 1 };
 
-        const masterKey = await derive_key(new TextEncoder().encode(password), masterSalt, 19, 131072, 4, 32);
+        const masterKey = derive_key(new TextEncoder().encode(password), masterSalt, ap.iterations, ap.memoryKib, ap.parallelism, 32);
 
           try {
             const mvkBytes = await unwrap_raw_key(JSON.stringify(wrappers.master), masterKey);
@@ -139,8 +149,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
           }
 
           const salt = base64_decode(saltB64);
+          const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-          const masterKey = await derive_key(new TextEncoder().encode(password), salt, 19, 131072, 4, 32);
+          const masterKey = derive_master_key(password, salt, isMobile);
 
           try {
             const rawVaultKey = decrypt(vaultB64, ivB64, masterKey);
@@ -175,28 +186,45 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
     setSetupStep('biometric-threat');
   };
 
-  const completeSetup = async () => {
+  const completeSetup = async (argonParams: { iterations: number; memoryKib: number; parallelism: number }, tierId: number) => {
     setIsProcessing(true);
     setError(null);
-    try {
-      const mvkBytes = await generate_vault_key();
 
+    const yieldToReact = () => new Promise(r => setTimeout(r, 16));
+
+    try {
+      setSetupProgress(2);
+      setSetupProgressLabel('Generating encryption keys...');
+      await yieldToReact();
+      const mvkBytes = await generate_vault_key();
       const codes = generate_recovery_codes();
 
+      setSetupProgress(10);
+      setSetupProgressLabel('Deriving master key...');
+      await yieldToReact();
       const masterSalt = window.crypto.getRandomValues(new Uint8Array(16));
-      const masterKey = await derive_key(new TextEncoder().encode(password), masterSalt, 19, 131072, 4, 32);
+      const masterKey = derive_key(new TextEncoder().encode(password), masterSalt, argonParams.iterations, argonParams.memoryKib, argonParams.parallelism, 32);
+
+      setSetupProgress(30);
+      setSetupProgressLabel('Wrapping master key...');
+      await yieldToReact();
       const masterWrapper = JSON.parse(await wrap_raw_key(mvkBytes, masterKey));
 
+      setSetupProgress(35);
+      setSetupProgressLabel('Generating recovery codes...');
+      await yieldToReact();
       const recoverySalts: string[] = [];
       const recoveryWrappers: Record<string, { ciphertext: string; iv: string }> = {};
 
+      const recoveryParams = JSON.parse(get_argon_params('recovery', tierId));
+      let codesDone = 0;
       const batchSize = 3;
       for (let b = 0; b < codes.length; b += batchSize) {
         const batch = codes.slice(b, b + batchSize);
         const results = await Promise.all(batch.map(async (code, bi) => {
           const i = b + bi;
           const salt = window.crypto.getRandomValues(new Uint8Array(16));
-          const key = await derive_key(new TextEncoder().encode(code), salt, 10, 131072, 4, 32);
+          const key = await derive_key(new TextEncoder().encode(code), salt, recoveryParams.iterations, recoveryParams.memorySize, recoveryParams.parallelism, 32);
           const paddedIdx = String(i + 1).padStart(2, '0');
           const wrapper = JSON.parse(await wrap_raw_key(mvkBytes, key));
           return { salt: base64_encode(salt), paddedIdx, wrapper };
@@ -205,11 +233,20 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
           recoverySalts.push(r.salt);
           recoveryWrappers[r.paddedIdx] = r.wrapper;
         }
+        codesDone += batch.length;
+        setSetupProgress(35 + Math.round((codesDone / codes.length) * 55));
+        setSetupProgressLabel(`Generating recovery codes (${codesDone}/${codes.length})...`);
+        await yieldToReact();
       }
 
+      setSetupProgress(92);
+      setSetupProgressLabel('Finalizing setup...');
+      await yieldToReact();
       const meta: CryptoMetadata = {
         master_salt: base64_encode(masterSalt),
         recovery_salts: recoverySalts,
+        argon: argonParams,
+        tier: tierId,
       };
       const wrappers: VaultWrappers = {
         master: masterWrapper,
@@ -223,6 +260,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
       mvkBytes.fill(0);
       onStoreMasterKey?.(masterKey);
       onNewCodes?.(codes);
+      setSetupProgress(100);
+      setSetupProgressLabel('Done!');
+      await yieldToReact();
       await onSetupComplete?.(enableBiometricOn);
     } catch (err) {
       console.error(err);
@@ -240,13 +280,82 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
     autoDestructAttempts: 5,
     autoDestructInactivity: 0,
     destructCountdownSeconds: 30,
+    minPasswordLength: 30,
+    settingsPasswordRequired: false,
+    biometricAllowed: true,
+    vaultPinAllowed: true,
+    backupFilenameRandom: false,
+    recoveryFilenameRandom: false,
+    argon: { iterations: 2, memoryKib: 19456, parallelism: 1 },
+    argonRecovery: { iterations: 2, memoryKib: 19456, parallelism: 1 },
+    argonPin: { iterations: 2, memoryKib: 32768, parallelism: 1 },
+  };
+
+  const THREAT_MODEL_TIER2 = {
+    autoBlurSeconds: 10,
+    autoLockSeconds: 15,
+    failedAttemptsThreshold: 3,
+    progressiveLockSeconds: 120,
+    autoDestructEnabled: false,
+    autoDestructAttempts: 5,
+    autoDestructInactivity: 0,
+    destructCountdownSeconds: 30,
+    minPasswordLength: 30,
+    settingsPasswordRequired: false,
+    biometricAllowed: true,
+    vaultPinAllowed: true,
+    backupFilenameRandom: true,
+    recoveryFilenameRandom: true,
+    argon: { iterations: 3, memoryKib: 65536, parallelism: 1 },
+    argonRecovery: { iterations: 3, memoryKib: 65536, parallelism: 1 },
+    argonPin: { iterations: 3, memoryKib: 65536, parallelism: 1 },
+  };
+
+  const THREAT_MODEL_TIER3 = {
+    autoBlurSeconds: 5,
+    autoLockSeconds: 10,
+    failedAttemptsThreshold: 2,
+    progressiveLockSeconds: 300,
+    autoDestructEnabled: true,
+    autoDestructAttempts: 5,
+    autoDestructInactivity: 86400,
+    destructCountdownSeconds: 30,
+    minPasswordLength: 40,
+    settingsPasswordRequired: true,
+    biometricAllowed: false,
+    vaultPinAllowed: false,
+    backupFilenameRandom: true,
+    recoveryFilenameRandom: true,
+    argon: { iterations: 10, memoryKib: 131072, parallelism: 1 },
+    argonRecovery: { iterations: 10, memoryKib: 131072, parallelism: 1 },
+    argonPin: { iterations: 10, memoryKib: 131072, parallelism: 1 },
+  };
+
+  const THREAT_MODEL_TIER4 = {
+    autoBlurSeconds: 2,
+    autoLockSeconds: 5,
+    failedAttemptsThreshold: 2,
+    progressiveLockSeconds: 0,
+    autoDestructEnabled: true,
+    autoDestructAttempts: 3,
+    autoDestructInactivity: 43200,
+    destructCountdownSeconds: 15,
+    minPasswordLength: 50,
+    settingsPasswordRequired: true,
+    biometricAllowed: false,
+    vaultPinAllowed: false,
+    backupFilenameRandom: true,
+    recoveryFilenameRandom: true,
+    argon: { iterations: 19, memoryKib: 262144, parallelism: 1 },
+    argonRecovery: { iterations: 19, memoryKib: 262144, parallelism: 1 },
+    argonPin: { iterations: 19, memoryKib: 262144, parallelism: 1 },
   };
 
   const TIERS = [
-    { id: 1, icon: Target, nameKey: 'tier1Name', descKey: 'tier1Desc', blocked: false },
-    { id: 2, icon: Shield, nameKey: 'tier2Name', descKey: 'tier2Desc', blocked: true },
-    { id: 3, icon: ShieldAlert, nameKey: 'tier3Name', descKey: 'tier3Desc', blocked: true },
-    { id: 4, icon: Skull, nameKey: 'tier4Name', descKey: 'tier4Desc', blocked: true },
+    { id: 1, icon: Target, nameKey: 'tier1Name', descKey: 'tier1Desc', blocked: false, config: THREAT_MODEL_TIER1 },
+    { id: 2, icon: Shield, nameKey: 'tier2Name', descKey: 'tier2Desc', blocked: true, config: THREAT_MODEL_TIER2 },
+    { id: 3, icon: ShieldAlert, nameKey: 'tier3Name', descKey: 'tier3Desc', blocked: true, config: THREAT_MODEL_TIER3 },
+    { id: 4, icon: Skull, nameKey: 'tier4Name', descKey: 'tier4Desc', blocked: true, config: THREAT_MODEL_TIER4 },
   ] as const;
 
   const WORD_LIST = [
@@ -512,6 +621,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
                 <p className="text-zinc-400 text-xs text-center">{t('threatModelDesc')}</p>
               </div>
 
+              {(!selectedTier || TIERS.find(t => t.id === selectedTier)?.config.biometricAllowed !== false) && (
               <div className="w-full max-w-sm mb-3 glass-card border border-white/10 rounded-2xl p-3">
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-xl ${biometricAvailable ? 'bg-neon-green/20 text-neon-green' : 'bg-zinc-800 text-zinc-500'}`}>
@@ -544,16 +654,19 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
                   </div>
                 </div>
               </div>
+              )}
 
               <div className="w-full max-w-sm space-y-2">
                 {TIERS.map((tier) => {
                   const Icon = tier.icon;
+                  const cfg = tier.config;
                   const isSelected = selectedTier === tier.id;
                   const isBlocked = tier.blocked;
                   const showBlockedWarning = blockedTier === tier.id && isBlocked;
+                  const showInfo = infoTier === tier.id;
                   return (
                     <div key={tier.id}>
-                      <button
+                      <div
                         onClick={() => {
                           if (isBlocked) {
                             setBlockedTier(tier.id);
@@ -562,8 +675,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
                             setSelectedTier(tier.id);
                             setBlockedTier(null);
                           }
+                          setInfoTier(null);
                         }}
-                        className={`w-full glass-card border rounded-2xl p-3 text-left transition-all active:scale-[0.98] ${
+                        className={`w-full glass-card border rounded-2xl p-3 text-left transition-all active:scale-[0.98] flex items-center gap-3 cursor-pointer ${
                           isSelected
                             ? 'border-neon-green/50 bg-neon-green/5'
                             : showBlockedWarning
@@ -571,69 +685,370 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
                             : 'border-white/10 hover:border-white/20'
                         }`}
                       >
-                        <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-xl ${
-                            isSelected ? 'bg-neon-green/20 text-neon-green' :
-                            isBlocked ? 'bg-zinc-800 text-zinc-500' : 'bg-zinc-800 text-zinc-300'
-                          }`}>
-                            <Icon size={18} />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className={`text-xs font-semibold ${
-                                isSelected ? 'text-neon-green' : isBlocked ? 'text-zinc-500' : 'text-white'
-                              }`}>{t(tier.nameKey as any)}</span>
-                              {isSelected && (
-                                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-neon-green/20 text-neon-green font-medium">{t('tierRecommended')}</span>
-                              )}
-                              {isBlocked && (
-                                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-zinc-800 text-zinc-500 font-medium">{t('tierNotAvailable')}</span>
-                              )}
-                            </div>
-                            <p className={`text-[10px] mt-0.5 ${
-                              isBlocked ? 'text-zinc-600' : 'text-zinc-400'
-                            }`}>{t(tier.descKey as any)}</p>
-                          </div>
+                        <div className={`p-2 rounded-xl shrink-0 ${
+                          isSelected ? 'bg-neon-green/20 text-neon-green' :
+                          isBlocked ? 'bg-zinc-800 text-zinc-500' : 'bg-zinc-800 text-zinc-300'
+                        }`}>
+                          <Icon size={18} />
                         </div>
-                      </button>
-                      {showBlockedWarning && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          className="overflow-hidden"
-                        >
-                          <div className="mt-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
-                            <div className="flex items-start gap-2">
-                              <AlertTriangle size={14} className="text-red-400 shrink-0 mt-0.5" />
-                              <div>
-                                <p className="text-[11px] font-bold text-red-400 mb-1">{t('auditLimitationTitle')}</p>
-                                <p className="text-[10px] text-red-300/80 leading-relaxed">{t('auditLimitationBody')}</p>
-                              </div>
-                            </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs font-semibold ${
+                              isSelected ? 'text-neon-green' : isBlocked ? 'text-zinc-500' : 'text-white'
+                            }`}>{t(tier.nameKey as any)}</span>
+                            {isSelected && (
+                              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-neon-green/20 text-neon-green font-medium">{t('tierRecommended')}</span>
+                            )}
+                            {isBlocked && (
+                              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-zinc-800 text-zinc-500 font-medium">{t('tierNotAvailable')}</span>
+                            )}
                           </div>
-                        </motion.div>
-                      )}
+                          <p className={`text-[10px] mt-0.5 ${
+                            isBlocked ? 'text-zinc-600' : 'text-zinc-400'
+                          }`}>{t(tier.descKey as any)}</p>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setInfoTier(showInfo ? null : tier.id);
+                          }}
+                          className={`p-1.5 rounded-lg transition-colors shrink-0 ${
+                            showInfo ? 'bg-neon-green/20 text-neon-green' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800'
+                          }`}
+                          aria-label="View security settings"
+                        >
+                          <HelpCircle size={14} />
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
               </div>
 
-              <button
-                onClick={async () => {
-                  if (!selectedTier) return;
-                  onApplyThreatModel?.(THREAT_MODEL_TIER1);
-                  await completeSetup();
-                }}
-                disabled={!selectedTier || isProcessing}
-                className="mt-4 w-full max-w-sm py-3 rounded-xl text-black font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-[0.98] disabled:grayscale disabled:opacity-50"
-                style={{ backgroundColor: accentColor, boxShadow: `0 0 20px rgba(${accentRgb}, 0.3)` }}
-              >
-                {isProcessing ? (
-                  <span className="flex items-center justify-center gap-2"><Loader2 size={16} className="animate-spin" />{t('processing')}</span>
-                ) : (
-                  <>{t('continueButton')} <ChevronRight size={18} /></>
-                )}
-              </button>
+              {blockedTier !== null && (() => {
+                const tier = TIERS.find(t => t.id === blockedTier);
+                if (!tier) return null;
+                return (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+                    onClick={() => setBlockedTier(null)}
+                  >
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="relative w-full max-w-xs glass-card border border-red-500/20 rounded-2xl p-5"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 rounded-xl bg-red-500/20 text-red-400 shrink-0 mt-0.5">
+                          <AlertTriangle size={18} />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-red-400 mb-2">{t('auditLimitationTitle')}</p>
+                          <p className="text-[10px] text-red-300/80 leading-relaxed">{t('auditLimitationBody')}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                );
+              })()}
+
+              {infoTier !== null && (() => {
+                const tier = TIERS.find(t => t.id === infoTier);
+                if (!tier) return null;
+                const cfg = tier.config;
+                const fmtInactivity = (s: number) => {
+                  if (s === 0) return t('inactivityOff');
+                  if (s < 60) return `${s}s`;
+                  if (s < 3600) return `${Math.floor(s / 60)}m`;
+                  if (s < 86400) return `${Math.floor(s / 3600)}h`;
+                  return `${Math.floor(s / 86400)}d`;
+                };
+                return (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+                    onClick={() => setInfoTier(null)}
+                  >
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="relative w-full max-w-xs glass-card border border-white/10 rounded-2xl p-5"
+                    >
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="p-2 rounded-xl bg-neon-green/20 text-neon-green">
+                          <tier.icon size={18} />
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-white">{t(tier.nameKey as any)}</p>
+                          <p className="text-[9px] text-zinc-500">{t('tierInfoTitle')}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between text-[10px]">
+                          <span className="text-zinc-400">{t('modelBlur')}</span>
+                          <span className="text-white font-medium">{cfg.autoBlurSeconds}s</span>
+                        </div>
+                        <div className="flex justify-between text-[10px]">
+                          <span className="text-zinc-400">{t('modelLock')}</span>
+                          <span className="text-white font-medium">{cfg.autoLockSeconds}s</span>
+                        </div>
+                        <div className="flex justify-between text-[10px]">
+                          <span className="text-zinc-400">{t('modelAttempts')}</span>
+                          <span className="text-white font-medium">{cfg.failedAttemptsThreshold}</span>
+                        </div>
+                        <div className="flex justify-between text-[10px]">
+                          <span className="text-zinc-400">{t('modelLockDur')}</span>
+                          <span className="text-white font-medium">{cfg.progressiveLockSeconds === 0 ? t('recoveryOnly') : `${cfg.progressiveLockSeconds}s`}</span>
+                        </div>
+                        <div className="border-t border-white/5 my-1.5" />
+                        <div className="flex justify-between text-[10px]">
+                          <span className="text-zinc-400">{t('modelDestruct')}</span>
+                          <span className={`font-medium ${cfg.autoDestructEnabled ? 'text-red-400' : 'text-zinc-500'}`}>{cfg.autoDestructEnabled ? t('on') : t('off')}</span>
+                        </div>
+                        {cfg.autoDestructEnabled && (
+                          <>
+                            <div className="flex justify-between text-[10px]">
+                              <span className="text-zinc-400">{t('modelDestructAtt')}</span>
+                              <span className="text-white font-medium">{cfg.autoDestructAttempts}</span>
+                            </div>
+                            <div className="flex justify-between text-[10px]">
+                              <span className="text-zinc-400">{t('modelDestructIn')}</span>
+                              <span className="text-white font-medium">{fmtInactivity(cfg.autoDestructInactivity)}</span>
+                            </div>
+                            <div className="flex justify-between text-[10px]">
+                              <span className="text-zinc-400">{t('modelDestructCount')}</span>
+                              <span className="text-white font-medium">{cfg.destructCountdownSeconds}s</span>
+                            </div>
+                          </>
+                        )}
+                        <div className="border-t border-white/5 my-1.5" />
+                        <div className="space-y-0.5">
+                          <div className="grid grid-cols-4 gap-x-2 text-[8px] text-zinc-600 font-mono mb-0.5">
+                            <span />
+                            <span className="text-right">t</span>
+                            <span className="text-right">m</span>
+                            <span className="text-right">p</span>
+                          </div>
+                          {([
+                            { label: 'master', params: cfg.argon },
+                            { label: 'recovery', params: cfg.argonRecovery },
+                            { label: 'PIN', params: cfg.argonPin },
+                          ] as const).map(({ label, params }) => {
+                            const mem = (params.memoryKib / 1024).toFixed(0);
+                            return (
+                              <div key={label} className="grid grid-cols-4 gap-x-2 text-[9px] font-mono">
+                                <span className="text-zinc-500">{label}</span>
+                                <span className="text-zinc-300 text-right">{params.iterations}</span>
+                                <span className="text-zinc-300 text-right">{mem}M</span>
+                                <span className="text-zinc-300 text-right">{params.parallelism}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <div className="border-t border-white/5 my-1.5" />
+                        <div className="space-y-0.5">
+                          {([
+                            { label: 'min pwd', value: `${cfg.minPasswordLength} chars` },
+                            { label: 'settings pwd', value: cfg.settingsPasswordRequired ? 'required' : 'optional' },
+                            { label: 'biometric', value: cfg.biometricAllowed ? 'allowed' : 'disabled' },
+                            { label: 'vault PIN', value: cfg.vaultPinAllowed ? 'allowed' : 'disabled' },
+                            { label: 'backup name', value: cfg.backupFilenameRandom ? 'random' : 'descriptive' },
+                            { label: 'recovery file', value: cfg.recoveryFilenameRandom ? 'random' : 'descriptive' },
+                          ] as const).map(({ label, value }) => (
+                            <div key={label} className="flex justify-between text-[9px]">
+                              <span className="text-zinc-500">{label}</span>
+                              <span className="text-zinc-300">{value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-4 pt-3 border-t border-white/5">
+                        {cfg.autoDestructEnabled ? (
+                          <span className="text-[9px] text-red-400/70">{t('warning')}: {t('auditLimitationTitle')}</span>
+                        ) : (
+                          <span className="text-[9px] text-zinc-600">{t('auditLimitationTitle')}</span>
+                        )}
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                );
+              })()}
+
+              {confirmTier !== null && (() => {
+                const tier = TIERS.find(t => t.id === confirmTier);
+                if (!tier) return null;
+                const cfg = tier.config;
+                const Icon = tier.icon;
+                const fmtInactivity = (s: number) => {
+                  if (s === 0) return t('inactivityOff');
+                  if (s < 60) return `${s}s`;
+                  if (s < 3600) return `${Math.floor(s / 60)}m`;
+                  if (s < 86400) return `${Math.floor(s / 3600)}h`;
+                  return `${Math.floor(s / 86400)}d`;
+                };
+                return (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+                    onClick={() => setConfirmTier(null)}
+                  >
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="relative w-full max-w-xs glass-card border border-white/10 rounded-2xl p-5"
+                    >
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="p-2 rounded-xl bg-neon-green/20 text-neon-green">
+                          <Icon size={18} />
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-white">{t(tier.nameKey as any)}</p>
+                          <p className="text-[9px] text-zinc-500">{t('tierInfoTitle')}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between text-[10px]">
+                          <span className="text-zinc-400">{t('modelBlur')}</span>
+                          <span className="text-white font-medium">{cfg.autoBlurSeconds}s</span>
+                        </div>
+                        <div className="flex justify-between text-[10px]">
+                          <span className="text-zinc-400">{t('modelLock')}</span>
+                          <span className="text-white font-medium">{cfg.autoLockSeconds}s</span>
+                        </div>
+                        <div className="flex justify-between text-[10px]">
+                          <span className="text-zinc-400">{t('modelAttempts')}</span>
+                          <span className="text-white font-medium">{cfg.failedAttemptsThreshold}</span>
+                        </div>
+                        <div className="flex justify-between text-[10px]">
+                          <span className="text-zinc-400">{t('modelLockDur')}</span>
+                          <span className="text-white font-medium">{cfg.progressiveLockSeconds === 0 ? t('recoveryOnly') : `${cfg.progressiveLockSeconds}s`}</span>
+                        </div>
+                        <div className="border-t border-white/5 my-1.5" />
+                        <div className="flex justify-between text-[10px]">
+                          <span className="text-zinc-400">{t('modelDestruct')}</span>
+                          <span className={`font-medium ${cfg.autoDestructEnabled ? 'text-red-400' : 'text-zinc-500'}`}>{cfg.autoDestructEnabled ? t('on') : t('off')}</span>
+                        </div>
+                        {cfg.autoDestructEnabled && (
+                          <>
+                            <div className="flex justify-between text-[10px]">
+                              <span className="text-zinc-400">{t('modelDestructAtt')}</span>
+                              <span className="text-white font-medium">{cfg.autoDestructAttempts}</span>
+                            </div>
+                            <div className="flex justify-between text-[10px]">
+                              <span className="text-zinc-400">{t('modelDestructIn')}</span>
+                              <span className="text-white font-medium">{fmtInactivity(cfg.autoDestructInactivity)}</span>
+                            </div>
+                            <div className="flex justify-between text-[10px]">
+                              <span className="text-zinc-400">{t('modelDestructCount')}</span>
+                              <span className="text-white font-medium">{cfg.destructCountdownSeconds}s</span>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                      <div className="border-t border-white/5 my-1.5" />
+                      <div className="space-y-0.5">
+                        <div className="grid grid-cols-4 gap-x-2 text-[8px] text-zinc-600 font-mono mb-0.5">
+                          <span />
+                          <span className="text-right">t</span>
+                          <span className="text-right">m</span>
+                          <span className="text-right">p</span>
+                        </div>
+                        {([
+                          { label: 'master', params: cfg.argon },
+                          { label: 'recovery', params: cfg.argonRecovery },
+                          { label: 'PIN', params: cfg.argonPin },
+                        ] as const).map(({ label, params }) => {
+                          const mem = (params.memoryKib / 1024).toFixed(0);
+                          return (
+                            <div key={label} className="grid grid-cols-4 gap-x-2 text-[9px] font-mono">
+                              <span className="text-zinc-500">{label}</span>
+                              <span className="text-zinc-300 text-right">{params.iterations}</span>
+                              <span className="text-zinc-300 text-right">{mem}M</span>
+                              <span className="text-zinc-300 text-right">{params.parallelism}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="border-t border-white/5 my-1.5" />
+                      <div className="space-y-0.5">
+                        {([
+                          { label: 'min pwd', value: `${cfg.minPasswordLength} chars` },
+                          { label: 'settings pwd', value: cfg.settingsPasswordRequired ? 'required' : 'optional' },
+                          { label: 'biometric', value: cfg.biometricAllowed ? 'allowed' : 'disabled' },
+                          { label: 'vault PIN', value: cfg.vaultPinAllowed ? 'allowed' : 'disabled' },
+                          { label: 'backup name', value: cfg.backupFilenameRandom ? 'random' : 'descriptive' },
+                          { label: 'recovery file', value: cfg.recoveryFilenameRandom ? 'random' : 'descriptive' },
+                        ] as const).map(({ label, value }) => (
+                          <div key={label} className="flex justify-between text-[9px]">
+                            <span className="text-zinc-500">{label}</span>
+                            <span className="text-zinc-300">{value}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        onClick={async () => {
+                          if (password.length < (cfg as any).minPasswordLength) {
+                            setError(t('passwordTooShort'));
+                            return;
+                          }
+                          setConfirmTier(null);
+                          if (tier) onApplyThreatModel?.(cfg);
+                          await completeSetup(cfg.argon, confirmTier);
+                        }}
+                        className="mt-3 text-[10px] text-zinc-400 hover:text-white transition-colors flex items-center justify-center gap-1 w-full"
+                      >
+                        {t('continueButton')} <ChevronRight size={12} />
+                      </button>
+                    </motion.div>
+                  </motion.div>
+                );
+              })()}
+
+              {isProcessing ? (
+                <div className="mt-4 w-full max-w-sm glass-card border border-white/10 rounded-2xl p-5 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Loader2 size={18} className="animate-spin text-neon-green shrink-0" />
+                    <span className="text-xs text-zinc-300 font-medium">{setupProgressLabel}</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-zinc-800 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-300 ease-out"
+                      style={{ backgroundColor: accentColor, width: `${Math.max(setupProgress, 2)}%` }}
+                    />
+                  </div>
+                  <p className="text-[10px] text-zinc-500 text-right">{setupProgress}%</p>
+                </div>
+              ) : (
+                <div className="mt-4 w-full max-w-sm">
+                  <button
+                    onClick={() => {
+                      if (!selectedTier) return;
+                      setConfirmTier(selectedTier);
+                    }}
+                    disabled={!selectedTier}
+                    className="w-full py-3 rounded-xl text-black font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-[0.98] disabled:grayscale disabled:opacity-50"
+                    style={{ backgroundColor: accentColor, boxShadow: `0 0 20px rgba(${accentRgb}, 0.3)` }}
+                  >
+                    {t('continueButton')} <ChevronRight size={18} />
+                  </button>
+                </div>
+              )}
 
               <button
                 onClick={() => { setSetupStep('create'); setSelectedTier(null); setBlockedTier(null); }}
@@ -660,8 +1075,10 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className={`w-full max-w-md glass-card border ${isLocked ? 'border-red-500/50' : 'border-white/10'} rounded-3xl p-5 relative mt-6 md:mt-10`}
+        className={`w-full max-w-md glass-card border ${isLocked ? 'border-red-500/50' : 'border-white/10'} rounded-3xl p-5 relative mt-6 md:mt-10 overflow-hidden`}
       >
+        {!isLocked && <LiquidGlassOverlay />}
+        <div className="relative z-10">
         <AnimatePresence mode="wait">
           {isRecoveryMode ? (
             recoveryStep === 1 ? (
@@ -967,6 +1384,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
             </motion.div>
           )}
         </AnimatePresence>
+        </div>
       </motion.div>
     </div>
   );

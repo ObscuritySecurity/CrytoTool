@@ -77,9 +77,17 @@ export interface MetadataPlaintext {
   externalUrl?: string;
 }
 
+export interface ArgonParams {
+  iterations: number;
+  memoryKib: number;
+  parallelism: number;
+}
+
 export interface CryptoMetadata {
   master_salt: string;
   recovery_salts: string[];
+  argon?: ArgonParams;
+  tier?: number;
 }
 
 export interface VaultWrappers {

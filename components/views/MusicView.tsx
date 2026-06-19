@@ -43,7 +43,7 @@ export const MusicView: React.FC<MusicViewProps> = ({ items, onPlay, currentSong
       <div className="absolute top-[-10%] right-[-20%] w-[300px] h-[300px] bg-neon-green/5 blur-[100px] rounded-full pointer-events-none" />
 
       {/* Header Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-2 no-scrollbar px-1 z-10 shrink-0">
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar px-1 z-10 shrink-0">
         {[
           { id: 'songs', label: t('songs') },
           { id: 'albums', label: t('albums') },
@@ -61,7 +61,7 @@ export const MusicView: React.FC<MusicViewProps> = ({ items, onPlay, currentSong
       </div>
 
       {filteredItems.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-muted px-8 pt-56">
+        <div className="flex-1 flex flex-col items-center justify-center text-muted px-8 pt-10">
           <div className="w-20 h-20 rounded-full bg-surface border border-border flex items-center justify-center mb-5">
             <Music size={36} className="opacity-30" />
           </div>

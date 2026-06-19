@@ -2,13 +2,14 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  X, Settings, Edit, Trash2, Share2, Star, 
-  Copy, FolderOpen, Info, Download, Lock, Unlock, ShieldCheck,
-  MoreHorizontal, Eye, Archive, FolderInput, Move, Square
+  X, Settings, Edit, Trash2,
+  Copy, FolderOpen, Lock, Unlock, ShieldCheck,
+  MoreHorizontal, Archive, Move, Square
 } from 'lucide-react';
 import { FileSystemItem } from '../types';
 import { is_safe_image_url as isSafeImageUrl } from '../crypto-core/index';
 import { useI18n } from '../locales/i18nContext';
+import { LiquidGlassOverlay } from './LiquidGlassOverlay';
 
 interface FileActionMenuProps {
   isOpen: boolean;
@@ -40,17 +41,20 @@ export const FileActionMenu: React.FC<FileActionMenuProps> = ({ isOpen, onClose,
         whileTap={{ scale: 0.95 }}
         onClick={onClick}
         className={`
-          flex flex-col items-center justify-center gap-1 p-2.5 rounded-xl border transition-all
+          flex flex-col items-center justify-center gap-1 p-2.5 rounded-xl border transition-all relative overflow-hidden
           ${isDanger ? 'bg-red-500/10 border-red-500/30 hover:border-red-500' : 'bg-surface/30 border-border hover:bg-surface/60 hover:border-neon-green/50'}
         `}
       >
-        <div className={`
-          p-1.5 rounded-lg bg-surface/30 
-          ${isDanger ? 'text-red-500' : 'text-muted'}
-        `}>
-          {React.cloneElement(icon as React.ReactElement<any>, { size: 16 })}
-        </div>
-        <span className={`text-[7px] font-bold uppercase tracking-wider ${isDanger ? 'text-red-500' : 'text-primary'}`}>{label}</span>
+        <LiquidGlassOverlay intensity="subtle" />
+        <span className="relative z-10 flex flex-col items-center justify-center gap-1">
+          <div className={`
+            p-1.5 rounded-lg bg-surface/30 
+            ${isDanger ? 'text-red-500' : 'text-muted'}
+          `}>
+            {React.cloneElement(icon as React.ReactElement<any>, { size: 16 })}
+          </div>
+          <span className={`text-[7px] font-bold uppercase tracking-wider ${isDanger ? 'text-red-500' : 'text-primary'}`}>{label}</span>
+        </span>
       </motion.button>
     );
   };
@@ -67,14 +71,17 @@ export const FileActionMenu: React.FC<FileActionMenuProps> = ({ isOpen, onClose,
         whileTap={{ scale: 0.98 }}
         onClick={onClick}
         className={`
-          w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left
+          w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left relative overflow-hidden
           ${isDanger ? 'hover:bg-red-500/10' : 'hover:bg-surface/50 hover:border-neon-green/20'}
         `}
       >
-        <div className={`p-1.5 rounded-lg bg-surface/30 ${isDanger ? 'text-red-500' : 'text-muted'}`}>
-          {React.cloneElement(icon as React.ReactElement<any>, { size: 16 })}
-        </div>
-        <span className={`text-sm font-medium ${isDanger ? 'text-red-500' : 'text-primary'}`}>{label}</span>
+        <LiquidGlassOverlay intensity="subtle" />
+        <span className="relative z-10 flex items-center gap-3">
+          <div className={`p-1.5 rounded-lg bg-surface/30 ${isDanger ? 'text-red-500' : 'text-muted'}`}>
+            {React.cloneElement(icon as React.ReactElement<any>, { size: 16 })}
+          </div>
+          <span className={`text-sm font-medium ${isDanger ? 'text-red-500' : 'text-primary'}`}>{label}</span>
+        </span>
       </motion.button>
     );
   };
@@ -120,17 +127,10 @@ export const FileActionMenu: React.FC<FileActionMenuProps> = ({ isOpen, onClose,
             </div>
 
             <div className="flex-1 overflow-y-auto px-5 pb-6 space-y-4 custom-scrollbar">
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                     <ActionBtn icon={<Lock />} label={t('encrypt')} onClick={() => handleAction('encrypt')} />
                     <ActionBtn icon={<Unlock />} label={t('decrypt')} onClick={() => handleAction('decrypt')} />
                     <ActionBtn icon={<Settings />} label={t('style')} onClick={() => handleAction('customize')} />
-                    <ActionBtn icon={<Share2 />} label={t('share')} onClick={() => handleAction('share')} />
-                </div>
-
-                <div className="grid grid-cols-3 gap-2">
-                    <ActionBtn icon={<Star className={item.isFavorite ? "fill-neon-green" : ""} />} label={t('favorite')} onClick={() => handleAction('favorite')} />
-                    <ActionBtn icon={<Eye />} label={t('previewAction')} onClick={() => handleAction('preview')} />
-                    <ActionBtn icon={<FolderInput />} label={t('moveToVault')} onClick={() => handleAction('moveToVault')} />
                 </div>
 
                 <div className="rounded-2xl glass-card border border-border overflow-hidden">
@@ -139,17 +139,18 @@ export const FileActionMenu: React.FC<FileActionMenuProps> = ({ isOpen, onClose,
                     <ListBtn icon={<Square />} label={t('select')} onClick={() => handleAction('select')} />
                     <ListBtn icon={<Move />} label={t('moveAction')} onClick={() => handleAction('move')} />
                     <ListBtn icon={<Archive />} label={t('copyFile')} onClick={() => handleAction('copy')} />
-                    <ListBtn icon={<Download />} label={t('download')} onClick={() => handleAction('download')} />
-                    <ListBtn icon={<Info />} label={t('info')} onClick={() => handleAction('info')} />
                 </div>
 
                 <motion.button 
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleAction('delete')}
-                    className="w-full py-3 rounded-xl border border-red-500/30 bg-red-500/10 text-red-500 font-bold uppercase tracking-wider text-xs flex items-center justify-center gap-2 hover:bg-red-500/20 hover:border-red-500/50 transition-all"
+                    className="w-full py-3 rounded-xl border border-red-500/30 bg-red-500/10 text-red-500 font-bold uppercase tracking-wider text-xs flex items-center justify-center gap-2 hover:bg-red-500/20 hover:border-red-500/50 transition-all relative overflow-hidden"
                 >
-                  <Trash2 size={14} />
-                  {t('deleteFile')}
+                  <LiquidGlassOverlay intensity="subtle" />
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    <Trash2 size={14} />
+                    {t('deleteFile')}
+                  </span>
                 </motion.button>
             </div>
           </motion.div>

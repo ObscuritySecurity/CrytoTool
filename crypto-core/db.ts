@@ -3,7 +3,7 @@ import { encrypt, encrypt_string, decrypt_string, metadata_encrypt, metadata_dec
 
 let vaultKey: Uint8Array | null = null;
 
-export function setVaultKey(key: Uint8Array | null) { vaultKey = key; }
+export function setVaultKey(key: Uint8Array | null) { vaultKey = key ? new Uint8Array(key) : null; }
 export function getVaultKey(): Uint8Array | null { return vaultKey; }
 
 const DB_NAME = 'CrytoToolVault';

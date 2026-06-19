@@ -4,11 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, ShieldCheck, Plus, FolderLock, 
   MoreVertical, Search, Lock, CreditCard, FileKey, 
-  Globe, StickyNote, X, ChevronRight, Hash, Copy, Check, Trash2, Eye, EyeOff
+  Globe, StickyNote, X, ChevronRight, Hash, Copy, Check, Trash2, Eye, EyeOff,
+  Vault as SafeIcon
 } from 'lucide-react';
 import { useI18n } from '../../locales/i18nContext';
 import { vault_encrypt_keys, vault_decrypt_keys } from '../../crypto-core/index';
 import { getVaultKey } from '../../crypto-core/db';
+import { LiquidGlassOverlay } from '../LiquidGlassOverlay';
 
 interface VaultKeyEntry {
   id: string;
@@ -169,6 +171,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
                   </button>
                  <div>
                     <h2 className="text-xl font-bold tracking-wide text-white flex items-center gap-2">
+                        <SafeIcon size={22} className="text-neon-green" />
                         {activeCategory ? activeCategory.name : (t('keyStorage') || 'Stocare Chei')} 
                     </h2>
                     {activeCategory && <p className="text-[10px] text-zinc-500 uppercase tracking-widest">{activeCategory.count} {t('elementsLabel')}</p>}
@@ -240,7 +243,8 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: idx * 0.05 }}
                                 className="relative group p-4 sm:p-5 rounded-xl sm:rounded-[24px] glass-card hover:border-neon-green/50 transition-all text-left flex flex-col justify-between h-32 sm:h-36 overflow-hidden"
-                            >
+                                >
+                                <LiquidGlassOverlay />
                                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity transform scale-150 origin-top-right">
                                     {React.cloneElement(CATEGORY_ICONS[cat.icon] as React.ReactElement<any>, { size: 60 })}
                                 </div>
@@ -273,9 +277,12 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
                               setTotalCount(0);
                             }
                           }}
-                          className="w-full p-3 rounded-xl bg-red-500/5 border border-red-500/20 text-red-400 text-xs font-bold hover:bg-red-500/10 transition-colors flex items-center justify-center gap-2"
+                          className="w-full p-3 rounded-xl bg-red-500/5 border border-red-500/20 text-red-400 text-xs font-bold hover:bg-red-500/10 transition-colors flex items-center justify-center gap-2 relative overflow-hidden"
                         >
-                          <Trash2 size={14} /> {t('vaultDeleteAll')}
+                          <LiquidGlassOverlay intensity="subtle" />
+                          <span className="relative z-10 flex items-center justify-center gap-2">
+                            <Trash2 size={14} /> {t('vaultDeleteAll')}
+                          </span>
                         </button>
                       </div>
                     )}

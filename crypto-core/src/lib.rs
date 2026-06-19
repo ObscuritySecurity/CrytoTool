@@ -8,7 +8,7 @@ pub mod key_wrapping;
 pub mod backup_crypto;
 pub mod metadata_crypto;
 pub mod security;
-pub mod platform;
+pub mod threat_model;
 pub mod sanitize;
 pub mod vault_storage;
 

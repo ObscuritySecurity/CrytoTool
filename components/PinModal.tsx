@@ -2,17 +2,19 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Delete, Lock, ShieldAlert, CheckCircle, X } from 'lucide-react';
-import { validate_pin, get_backoff_time, pin_verify } from '../crypto-core/index';
+import { validate_pin, get_backoff_time, pin_verify, get_argon_params } from '../crypto-core/index';
 import { useI18n } from '../locales/i18nContext';
+import { LiquidGlassOverlay } from './LiquidGlassOverlay';
 
 interface PinModalProps {
   mode: 'setup' | 'unlock' | 'disable';
   onSuccess: (pin: string) => void;
   onClose: () => void;
   savedPin?: string | null;
+  tier?: number;
 }
 
-export const PinModal: React.FC<PinModalProps> = ({ mode, onSuccess, onClose, savedPin }) => {
+export const PinModal: React.FC<PinModalProps> = ({ mode, onSuccess, onClose, savedPin, tier }) => {
   const { t } = useI18n();
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
@@ -84,7 +86,9 @@ export const PinModal: React.FC<PinModalProps> = ({ mode, onSuccess, onClose, sa
       if (pin.length !== 6) { setError(t('pinIncomplete')); return; }
       
       if (savedPin && typeof savedPin === 'string' && savedPin.length === 64) {
-        const isValid = await pin_verify(pin, savedPin, 2, 32768, 1);
+        const tierId = tier || 1;
+        const pinParams = JSON.parse(get_argon_params('pin', tierId));
+        const isValid = await pin_verify(pin, savedPin, pinParams.iterations, pinParams.memorySize, pinParams.parallelism);
         if (isValid) {
           onSuccess(pin);
         } else {
@@ -138,6 +142,7 @@ export const PinModal: React.FC<PinModalProps> = ({ mode, onSuccess, onClose, sa
         exit={{ scale: 0.9, opacity: 0 }}
         className="w-full max-w-sm glass-card rounded-[40px] p-8 relative overflow-hidden"
       >
+          <LiquidGlassOverlay />
         <div className="flex flex-col items-center mb-8">
           <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 ${lockUntil ? 'bg-red-500/10 text-red-500 animate-pulse' : 'bg-neon-green/10 text-neon-green'}`}>
             {lockUntil ? <ShieldAlert size={32} /> : <Lock size={32} />}

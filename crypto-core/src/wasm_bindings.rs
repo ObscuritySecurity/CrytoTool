@@ -252,8 +252,8 @@ pub fn pin_verify(
 }
 
 #[wasm_bindgen]
-pub fn get_argon_params(purpose: &str, is_mobile: bool) -> Result<String, JsValue> {
-    crate::platform::get_argon_params(purpose, is_mobile).map_err(|e| JsValue::from_str(&e))
+pub fn get_argon_params(purpose: &str, tier: u32) -> Result<String, JsValue> {
+    crate::threat_model::get_argon_params(purpose, tier).map_err(|e| JsValue::from_str(&e))
 }
 
 #[wasm_bindgen]

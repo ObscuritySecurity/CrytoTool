@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FileSystemItem, AppTheme } from '../types';
 import { is_safe_image_url as isSafeImageUrl } from '../crypto-core/index';
 import { useI18n } from '../locales/i18nContext';
+import { LiquidGlassOverlay } from './LiquidGlassOverlay';
 
 // Map namespaces
 const ICON_PACKS: Record<string, any> = {
@@ -111,9 +112,9 @@ export const FileItem: React.FC<{
 
   // Fallback Logic if no custom icon
   if (!RenderedIcon) {
-    if (item.name === 'Vault') {
-        DefaultIcon = LucideIcons.FolderLock; iconColorClass = "text-black"; iconBgClass = "bg-neon-green border-none";
-    } else if (item.name === 'Backup') {
+    if (item.name === t('systemFolderVault' as any)) {
+        DefaultIcon = LucideIcons.Vault; iconColorClass = "text-black"; iconBgClass = "bg-neon-green border-none";
+    } else if (item.name === t('systemFolderBackup' as any)) {
         DefaultIcon = LucideIcons.RefreshCcw; iconColorClass = "text-black"; iconBgClass = "bg-neon-green border-none"; 
     } else if (item.type === 'folder') {
         DefaultIcon = LucideIcons.Folder; iconColorClass = "text-black"; iconBgClass = "bg-neon-green border-none";
@@ -158,8 +159,9 @@ export const FileItem: React.FC<{
   return (
     <div 
       onClick={!isRenaming ? onClick : undefined}
-      className={`relative w-full p-4 rounded-2xl transition-all duration-200 cursor-pointer mb-4 glass-card hover:-translate-y-1 ${isRenaming ? 'border-neon-green ring-1 ring-neon-green' : isSelected ? 'border-neon-green ring-2 ring-neon-green' : 'active:scale-[0.98]'}`}
+      className={`relative w-full p-4 rounded-2xl transition-all duration-200 cursor-pointer mb-4 glass-card overflow-hidden hover:-translate-y-1 ${isRenaming ? 'border-neon-green ring-1 ring-neon-green' : isSelected ? 'border-neon-green ring-2 ring-neon-green' : 'active:scale-[0.98]'}`}
     >
+        <LiquidGlassOverlay />
       {isSelected && (
         <div className="absolute top-2 right-2 w-5 h-5 bg-neon-green rounded-full flex items-center justify-center">
           <LucideIcons.Check size={12} className="text-black" />
