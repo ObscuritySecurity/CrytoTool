@@ -9,7 +9,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { LiquidGlassOverlay } from './LiquidGlassOverlay';
 import { db, DBItem, getVaultKey } from '../crypto-core/db';
-import { is_safe_image_url as isSafeImageUrl, decrypt, base64_encode, base64_decode, metadata_encrypt, metadata_decrypt } from '../crypto-core/index';
+import { is_safe_image_url as isSafeImageUrl, decrypt, base64_encode, metadata_encrypt, metadata_decrypt } from '../crypto-core/index';
 import { FileSystemItem, ViewState, AppTheme, ThemeConfig, ThemeCategory } from '../types';
 import { useI18n } from '../locales/i18nContext';
 import { FullPlayer } from './FullPlayer';
