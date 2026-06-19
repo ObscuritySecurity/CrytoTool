@@ -8,11 +8,13 @@ on:
 
 permissions:
   contents: read
-  security-events: write
 
 jobs:
   scan:
     name: SAST scan
+    permissions:
+      contents: read
+      security-events: write
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -22,12 +24,12 @@ jobs:
 
       - name: Install opengrep
         env:
-          OPENGREP_VERSION: v1.22.0
-          OPENGREP_INSTALL_SHA: 9a4c0a68220618441608cd2bad4ff2eddccf8113
+          OPENGREP_VERSION: v1.23.0
         run: |
-          curl -fsSL "https://raw.githubusercontent.com/opengrep/opengrep/${OPENGREP_INSTALL_SHA}/install.sh" \
-            | bash -s -- -v "$OPENGREP_VERSION"
-          echo "$HOME/.opengrep/cli/latest" >> "$GITHUB_PATH"
+          curl -fsSL -o opengrep \
+            "https://github.com/opengrep/opengrep/releases/download/${OPENGREP_VERSION}/opengrep_manylinux_x86"
+          chmod +x opengrep
+          sudo mv opengrep /usr/local/bin/
 
       - name: Verify opengrep
         run: opengrep --version
