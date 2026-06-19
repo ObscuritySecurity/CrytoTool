@@ -1,0 +1,26 @@
+[package]
+name = "crypto-core-fuzz"
+version = "0.1.0"
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+crypto-core = { path = ".." }
+
+[profile.release]
+debug = 1
+
+[[bin]]
+name = "aes_gcm_roundtrip"
+path = "fuzz_targets/aes_gcm_roundtrip.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "base64_roundtrip"
+path = "fuzz_targets/base64_roundtrip.rs"
+test = false
+doc = false
