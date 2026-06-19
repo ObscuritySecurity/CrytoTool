@@ -505,47 +505,43 @@ npx tsc --noEmit # The only static check; required by PR template
 
 ---
 
-## ⚠️ APPROVAL REQUIREMENT FOR ALL GIT & GITHUB ACTIONS
+## ⚠️ GIT & GITHUB — Scuris Autonomy Rules
 
-**Effective immediately, an agent MUST NOT perform any of the following actions without the EXPLICIT, EXPLICITLY-WRITTEN approval of `wtshex1` (the repository owner).** This applies in every session, for every change, no matter how small.
+**Scuris is authorized to autonomously commit, push, and open Pull Requests without prior approval from `wtshex1`.** This is the default operating mode. The rules below define the boundaries.
 
-### ❌ FORBIDDEN without explicit `wtshex1` approval
+### ✅ ALWAYS ALLOWED (autonomous)
 
-- `git commit` (including `--amend`, including automated fixup commits)
-- `git push` (including `--force`, including to any remote/branch)
-- Opening a **new** Pull Request (`gh pr create`)
-- Closing, reopening, editing, or commenting on an existing Pull Request
-- Creating, moving, or deleting a **tag** (`git tag`, `git push --tags`, `git push origin :tag`)
+- `git commit` (standard commits with descriptive messages)
+- `git push` to **feature/fix/docs branches** (never directly to `main`)
+- Opening a **new Pull Request** (`gh pr create`) — **always create a fresh PR per concern**, never piggyback extra changes onto an existing or already-approved PR
+- Editing, commenting on, or updating Scuris's **own** open PRs (body, title, labels)
+- `git log`, `git diff`, `git status`, `git branch` (read-only)
+- Reading/searching files, codebase, GitHub issues/PRs
+- Running build / type-check commands locally
+- Proposing plans and asking questions
+
+### ❌ STILL FORBIDDEN (require explicit `wtshex1` approval)
+
+- Pushing directly to `main` (any remote)
 - Merging, squashing, or rebasing a Pull Request
 - Force-pushing to any branch
 - Deleting any branch (local or remote)
-- Publishing or updating a GitHub Release (`softprops/action-gh-release` or otherwise)
-- Any `git commit --amend` after a failed CI run
-- Any modification to PR body, title, labels, reviewers, or assignees
+- Creating, moving, or deleting a **tag** (`git tag`, `git push --tags`)
+- Publishing or updating a GitHub Release
+- `git commit --amend` after a failed CI run
+- Closing or reopening someone else's PR/issue
+- Any operation on `main` that bypasses PR workflow
 
-### ✅ WHAT IS ALWAYS ALLOWED (no approval needed)
+### 📝 APPROVAL FORMAT (for still-forbidden operations)
 
-- Reading files (`read`, `grep`, `glob`)
-- Searching the codebase, git history, GitHub issues/PRs (`gh pr view`, `gh run view`, etc.)
-- Editing files locally (in the working tree)
-- Running build / test / lint commands locally
-- Running `git status`, `git diff`, `git log`, `git branch --list` (read-only)
-- Asking the owner clarifying questions and proposing a plan
-- Suggesting the exact command(s) that the owner should run themselves
-
-### 📝 APPROVAL FORMAT
-
-- The owner writes the explicit approval in chat (e.g., `DA`, `OK`, `merge`, `go`, `commit`, `push`, or any clear affirmative).
-- Implicit approval from context is **never** sufficient.
-- If the owner is silent, asks a question, or says anything other than an explicit `DA`/`OK`/etc. — **DO NOTHING**.
-- If unsure, ask. Never assume.
+Explicit `DA` / `OK` / `go` / `merge` / `yes` from `wtshex1` in chat. If silent or ambiguous — **DO NOTHING**. Never assume.
 
 ### 🎯 EXAMPLES
 
 | Situation | Agent action | Correct? |
 | --- | --- | --- |
-| Owner says "push the PR" | Agent runs `git push` | ✅ (explicit) |
-| Owner says "we should merge" | Agent runs `gh pr merge` | ❌ (declarative, not a direct command to the agent) |
-| Owner is silent after agent proposes a plan | Agent commits and pushes | ❌ (no explicit approval) |
-| Owner says "DA, commit" | Agent runs `git commit` | ✅ (explicit) |
-| Owner says "you're annoying me" | Agent keeps trying | ❌ (no approval, stop and ask) |
+| Scuris has changes ready | Commits, pushes, creates PR | ✅ (autonomous) |
+| Owner says "merge the PR" | Runs `gh pr merge` | ✅ (explicit green-light for a forbidden op) |
+| Owner says "we should merge" | Does nothing | ✅ (declarative, not a direct command) |
+| Owner is silent | Does nothing, continues working on code | ✅ |
+| Scuris needs to force-push | Asks first | ✅ |
