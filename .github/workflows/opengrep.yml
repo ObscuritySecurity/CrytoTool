@@ -1,0 +1,57 @@
+name: Opengrep
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: SAST scan
+    permissions:
+      contents: read
+      security-events: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
+
+      - name: Install opengrep
+        env:
+          OPENGREP_VERSION: v1.23.0
+        run: |
+          curl -fsSL -o opengrep \
+            "https://github.com/opengrep/opengrep/releases/download/${OPENGREP_VERSION}/opengrep_manylinux_x86"
+          chmod +x opengrep
+          sudo mv opengrep /usr/local/bin/
+
+      - name: Verify opengrep
+        run: opengrep --version
+
+      - name: Run opengrep scan
+        run: |
+          mkdir -p .opengrep-out
+          opengrep ci --sarif --sarif-output .opengrep-out/results.sarif \
+            --config auto --suppress-errors
+
+      - name: Upload SARIF to GitHub Code Scanning
+        if: hashFiles('.opengrep-out/results.sarif') != ''
+        uses: github/codeql-action/upload-sarif@dd903d2e4f5405488e5ef1422510ee31c8b32357
+        with:
+          sarif_file: .opengrep-out/results.sarif
+          category: opengrep
+
+      - name: Upload SARIF as artifact
+        if: always()
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd6aabebe3543e4b351
+        with:
+          name: opengrep-sarif
+          path: .opengrep-out/results.sarif
+          if-no-files-found: warn
+          retention-days: 30
