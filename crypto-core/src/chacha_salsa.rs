@@ -149,7 +149,7 @@ mod tests {
     #[test]
     fn test_chacha20_roundtrip() {
         let key = [0x42u8; 32];
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let nonce = [0x24u8; 12];
         let pt = b"ChaCha20-Poly1305 IETF";
 
@@ -163,7 +163,7 @@ mod tests {
     fn test_chacha20_wrong_key() {
         let key = [0x42u8; 32];
         let wrong = [0x00u8; 32];
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let nonce = [0x24u8; 12];
         let ct = chacha20_poly1305_encrypt(b"secret", &key, &nonce).unwrap();
         assert!(chacha20_poly1305_decrypt(&ct, &wrong, &nonce).is_err());
@@ -172,7 +172,7 @@ mod tests {
     #[test]
     fn test_xchacha20_roundtrip() {
         let key = [0x42u8; 32];
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let nonce = [0x24u8; 24];
         let pt = b"XChaCha20-Poly1305";
 
@@ -192,7 +192,7 @@ mod tests {
     #[test]
     fn test_salsa20_roundtrip() {
         let key = [0x42u8; 32];
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let nonce = [0x24u8; 24];
         let pt = b"Salsa20-Poly1305 (secretbox)";
 
@@ -205,9 +205,9 @@ mod tests {
     #[test]
     fn test_all_algos_distinct() {
         let key = [0x42u8; 32];
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let nonce12 = [0x24u8; 12];
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let nonce24 = [0x24u8; 24];
         let pt = b"same plaintext";
 

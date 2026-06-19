@@ -103,7 +103,7 @@ mod tests {
     #[test]
     fn test_aes_ctr_roundtrip() {
         let key = [0x42u8; 32];
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let nonce = [0x24u8; 16];
         let plaintext = b"AES-CTR with HMAC Encrypt-then-MAC";
 
@@ -117,7 +117,7 @@ mod tests {
     #[test]
     fn test_aes_ctr_tampered_ciphertext() {
         let key = [0x42u8; 32];
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let nonce = [0x24u8; 16];
         let plaintext = b"tamper me";
 
@@ -132,7 +132,7 @@ mod tests {
     fn test_aes_ctr_wrong_key() {
         let key = [0x42u8; 32];
         let wrong_key = [0x00u8; 32];
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let nonce = [0x24u8; 16];
 
         let ct = encrypt(b"secret", &key, &nonce).unwrap();

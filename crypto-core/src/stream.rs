@@ -264,7 +264,7 @@ mod tests {
     #[test]
     fn test_stream_roundtrip_small() {
         let data = b"Hello streaming AES-GCM!";
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let passphrase = "test-passphrase-123";
 
         let ct = stream_encrypt(data, passphrase, 3, 65536, 4).unwrap();
@@ -278,7 +278,7 @@ mod tests {
     fn test_stream_roundtrip_large() {
         // 5 MB of data (spans multiple chunks)
         let data = vec![0xABu8; 5 * 1024 * 1024];
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let passphrase = "strong-passphrase";
 
         let ct = stream_encrypt(&data, passphrase, 3, 65536, 4).unwrap();
@@ -289,9 +289,9 @@ mod tests {
     #[test]
     fn test_stream_wrong_passphrase() {
         let data = b"secret data";
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let ct = stream_encrypt(data, "correct-pass", 3, 65536, 4).unwrap();
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let result = stream_decrypt(&ct, "wrong-pass", 3, 65536, 4);
         assert!(result.is_err());
     }
@@ -299,7 +299,7 @@ mod tests {
     #[test]
     fn test_stream_empty() {
         let data = b"";
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let passphrase = "test";
 
         let ct = stream_encrypt(data, passphrase, 3, 65536, 4).unwrap();
@@ -311,7 +311,7 @@ mod tests {
     fn test_stream_exact_chunk() {
         // Exactly one chunk size
         let data = vec![0x42u8; CHUNK_SIZE];
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let passphrase = "exact-chunk";
 
         let ct = stream_encrypt(&data, passphrase, 3, 65536, 4).unwrap();

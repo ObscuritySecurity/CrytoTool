@@ -32,9 +32,9 @@ mod tests {
 
     #[test]
     fn test_derive_key_deterministic() {
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let password = b"correct horse battery staple";
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let salt = [0xABu8; 16];
         let key1 = derive_key(password, &salt, 3, 65536, 4, 32);
         let key2 = derive_key(password, &salt, 3, 65536, 4, 32);
@@ -43,11 +43,11 @@ mod tests {
 
     #[test]
     fn test_derive_key_different_salt() {
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let password = b"same password";
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let salt1 = [0x01u8; 16];
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let salt2 = [0x02u8; 16];
         let key1 = derive_key(password, &salt1, 3, 65536, 4, 32);
         let key2 = derive_key(password, &salt2, 3, 65536, 4, 32);
@@ -56,9 +56,9 @@ mod tests {
 
     #[test]
     fn test_derive_key_output_length() {
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let password = b"test";
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let salt = [0xBBu8; 16];
         let key = derive_key(password, &salt, 3, 65536, 4, 32);
         assert_eq!(key.len(), 32);

@@ -57,7 +57,7 @@ mod tests {
     #[test]
     fn test_aes_gcm_roundtrip() {
         let key = [0x42u8; 32];
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let nonce = [0x24u8; 12];
         let plaintext = b"Hello, Rust crypto!";
 
@@ -72,7 +72,7 @@ mod tests {
     fn test_aes_gcm_wrong_key() {
         let key = [0x42u8; 32];
         let wrong_key = [0x00u8; 32];
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let nonce = [0x24u8; 12];
         let plaintext = b"secret";
 
@@ -84,7 +84,7 @@ mod tests {
     #[test]
     fn test_aes_gcm_invalid_key_length() {
         let key = [0u8; 16];
-        // codeql[cpp/hardcoded-credentials]
+        // codeql[rust/hard-coded-cryptographic-value]
         let nonce = [0u8; 12];
         let result = aes_gcm_encrypt(b"data", &key, &nonce);
         assert!(result.is_err());
