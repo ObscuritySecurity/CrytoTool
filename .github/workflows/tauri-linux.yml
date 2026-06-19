@@ -10,9 +10,9 @@ permissions:
   contents: read
 
 jobs:
-   publish-tauri:
-     permissions:
-       contents: write
+  publish-tauri:
+    permissions:
+      contents: write
     runs-on: ubuntu-24.04
 
     steps:
