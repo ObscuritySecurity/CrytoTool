@@ -66,3 +66,18 @@ jobs:
       - name: Fuzz Base64 roundtrip
         working-directory: crypto-core
         run: cargo fuzz run base64_roundtrip -- -max_total_time=60
+
+  clusterfuzzlite:
+    name: ClusterFuzzLite
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Build fuzzers
+        uses: google/clusterfuzzlite/actions/build_fuzzers@52ecc61cb587ee99c26825a112a21abf19c7448c
+      - name: Run fuzzers
+        uses: google/clusterfuzzlite/actions/run_fuzzers@52ecc61cb587ee99c26825a112a21abf19c7448c
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          fuzz-seconds: 300
