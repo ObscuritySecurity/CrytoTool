@@ -113,12 +113,10 @@ fn decode_header(data: &[u8]) -> Result<(StreamHeader, usize), StreamError> {
     let original_size = u64::from_le_bytes(data[offset..offset + 8].try_into().unwrap());
     offset += 8;
 
-    let mut salt = [0u8; 16];
-    salt.copy_from_slice(&data[offset..offset + 16]);
+    let salt: [u8; 16] = (&data[offset..offset + 16]).try_into().map_err(|_| StreamError::InsufficientData)?;
     offset += 16;
 
-    let mut base_iv = [0u8; 12];
-    base_iv.copy_from_slice(&data[offset..offset + 12]);
+    let base_iv: [u8; 12] = (&data[offset..offset + 12]).try_into().map_err(|_| StreamError::InsufficientData)?;
     offset += 12;
 
     let header = StreamHeader {
@@ -143,12 +141,8 @@ pub fn stream_encrypt(
     argon_memory_kib: u32,
     argon_parallelism: u32,
 ) -> Result<Vec<u8>, StreamError> {
-    use rand::RngCore;
-
-    let mut salt = [0u8; 16];
-    let mut base_iv = [0u8; 12];
-    rand::thread_rng().fill_bytes(&mut salt);
-    rand::thread_rng().fill_bytes(&mut base_iv);
+    let salt: [u8; 16] = rand::random();
+    let base_iv: [u8; 12] = rand::random();
 
     let key = kdf::derive_key(
         passphrase.as_bytes(),
@@ -270,6 +264,7 @@ mod tests {
     #[test]
     fn test_stream_roundtrip_small() {
         let data = b"Hello streaming AES-GCM!";
+        // codeql[cpp/hardcoded-credentials]
         let passphrase = "test-passphrase-123";
 
         let ct = stream_encrypt(data, passphrase, 3, 65536, 4).unwrap();
@@ -283,6 +278,7 @@ mod tests {
     fn test_stream_roundtrip_large() {
         // 5 MB of data (spans multiple chunks)
         let data = vec![0xABu8; 5 * 1024 * 1024];
+        // codeql[cpp/hardcoded-credentials]
         let passphrase = "strong-passphrase";
 
         let ct = stream_encrypt(&data, passphrase, 3, 65536, 4).unwrap();
@@ -293,7 +289,9 @@ mod tests {
     #[test]
     fn test_stream_wrong_passphrase() {
         let data = b"secret data";
+        // codeql[cpp/hardcoded-credentials]
         let ct = stream_encrypt(data, "correct-pass", 3, 65536, 4).unwrap();
+        // codeql[cpp/hardcoded-credentials]
         let result = stream_decrypt(&ct, "wrong-pass", 3, 65536, 4);
         assert!(result.is_err());
     }
@@ -301,6 +299,7 @@ mod tests {
     #[test]
     fn test_stream_empty() {
         let data = b"";
+        // codeql[cpp/hardcoded-credentials]
         let passphrase = "test";
 
         let ct = stream_encrypt(data, passphrase, 3, 65536, 4).unwrap();
@@ -312,6 +311,7 @@ mod tests {
     fn test_stream_exact_chunk() {
         // Exactly one chunk size
         let data = vec![0x42u8; CHUNK_SIZE];
+        // codeql[cpp/hardcoded-credentials]
         let passphrase = "exact-chunk";
 
         let ct = stream_encrypt(&data, passphrase, 3, 65536, 4).unwrap();

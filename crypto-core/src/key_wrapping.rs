@@ -121,8 +121,11 @@ mod tests {
 
     #[test]
     fn test_derive_master_key_deterministic() {
+        // codeql[cpp/hardcoded-credentials]
         let salt = [0xABu8; 16];
+        // codeql[cpp/hardcoded-credentials]
         let key1 = derive_master_key("password", &salt, false);
+        // codeql[cpp/hardcoded-credentials]
         let key2 = derive_master_key("password", &salt, false);
         assert_eq!(key1, key2);
         assert_eq!(key1.len(), 32);
@@ -130,8 +133,11 @@ mod tests {
 
     #[test]
     fn test_derive_master_key_mobile() {
+        // codeql[cpp/hardcoded-credentials]
         let salt = [0xABu8; 16];
+        // codeql[cpp/hardcoded-credentials]
         let desktop = derive_master_key("password", &salt, false);
+        // codeql[cpp/hardcoded-credentials]
         let mobile = derive_master_key("password", &salt, true);
         assert_ne!(desktop, mobile);
     }
