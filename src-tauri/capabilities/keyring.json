@@ -1,0 +1,9 @@
+{
+  "identifier": "keyring",
+  "description": "Keyring capabilities (desktop only)",
+  "windows": ["main"],
+  "platforms": ["linux", "macOS", "windows"],
+  "permissions": [
+    "keyring:default"
+  ]
+}

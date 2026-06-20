@@ -2,7 +2,5 @@
   "identifier": "default",
   "description": "Default capabilities for CrytoTool",
   "windows": ["main"],
-  "permissions": [
-    "keyring:default"
-  ]
+  "permissions": []
 }
