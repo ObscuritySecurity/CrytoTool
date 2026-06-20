@@ -44,6 +44,10 @@ File names, tags, and metadata are encrypted — not just file contents. It work
 
 CrytoTool is compliant with the [Protocol-3305](https://github.com/ObscuritySecurity/protocol-3305) and respects all its principles.
 
+CrytoTool adapts its security configuration based on your threat model — from casual privacy to high-risk environments. Feature toggles, lockout policies, and encryption defaults shift automatically depending on the profile you select.
+
+Three advanced features — **Self-Destruct**, **Dead Man Switch**, and **Progressive Lockout escalation** — are disabled by default and will remain so until a formal third-party security audit is complete. They are implemented in the codebase but gated behind a flag, not exposed in the UI. We will not risk lives on unverified code.
+
 ### No Software Is Perfect
 
 No software is perfect — including CrytoTool. That's exactly why we need a community. Bugs, vulnerabilities, and edge cases will always exist. The difference between good software and great software is **transparency** and **how actively you work with the people who use it**.
