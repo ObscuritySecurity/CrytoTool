@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown, SkipBack, SkipForward, Play, Pause, Music } from 'lucide-react';
 import { FileSystemItem } from '../types';
-import { isSafeImageUrl } from '../utils/sanitize';
+import { is_safe_image_url as isSafeImageUrl } from '../crypto-core/index';
 import { useI18n } from '../locales/i18nContext';
 
 interface FullPlayerProps {

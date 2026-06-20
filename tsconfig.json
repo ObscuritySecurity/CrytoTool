@@ -27,6 +27,7 @@
     "components/**/*.ts",
     "components/**/*.tsx",
     "utils/**/*.ts",
-    "utils/**/*.tsx"
+    "utils/**/*.tsx",
+    "crypto-core/**/*.ts"
   ]
 }

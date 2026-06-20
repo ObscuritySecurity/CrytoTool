@@ -5,24 +5,24 @@ import { Dashboard } from './components/Dashboard';
 import { AuthScreen } from './components/AuthScreen';
 import { AutoDestructCountdown } from './components/AutoDestructCountdown';
 import type { AutoDestructCountdownHandle } from './components/AutoDestructCountdown';
-import { cryptoService } from './utils/crypto';
-import { db } from './utils/db';
+import { db, setVaultKey } from './crypto-core/db';
 import { I18nProvider } from './locales/i18nContext';
-import { hashPin } from './utils/security';
+import { pin_hash as hashPin } from './crypto-core/index';
 import {
   checkBiometricAvailability, retrieveMasterKeyBiometric, storeMasterKeyBiometric,
   removeBiometricKey, isBiometricEnabled, setBiometricEnabled,
 } from './utils/biometric';
 import {
-  deriveKey,
-  wrapRawKey,
-  unwrapRawKey,
-  base64ToBytes,
-  bytesToBase64,
-  generateRecoveryCodes,
-  parseCodeIndex,
-} from './utils/keyWrapping';
-import type { CryptoMetadata, VaultWrappers } from './utils/keyWrapping';
+  derive_key,
+  wrap_raw_key,
+  unwrap_raw_key,
+  base64_decode,
+  base64_encode,
+  generate_recovery_codes,
+  parse_code_index,
+  get_argon_params,
+} from './crypto-core/index';
+import type { CryptoMetadata, VaultWrappers } from './types';
 
 const App: React.FC = () => {
   const [showSplash, setShowSplash] = useState(true);
@@ -64,7 +64,11 @@ const App: React.FC = () => {
   const updateVaultSettings = async (enabled: boolean, pin: string | null) => {
     setVaultEnabled(enabled);
     if (pin) {
-      const hash = await hashPin(pin);
+      const metaRaw = localStorage.getItem('crytotool_crypto_metadata');
+      const meta: CryptoMetadata | null = metaRaw ? JSON.parse(metaRaw) : null;
+      const tierId = meta?.tier || 1;
+      const pinParams = JSON.parse(get_argon_params('pin', tierId));
+      const hash = await hashPin(pin, pinParams.iterations, pinParams.memorySize, pinParams.parallelism);
       localStorage.setItem('crytotool_vault_pin_hash', hash);
       setVaultPin(hash);
     } else {
@@ -109,7 +113,7 @@ const App: React.FC = () => {
   const [biometricEnabled, setBiometricEnabledState] = useState(() => isBiometricEnabled());
 
   const [newlyGeneratedCodes, setNewlyGeneratedCodes] = useState<string[] | null>(null);
-  const masterKeyRef = useRef<CryptoKey | null>(null);
+  const masterKeyRef = useRef<Uint8Array | null>(null);
   const biometricAttemptedRef = useRef(false);
   const [recoveryWrappersCount, setRecoveryWrappersCount] = useState(() => {
     const raw = localStorage.getItem('crytotool_vault_wrappers');
@@ -129,14 +133,15 @@ const App: React.FC = () => {
     } catch { setRecoveryWrappersCount(0); }
   };
 
-  const downloadCodes = (codes: string[]) => {
+  const downloadCodes = (codes: string[], randomFilename?: boolean) => {
     const header = 'CrytoTool Recovery Codes\nGenerated: ' + new Date().toISOString().split('T')[0] + '\n\u2500'.repeat(30) + '\n\n';
     const content = header + codes.join('\n');
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'crytotool-recovery-codes.txt';
+    const rand = () => Math.random().toString(36).substring(2, 10);
+    a.download = randomFilename ? `codes-${rand()}.txt` : 'crytotool-recovery-codes.txt';
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -212,22 +217,13 @@ const App: React.FC = () => {
       const rawBytes = await retrieveMasterKeyBiometric();
       if (!rawBytes) return;
       try {
-        const masterKey = await window.crypto.subtle.importKey(
-          'raw', rawBytes as BufferSource, { name: 'AES-GCM' },
-          false, ['encrypt', 'decrypt'],
-        );
-        rawBytes.fill(0);
         const wrappersRaw = localStorage.getItem('crytotool_vault_wrappers');
         if (!wrappersRaw) return;
         const wrappers = JSON.parse(wrappersRaw);
-        const mvkBytes = await unwrapRawKey(wrappers.master, masterKey);
-        const mvk = await window.crypto.subtle.importKey(
-          'raw', mvkBytes as unknown as BufferSource, { name: 'AES-GCM' },
-          false, ['encrypt', 'decrypt'],
-        );
-        cryptoService.setVaultKey(mvk);
+        const mvkBytes = await unwrap_raw_key(wrappers.master, rawBytes);
+        setVaultKey(mvkBytes);
         mvkBytes.fill(0);
-        masterKeyRef.current = masterKey;
+        masterKeyRef.current = rawBytes;
         handleUnlock();
       } catch {
         /* fall through to AuthScreen */
@@ -240,7 +236,7 @@ const App: React.FC = () => {
       await db.clearDatabase();
       localStorage.clear();
       sessionStorage.clear();
-      cryptoService.clearKeys();
+      setVaultKey(null);
       window.location.reload();
     } catch (e) {
       localStorage.clear();
@@ -274,16 +270,14 @@ const App: React.FC = () => {
   const handleLock = () => {
     setIsAuthenticated(false);
     setIsBlurred(false);
-    cryptoService.clearKeys();
+    setVaultKey(null);
     masterKeyRef.current = null;
     biometricAttemptedRef.current = false;
   };
 
   const enableBiometric = async (): Promise<boolean> => {
     if (!masterKeyRef.current) return false;
-    const raw = await window.crypto.subtle.exportKey('raw', masterKeyRef.current);
-    const bytes = new Uint8Array(raw);
-    const ok = await storeMasterKeyBiometric(bytes);
+    const ok = await storeMasterKeyBiometric(masterKeyRef.current);
     if (ok) setBiometricEnabledState(true);
     return ok;
   };
@@ -332,7 +326,7 @@ const App: React.FC = () => {
 
   const resetMasterPasswordWithRecovery = async (code: string, newPassword: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const idx = parseCodeIndex(code);
+      const idx = parse_code_index(code);
       if (!idx) return { success: false, error: 'Format cod invalid' };
 
       const wrappersRaw = localStorage.getItem('crytotool_vault_wrappers');
@@ -348,43 +342,35 @@ const App: React.FC = () => {
       const saltIdx = parseInt(idx, 10) - 1;
       if (saltIdx < 0 || saltIdx >= meta.recovery_salts.length) return { success: false, error: 'Salt lipsă' };
 
-      const recoverySalt = base64ToBytes(meta.recovery_salts[saltIdx]);
-      const recoveryKey = await deriveKey(code, recoverySalt, 'recovery');
+      const recoverySalt = base64_decode(meta.recovery_salts[saltIdx]);
+      const recoveryParams = JSON.parse(get_argon_params('recovery', meta.tier || 1));
+      const recoveryKey = await derive_key(new TextEncoder().encode(code), recoverySalt, recoveryParams.iterations, recoveryParams.memorySize, recoveryParams.parallelism, 32);
 
       let mvkBytes: Uint8Array;
       try {
-        mvkBytes = await unwrapRawKey(recoveryWrapper, recoveryKey);
+        mvkBytes = await unwrap_raw_key(JSON.stringify(recoveryWrapper), recoveryKey);
       } catch {
         return { success: false, error: 'Cod de recuperare invalid' };
       }
 
       const newMasterSalt = window.crypto.getRandomValues(new Uint8Array(16));
-      const newMasterKey = await deriveKey(newPassword, newMasterSalt, 'master');
-      const newMasterWrapper = await wrapRawKey(mvkBytes, newMasterKey);
+      const ap = meta.argon || { iterations: 2, memoryKib: 19456, parallelism: 1 };
+      const newMasterKey = derive_key(new TextEncoder().encode(newPassword), newMasterSalt, ap.iterations, ap.memoryKib, ap.parallelism, 32);
+      const newMasterWrapper = await wrap_raw_key(mvkBytes, newMasterKey);
 
       delete wrappers.recovery[idx];
-      meta.master_salt = bytesToBase64(newMasterSalt);
-      wrappers.master = newMasterWrapper;
+      meta.master_salt = base64_encode(newMasterSalt);
+      wrappers.master = JSON.parse(newMasterWrapper);
 
       localStorage.setItem('crytotool_crypto_metadata', JSON.stringify(meta));
       localStorage.setItem('crytotool_vault_wrappers', JSON.stringify(wrappers));
 
-      const mvk = await window.crypto.subtle.importKey(
-        'raw',
-        mvkBytes as unknown as BufferSource,
-        { name: 'AES-GCM' },
-        false,
-        ['encrypt', 'decrypt']
-      );
-      cryptoService.setVaultKey(mvk);
+      setVaultKey(mvkBytes);
       masterKeyRef.current = newMasterKey;
       syncRecoveryCount();
 
       if (biometricEnabled) {
-        const newRaw = await window.crypto.subtle.exportKey('raw', newMasterKey);
-        const newBytes = new Uint8Array(newRaw);
-        await storeMasterKeyBiometric(newBytes);
-        newBytes.fill(0);
+        await storeMasterKeyBiometric(newMasterKey);
       }
 
       return { success: true };
@@ -405,21 +391,22 @@ const App: React.FC = () => {
 
     let mvkBytes: Uint8Array;
     try {
-      mvkBytes = await unwrapRawKey(wrappers.master, masterKeyRef.current);
+      mvkBytes = await unwrap_raw_key(JSON.stringify(wrappers.master), masterKeyRef.current);
     } catch {
       return;
     }
 
-    const codes = generateRecoveryCodes();
+    const codes = generate_recovery_codes();
     const salts: string[] = [];
     const recoveryWrappers: Record<string, { ciphertext: string; iv: string }> = {};
+    const recoveryParams = JSON.parse(get_argon_params('recovery', meta.tier || 1));
 
     for (let i = 0; i < codes.length; i++) {
       const salt = window.crypto.getRandomValues(new Uint8Array(16));
-      salts.push(bytesToBase64(salt));
-      const key = await deriveKey(codes[i], salt, 'recovery');
+      salts.push(base64_encode(salt));
+      const key = await derive_key(new TextEncoder().encode(codes[i]), salt, recoveryParams.iterations, recoveryParams.memorySize, recoveryParams.parallelism, 32);
       const paddedIdx = String(i + 1).padStart(2, '0');
-      recoveryWrappers[paddedIdx] = await wrapRawKey(mvkBytes, key);
+      recoveryWrappers[paddedIdx] = JSON.parse(await wrap_raw_key(mvkBytes, key));
     }
 
     mvkBytes.fill(0);
@@ -430,7 +417,7 @@ const App: React.FC = () => {
     localStorage.setItem('crytotool_vault_wrappers', JSON.stringify(wrappers));
 
     setNewlyGeneratedCodes(codes);
-    downloadCodes(codes);
+    downloadCodes(codes, (meta.tier || 1) >= 2);
     syncRecoveryCount();
   };
 
@@ -445,6 +432,8 @@ const App: React.FC = () => {
     autoBlurSeconds: number; autoLockSeconds: number; failedAttemptsThreshold: number;
     progressiveLockSeconds: number; autoDestructEnabled: boolean; autoDestructAttempts: number;
     autoDestructInactivity: number; destructCountdownSeconds: number;
+    minPasswordLength?: number; settingsPasswordRequired?: boolean;
+    biometricAllowed?: boolean; vaultPinAllowed?: boolean;
   }) => {
     setAutoBlurSeconds(config.autoBlurSeconds);
     localStorage.setItem('crytotool_blur_time', config.autoBlurSeconds.toString());
@@ -462,6 +451,18 @@ const App: React.FC = () => {
     localStorage.setItem('crytotool_ad_inactivity', config.autoDestructInactivity.toString());
     setDestructCountdownSeconds(config.destructCountdownSeconds);
     localStorage.setItem('crytotool_ad_countdown', config.destructCountdownSeconds.toString());
+
+    if (config.settingsPasswordRequired && !settingsPassword) {
+      localStorage.setItem('crytotool_settings_password_required', 'true');
+    } else if (config.settingsPasswordRequired === false) {
+      localStorage.removeItem('crytotool_settings_password_required');
+    }
+    if (config.biometricAllowed === false && biometricEnabled) {
+      disableBiometric();
+    }
+    if (config.vaultPinAllowed === false && vaultEnabled) {
+      updateVaultSettings(false, null);
+    }
   };
 
   return (
@@ -486,31 +487,24 @@ const App: React.FC = () => {
                onSetupComplete={handleSetupComplete}
                destructRef={destructRef}
                onDestructComplete={performWipe}
-               onNewCodes={(codes) => {
-                setNewlyGeneratedCodes(codes);
-                downloadCodes(codes);
-                syncRecoveryCount();
-              }}
+                onNewCodes={(codes) => {
+                 setNewlyGeneratedCodes(codes);
+                 const tier = (() => { try { return JSON.parse(localStorage.getItem('crytotool_crypto_metadata') || '{}').tier || 1; } catch { return 1; } })();
+                 downloadCodes(codes, tier >= 2);
+                 syncRecoveryCount();
+               }}
               biometricAvailable={biometricAvailable}
               biometricEnabled={biometricEnabled}
               onBiometricUnlock={async () => {
                 const rawBytes = await retrieveMasterKeyBiometric();
                 if (!rawBytes) throw new Error('Biometric unlock cancelled');
-                const masterKey = await window.crypto.subtle.importKey(
-                  'raw', rawBytes as BufferSource, { name: 'AES-GCM' },
-                  false, ['encrypt', 'decrypt'],
-                );
                 const wrappersRaw = localStorage.getItem('crytotool_vault_wrappers');
                 if (!wrappersRaw) throw new Error('No vault wrappers');
                 const wrappers = JSON.parse(wrappersRaw);
-                const mvkBytes = await unwrapRawKey(wrappers.master, masterKey);
-                const mvk = await window.crypto.subtle.importKey(
-                  'raw', mvkBytes as unknown as BufferSource, { name: 'AES-GCM' },
-                  false, ['encrypt', 'decrypt'],
-                );
-                cryptoService.setVaultKey(mvk);
+        const mvkBytes = await unwrap_raw_key(JSON.stringify(wrappers.master), rawBytes);
+                setVaultKey(mvkBytes);
                 mvkBytes.fill(0);
-                masterKeyRef.current = masterKey;
+                masterKeyRef.current = rawBytes;
                 handleUnlock();
               }}
             />
@@ -520,7 +514,8 @@ const App: React.FC = () => {
               <Dashboard
                 settingsLock={{
                   password: settingsPassword,
-                  setPassword: updateSettingsPassword
+                  setPassword: updateSettingsPassword,
+                  required: localStorage.getItem('crytotool_settings_password_required') === 'true'
                 }}
                 recoverySettings={{
                   codes: newlyGeneratedCodes,
@@ -531,7 +526,19 @@ const App: React.FC = () => {
                 vaultSettings={{
                   enabled: vaultEnabled,
                   pin: vaultPin,
-                  update: updateVaultSettings
+                  update: updateVaultSettings,
+                  tier: (() => {
+                    try {
+                      const m = JSON.parse(localStorage.getItem('crytotool_crypto_metadata') || '{}');
+                      return m.tier || 1;
+                    } catch { return 1; }
+                  })(),
+                  vaultPinAllowed: (() => {
+                    try {
+                      const m = JSON.parse(localStorage.getItem('crytotool_crypto_metadata') || '{}');
+                      return (m.tier || 1) < 3;
+                    } catch { return true; }
+                  })()
                 }}
                 biometricSettings={{
                   available: biometricAvailable,
@@ -539,6 +546,12 @@ const App: React.FC = () => {
                   enable: enableBiometric,
                   disable: disableBiometric,
                   setAvailable: setBiometricAvailable,
+                  biometricAllowed: (() => {
+                    try {
+                      const m = JSON.parse(localStorage.getItem('crytotool_crypto_metadata') || '{}');
+                      return (m.tier || 1) < 3;
+                    } catch { return true; }
+                  })()
                 }}
                autoBlurSettings={{
                  value: autoBlurSeconds,
