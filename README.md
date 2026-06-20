@@ -44,9 +44,19 @@ File names, tags, and metadata are encrypted — not just file contents. It work
 
 CrytoTool is compliant with the [Protocol-3305](https://github.com/ObscuritySecurity/protocol-3305) and respects all its principles.
 
-CrytoTool adapts its security configuration based on your threat model — from casual privacy to high-risk environments. Feature toggles, lockout policies, and encryption defaults shift automatically depending on the profile you select.
+### Intuitive Flow
 
-Three advanced features — **Self-Destruct**, **Dead Man Switch**, and **Progressive Lockout escalation** — are disabled by default and will remain so until a formal third-party security audit is complete. They are implemented in the codebase but gated behind a flag, not exposed in the UI. We will not risk lives on unverified code.
+Welcome screen → create master password → choose your threat model → download recovery codes → main dashboard. Five steps from zero to a fully secured vault.
+
+### Glass Design Meets Security
+
+Frosted surfaces, fluid transitions, and layered depth are not just visual. They make security feel tactile, not intimidating. A beautiful interface that never compromises on protection.
+
+### Threat‑Model Driven
+
+Higher threat models are disabled by default. We will not enable them until a formal third‑party audit confirms they are safe — we do not risk lives or create false impressions.
+
+See the full [Threat Model & Security Features](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/SECURITY.md) for details.
 
 ### No Software Is Perfect
 
