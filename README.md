@@ -17,7 +17,7 @@
   <br>
   <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-000000?style=flat&logo=typescript&logoColor=white" alt="TypeScript" /></a> <a href="https://react.dev/"><img src="https://img.shields.io/badge/React-000000?style=flat&logo=react&logoColor=white" alt="React" /></a> <a href="https://vitejs.dev/"><img src="https://img.shields.io/badge/Vite-000000?style=flat&logo=vite&logoColor=white" alt="Vite" /></a> <a href="https://tailwindcss.com/"><img src="https://img.shields.io/badge/Tailwind_CSS-000000?style=flat&logo=tailwind-css&logoColor=white" alt="Tailwind CSS" /></a> <a href="https://tauri.app/"><img src="https://img.shields.io/badge/Tauri-000000?style=flat&logo=tauri&logoColor=white" alt="Tauri" /></a> <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/Rust-000000?style=flat&logo=rust&logoColor=white" alt="Rust" /></a>
   <br>
-  <a href="https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-38d.pdf"><img src="https://img.shields.io/badge/AES--256--GCM-FF6F00?style=flat&logo=letsencrypt&logoColor=white" alt="AES-256-GCM" /></a> <a href="https://github.com/P-H-C/phc-winner-argon2"><img src="https://img.shields.io/badge/Argon2id-9C27B0?style=flat&logo=password&logoColor=white" alt="Argon2id" /></a>
+  <a href="https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-38d.pdf"><img src="https://img.shields.io/badge/AES--256--GCM-000000?style=flat&logo=letsencrypt&logoColor=white" alt="AES-256-GCM" /></a> <a href="https://github.com/P-H-C/phc-winner-argon2"><img src="https://img.shields.io/badge/Argon2id-000000?style=flat&logo=password&logoColor=white" alt="Argon2id" /></a>
   </p>
 </div>  
 
