@@ -87,11 +87,11 @@ For full technical details, consult the [Technical Architecture](https://github.
 
 ### Problems Solved
 
-> **The main problem that CrytoTool solves** is that most file managers do not provide real security, everything is a facade, only with the system password can you access the most sensitive data. CrytoTool solves this problem through an isolated system and multiple layers of security.
+> **1. Real security, not a facade.** Most file managers rely on the operating system password alone — a single layer that offers little real protection. CrytoTool uses an isolated, client-side architecture with multiple independent encryption layers.
 
-> **The second problem it solves** is that most people are tired of having different apps for everything, especially in a file manager where you should have everything, look here we come — we offer gallery, music, documents and others in the future.
+> **2. One app, not many.** People are tired of juggling separate tools for files, photos, music, and documents. CrytoTool replaces them all in a single, unified, privacy-first environment.
 
-> **The third and last problem we solve** is that most file managers do not give you the option to choose from multiple encryption algorithms. CrytoTool gives you the option to choose from six encryption algorithms.
+> **3. Choice of encryption.** Most file managers lock you into one algorithm. CrytoTool gives you six — AES-256-GCM, ChaCha20-Poly1305, XChaCha20-Poly1305, AES-CTR, Salsa20-Poly1305, and AES-GCM-Stream — selectable per file.
 
 ---
 ### Key Features
