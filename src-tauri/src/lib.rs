@@ -16,8 +16,12 @@ fn setup_webkit_env() {
 pub fn run() {
     setup_webkit_env();
 
-    tauri::Builder::default()
-        .plugin(tauri_plugin_keyring::init())
+    let builder = tauri::Builder::default();
+
+    #[cfg(not(target_os = "android"))]
+    let builder = builder.plugin(tauri_plugin_keyring::init());
+
+    builder
         .invoke_handler(tauri::generate_handler![
             greet,
             biometric_android::check_biometric_available,
