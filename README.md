@@ -175,7 +175,7 @@ CrytoTool is built on the shoulders of giants. We are deeply grateful for these 
 #### Core Crypto
 - **[Rust crypto-core crate](https://github.com/ObscuritySecurity/CrytoTool/tree/main/crypto-core/src)** — All encryption runs through a single Rust crate compiled to WASM. AES-256-GCM, Argon2id, ChaCha20-Poly1305, XChaCha20-Poly1305, Salsa20-Poly1305, AES-CTR + HMAC — all audited implementations, no JS crypto code.
 - **[aes-gcm](https://docs.rs/aes-gcm)** — AES-256-GCM encryption (12-byte nonce, NIST SP 800-38D)
-- **[argon2](https://docs.rs/argon2)** — Argon2id key derivation (19 iterations, 128 MB memory, 4-way parallel)
+- **[argon2](https://docs.rs/argon2)** — Argon2id key derivation with threat-model-adaptive parameters (configurable iterations, memory, parallelism per tier)
 - **[wasm-bindgen](https://github.com/rustwasm/wasm-bindgen)** — The bridge that compiles Rust to WebAssembly, making native crypto available in the browser
 - **[wasm-pack](https://rustwasm.github.io/wasm-pack/)** — Build tool for the Rust→WASM pipeline
 - **[chacha20poly1305](https://docs.rs/chacha20poly1305)** — ChaCha20-Poly1305 (IETF RFC 8439) and XChaCha20-Poly1305 implementations
