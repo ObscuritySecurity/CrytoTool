@@ -1,329 +1,299 @@
 # CrytoTool API Documentation
-_Version: 2.5.0-beta | Last Updated: 2026-05-27_
+_Version: 2.5.0-beta | Last Updated: 2026-06-21_
 
-This document describes the public APIs available in CrytoTool for developers who want to understand, extend, or integrate with the crypto services.
-
-**Important**: CrytoTool is 100% client-side. All APIs run in the browser/WebView context. There is no server API.
+All cryptographic APIs are implemented in a Rust crate (`crypto-core/`) compiled to WASM. The JS bridge is `crypto-core/index.ts`.
 
 ---
 
 ## Table of Contents
-1. [Crypto Service](#crypto-service)
-2. [Backup Crypto Service](#backup-crypto-service)
-3. [Stream Crypto](#stream-crypto)
-4. [Vault Storage](#vault-storage)
-5. [Database (IndexedDB)](#database-indexeddb)
-6. [Security Utilities](#security-utilities)
+1. [Initialization](#1-initialization)
+2. [Key Derivation](#2-key-derivation)
+3. [Encryption / Decryption](#3-encryption--decryption)
+4. [Streaming Encryption](#4-streaming-encryption)
+5. [Backup & Recovery](#5-backup--recovery)
+6. [Metadata](#6-metadata)
+7. [Vault Storage](#7-vault-storage)
+8. [Security Utilities](#8-security-utilities)
+9. [Sanitization](#9-sanitization)
+10. [Type Definitions](#10-type-definitions)
 
 ---
 
-## Crypto Service
-_Location: `utils/crypto.ts`_
+## 1. Initialization
 
-Central service for all encryption/decryption operations. Uses Web Crypto API and libsodium-wrappers.
-
-### `cryptoService.deriveMasterKey(password, salt)`
-Derives the vault master key from Master Password using Argon2id.
+### `ensureInit()`
+Initializes the WASM module. Must be called before any other function (automatically handled by async wrappers).
 
 ```typescript
-const salt = window.crypto.getRandomValues(new Uint8Array(16));
-const masterKey: CryptoKey = await cryptoService.deriveMasterKey('MyPassword123!', salt);
+import { ensureInit } from './crypto-core/index';
+await ensureInit();
 ```
 
-**Parameters:**
-- `password: string` - The person's master password
-- `salt: Uint8Array` - 16-byte random salt (stored in localStorage as `crytotool_salt`)
-
-**Returns:** `Promise<CryptoKey>` - AES-256-GCM CryptoKey (non-extractable)
-
-**Argon2id Parameters:**
-- Memory: 128MB (131072 KB)
-- Iterations: 19
-- Parallelism: 4 threads
-- Hash length: 32 bytes
-
-> **Warning**: Increasing the Argon2id `cost` parameters (memory, iterations) will make brute-force attacks harder but will also slow down unlock times, especially on mobile devices. Test thoroughly before changing.
+All async functions (marked with `async`) call `ensureInit()` internally. Sync functions assume WASM is already loaded.
 
 ---
 
-### `cryptoService.encrypt(data, key?)`
-Encrypts data using the vault key (default) or provided key.
+## 2. Key Derivation
+
+### `derive_key(password, salt, iterations, memorySizeKib, parallelism, outputLength)`
+Argon2id key derivation.
 
 ```typescript
-const encrypted: EncryptedData = await cryptoService.encrypt(fileBlob);
+import { derive_key } from './crypto-core/index';
+const key = derive_key(
+  new TextEncoder().encode(password),
+  salt,
+  19,       // iterations
+  131072,   // memory (KB)
+  4,        // parallelism
+  32        // output length
+); // returns Uint8Array
 ```
 
-**Parameters:**
-- `data: Blob | Uint8Array` - Data to encrypt
-- `key: CryptoKey` (optional) - Defaults to `this.vaultKey`
+### `derive_master_key(password, salt, isMobile)`
+Convenience wrapper calling `derive_key` with parameters from threat model.
 
-**Returns:** `Promise<EncryptedData>`
 ```typescript
-interface EncryptedData {
-  ciphertext: Uint8Array;
-  iv: Uint8Array;        // 12 bytes random
-  salt: Uint8Array;       // Empty for default encryption
-  algorithm: CryptoAlgorithm;
-}
+const masterKey = derive_master_key('MyPassword123!', salt, false);
 ```
 
----
-
-### `cryptoService.decrypt(encryptedData, iv, key?, algorithm?, salt?, passphrase?)`
-Decrypts data using vault key or passphrase.
+### `get_argon_params(purpose, tier)`
+Returns Argon2id parameters for a given purpose (`'master'`, `'pin'`, `'recovery'`) and tier (`1`-`4`).
 
 ```typescript
-const decrypted: Uint8Array = await cryptoService.decrypt(
-  encryptedData, iv, vaultKey, 'AES-GCM'
-);
-```
-
-**Parameters:**
-- `encryptedData: Uint8Array` - Ciphertext
-- `iv: Uint8Array` - Initialization vector
-- `key: CryptoKey` (optional) - Defaults to `this.vaultKey`
-- `algorithm: CryptoAlgorithm` (optional) - Defaults to 'AES-GCM'
-- `salt: Uint8Array` (optional) - Required for passphrase decryption
-- `passphrase: string` (optional) - For manual decryption
-
----
-
-### `cryptoService.encryptString(data, key?)`
-Encrypts a string using Vault Key (for localStorage storage).
-
-```typescript
-const encrypted = await cryptoService.encryptString('my-secret-key-1234');
-// Returns: { ciphertext: string (base64), iv: string (base64) }
-```
-
-**Used for:** Encrypting PIN hash, recovery codes, vault keys before localStorage.
-
----
-
-### `cryptoService.decryptString(ciphertextB64, ivB64, key?)`
-Decrypts a string encrypted with `encryptString()`.
-
-```typescript
-const decrypted = await cryptoService.decryptString(
-  encrypted.ciphertext, 
-  encrypted.iv
-);
+const params = JSON.parse(get_argon_params('master', 1));
+// { iterations: 19, memorySize: 131072, parallelism: 4 }
 ```
 
 ---
 
-### `cryptoService.encryptWithPassphrase(data, passphrase, algorithm)`
-Manual encryption with person-chosen algorithm and passphrase.
+## 3. Encryption / Decryption
+
+All encrypt/decrypt functions are **synchronous** (pure WASM, no JS promises).
+
+### `encrypt(data, key)`
+Default vault encryption: AES-256-GCM with random 12-byte IV.
 
 ```typescript
-const encrypted = await cryptoService.encryptWithPassphrase(
-  fileData,
+import { encrypt, decrypt, base64_decode } from './crypto-core/index';
+const encryptedJson = encrypt(fileBytes, vaultKey);
+const parsed = JSON.parse(encryptedJson);
+// { ciphertext: "...", iv: "..." }
+const plaintext = decrypt(parsed.ciphertext, parsed.iv, vaultKey);
+```
+
+### `encrypt_string(data, key) / decrypt_string(ciphertextB64, ivB64, key)`
+String encryption for localStorage.
+
+```typescript
+const enc = encrypt_string('my-secret-value', vaultKey);
+// Returns: { ciphertext: "base64...", iv: "base64..." }
+const dec = decrypt_string(enc.ciphertext, enc.iv, vaultKey);
+```
+
+### `encrypt_with_passphrase(data, passphrase, algorithm, argonIterations, argonMemoryKib, argonParallelism)`
+Manual encryption with any of the 6 supported algorithms.
+
+```typescript
+const result = encrypt_with_passphrase(
+  fileBytes,
   'MY-SECRET-KEY',
-  'XChaCha20-Poly1305'
+  'XChaCha20-Poly1305',
+  4, 131072, 4
+); // Returns: JSON string with ciphertext, iv, salt, algorithm
+```
+
+### `decrypt_with_passphrase(data, passphrase, iv, salt, algorithm, argonIterations, argonMemoryKib, argonParallelism)`
+
+### Supported Algorithms
+```typescript
+type CryptoAlgorithm =
+  | 'AES-GCM'
+  | 'AES-CTR'
+  | 'ChaCha20-Poly1305'
+  | 'XChaCha20-Poly1305'
+  | 'Salsa20-Poly1305'
+  | 'AES-GCM-Stream';
+```
+
+### `random_bytes(count)`
+```typescript
+const salt = random_bytes(16);
+const iv = random_bytes(12);
+```
+
+### `base64_encode(data) / base64_decode(encoded)`
+```typescript
+const b64 = base64_encode(salt);     // string
+const raw = base64_decode(b64);      // Uint8Array
+```
+
+### `generate_vault_key()`
+Generates a 32-byte random key.
+
+---
+
+## 4. Streaming Encryption
+
+### `stream_encrypt(data, passphrase, argonIterations, argonMemoryKib, argonParallelism)`
+4MB chunked encryption. Returns header + encrypted chunks.
+
+```typescript
+const encrypted = stream_encrypt(largeFileBytes, 'STREAM-KEY', 4, 131072, 4);
+```
+
+### `stream_decrypt(encryptedData, passphrase, argonIterations, argonMemoryKib, argonParallelism)`
+
+### Stream Header Format
+```
+Magic: 'CRYTO_STREAM' (12 bytes)
+Version: 1 (4 bytes)
+Algorithm: 'AES-GCM-Stream'
+ChunkSize: 4194304 (4MB)
+TotalChunks: number
+OriginalSize: number
+Salt: 16 bytes
+BaseIV: 12 bytes
+```
+
+---
+
+## 5. Backup & Recovery
+
+### `generate_passphrase()`
+Generates 26-character backup key (130 bits entropy).
+
+```typescript
+const key = generate_passphrase();
+// "X9F2-KLP0-ABCD-EFGH-IJKL-MNOP-QRST-UVWX"
+```
+
+Alphabet: `ABCDEFGHJKLMNPQRSTUVWXYZ23456789` (no ambiguous chars).
+
+### `backup_encrypt(plaintext, passphrase, argonIterations, argonMemoryKib, argonParallelism)`
+Encrypts backup data. Returns `Uint8Array`:
+
+```typescript
+const backup = backup_encrypt(
+  new TextEncoder().encode(JSON.stringify(backupData)),
+  passphrase,
+  19, 131072, 4
+);
+// Format: [16B salt][12B IV][ciphertext + 16B GCM tag]
+```
+
+### `backup_decrypt(data, passphrase, argonIterations, argonMemoryKib, argonParallelism)`
+
+### `generate_recovery_codes()`
+Generates 10 recovery codes.
+
+```typescript
+const codes = generate_recovery_codes();
+// ["CRYTO-01-XXXX-XXXX-XXXX", ..., "CRYTO-10-XXXX-XXXX-XXXX"]
+```
+
+### `parse_code_index(code)`
+Returns `"01"`–`"10"` or `null` if invalid format.
+
+```typescript
+const idx = parse_code_index('CRYTO-03-ABCD-EFGH-IJKL');
+// "03"
+```
+
+### `wrap_raw_key(rawKey, wrappingKey) / unwrap_raw_key(wrapperJson, wrappingKey)`
+Master key wrapping with AES-GCM.
+
+```typescript
+const wrapper = wrap_raw_key(mvkBytes, masterKey);  // JSON string
+const mvk = unwrap_raw_key(wrapper, masterKey);      // Uint8Array
+```
+
+---
+
+## 6. Metadata
+
+### `metadata_encrypt(metaJson, key)`
+Encrypts metadata (name, tags, artist, album, etc.).
+
+```typescript
+const encrypted = metadata_encrypt(
+  JSON.stringify({ name: 'document.pdf', tags: [...] }),
+  vaultKey
+);
+// Returns: JSON string of { ciphertext: "...", iv: "..." }
+```
+
+### `metadata_decrypt(encryptedJson, key)`
+Returns decrypted JSON string.
+
+---
+
+## 7. Vault Storage
+
+### `vault_encrypt_keys(keysJson, key) / vault_decrypt_keys(encryptedJson, key)`
+Encrypts/decrypts vault key entries for localStorage storage.
+
+```typescript
+const encrypted = vault_encrypt_keys(
+  JSON.stringify([{ name: 'My Key', key: 'ABCD-...' }]),
+  vaultKey
 );
 ```
 
-**Supported Algorithms:**
-- `'AES-GCM'` - NIST standard, hardware-accelerated
-- `'AES-CTR'` - With HMAC integrity check
-- `'ChaCha20-Poly1305'` - Mobile-optimized
-- `'XChaCha20-Poly1305'` - Extended nonce (192-bit)
-- `'Salsa20-Poly1305'` - DJB's stream cipher
-- `'AES-GCM-Stream'` - Use `streamCrypto.encrypt()` instead
-
 ---
 
-## Backup Crypto Service
-_Location: `utils/backupCrypto.ts`_
+## 8. Security Utilities
 
-Handles encrypted backup creation and restoration.
-
-### `backupCryptoService.generatePassphrase()`
-Generates a 26-character backup key (130 bits entropy).
+### `validate_pin(pin)`
+Validates a 6-digit PIN (throws on invalid).
 
 ```typescript
-const key = backupCryptoService.generatePassphrase();
-// Returns: "X9F2-KLP0-ABCD-EFGH-IJKL-MNOP-QRST-UVWX"
+validate_pin('123456');  // throws: common PIN blacklist
+validate_pin('837291');  // OK
 ```
 
-**Character set:** `ABCDEFGHJKLMNPQRSTUVWXYZ23456789` (no ambiguous chars)
-
----
-
-### `backupCryptoService.encryptBackup(dataString, passphrase)`
-Encrypts backup data with Argon2id + AES-256-GCM.
+### `pin_hash(pin, argonIterations, argonMemoryKib, argonParallelism)`
+Hashes a PIN with Argon2id + AES-GCM.
 
 ```typescript
-const backup = await backupCryptoService.encryptBackup(
-  JSON.stringify(backupData),
-  passphrase
-);
-// Returns: Uint8Array in format [16-byte salt][12-byte IV][ciphertext + 16-byte GCM tag]
+const hash = pin_hash('837291', 2, 32768, 4);
+// Returns: JSON string for localStorage
+```
+
+### `pin_verify(pin, storedJson, argonIterations, argonMemoryKib, argonParallelism)`
+```typescript
+const valid = pin_verify('837291', storedHash, 2, 32768, 4);
+```
+
+### `get_backoff_time(attempts)`
+Exponential backoff: `min(pow(2, attempts-1), 3600)` seconds.
+
+```typescript
+const seconds = get_backoff_time(3); // 4 seconds
 ```
 
 ---
 
-### `backupCryptoService.decryptBackup(encryptedData, passphrase)`
-Decrypts a backup file.
+## 9. Sanitization
 
-```typescript
-const decrypted = await backupCryptoService.decryptBackup(
-  backupArrayBuffer,
-  passphrase
-);
-const backupData = JSON.parse(decrypted);
-```
+### `is_safe_image_url(url)`
+Checks if URL is safe for embedding (HTTPS, data URIs, blob URIs, relative paths).
 
----
+### `sanitize_url(url, fallback)`
+Sanitizes a URL; returns fallback on unsafe.
 
-## Stream Crypto
-_Location: `utils/streamCrypto.ts`_
+### `escape_html(text)`
+HTML-entity encodes a string.
 
-Processes large files in 4MB chunks to avoid memory issues.
-
-### `streamCrypto.encrypt(data, passphrase)`
-Streaming encryption for large files.
-
-```typescript
-const encrypted = await streamCrypto.encrypt(fileBlob, 'STREAM-KEY');
-// Returns: Uint8Array with header + encrypted chunks
-```
-
-**Header Format:**
-```typescript
-interface StreamHeader {
-  magic: 'CRYTO_STREAM';  // 12 bytes
-  version: 1;              // 4 bytes
-  algorithm: 'AES-GCM-Stream';
-  chunkSize: 4194304;       // 4MB
-  totalChunks: number;
-  originalSize: number;
-  salt: Uint8Array;         // 16 bytes
-  baseIV: Uint8Array;        // 12 bytes
-}
-```
+### `safe_mime_type_for_ext(ext)`
+Returns safe MIME type for file extension (blocks svg, html).
 
 ---
 
-### `streamCrypto.decrypt(encryptedData, passphrase)`
-Decrypts streaming-encrypted files.
+## 10. Type Definitions
 
 ```typescript
-const decrypted = await streamCrypto.decrypt(encryptedBuffer, passphrase);
-// Returns: Uint8Array of original file
-```
-
----
-
-## Vault Storage
-_Location: `utils/vaultStorage.ts`_
-
-Manages encrypted storage of manual encryption keys in localStorage.
-
-### `vaultStorage.saveAll(entries)`
-Saves all vault key entries (encrypted with Vault Key).
-
-```typescript
-await vaultStorage.saveAll([
-  { name: 'My Key', category: 'personal', key: 'ABCD-1234-...' }
-]);
-// Stored in localStorage as 'crytotool_vault_keys' (encrypted JSON)
-```
-
----
-
-### `vaultStorage.getAll()`
-Retrieves and decrypts vault key entries.
-
-```typescript
-const entries = await vaultStorage.getAll();
-// Returns: VaultKeyEntry[] or [] if error
-```
-
-**Handles:** Legacy plaintext format migration.
-
----
-
-## Database (IndexedDB)
-_Location: `utils/db.ts`_
-
-Wrapper for IndexedDB operations.
-
-### `db.addItem(item)`
-Adds encrypted file/folder to vault.
-
-```typescript
-await db.addItem({
-  id: crypto.randomUUID(),
-  parentId: null, // root level
-  type: 'file',
-  name: 'document.pdf',
-  fileData: encryptedBlob,
-  iv: base64IV,
-  algorithm: 'AES-GCM',
-  isEncrypted: true,
-  category: 'doc'
-});
-```
-
----
-
-### `db.exportDatabase()`
-Exports all data for backup.
-
-```typescript
-const data = await db.exportDatabase();
-// Returns: DBItem[] (all items in IndexedDB)
-```
-
----
-
-### `db.importDatabase(items)`
-Imports data from backup.
-
-```typescript
-await db.importDatabase(backupData.db);
-```
-
----
-
-## Security Utilities
-_Location: `utils/security.ts`_
-
-### `hashPin(pin)`
-Hashes and encrypts a 6-digit PIN for localStorage.
-
-```typescript
-const encryptedHash = await hashPin('123456');
-// Stored as 'crytotool_vault_pin_hash' (encrypted)
-```
-
----
-
-### `verifyPin(pin, storedHash)`
-Verifies a PIN against stored hash (handles encrypted and legacy formats).
-
-```typescript
-const isValid = await verifyPin('123456', storedHash);
-// Returns: boolean
-```
-
----
-
-### `getBackoffTime(failedAttempts)`
-Calculates lockout duration after failed unlock attempts.
-
-```typescript
-const seconds = getBackoffTime(3); // Returns: 30
-// 3 attempts → 30s, 4 → 60s, 5+ → 300s
-```
-
----
-
-## Type Definitions
-
-```typescript
-type CryptoAlgorithm = 
+type CryptoAlgorithm =
   | 'AES-GCM'
   | 'AES-CTR'
   | 'ChaCha20-Poly1305'
@@ -339,20 +309,23 @@ interface DBItem {
   size?: string;
   date: string;
   fileData?: Blob;
-  iv?: string;        // Base64
-  salt?: string;       // Base64
+  iv?: string;
+  salt?: string;
   algorithm?: CryptoAlgorithm;
   isEncrypted?: boolean;
   category?: 'image' | 'video' | 'audio' | 'doc' | 'other';
   isTrashed?: boolean;
+  isFavorite?: boolean;
   tags?: Tag[];
-  customIcon?: string;
+  encryptedMeta?: EncryptedMeta;
+  artist?: string;
+  album?: string;
+  coverUrl?: string;
 }
 
-interface VaultKeyEntry {
-  name: string;
-  category: string;
-  key: string; // The actual encryption key
+interface EncryptedMeta {
+  ciphertext: string;  // base64
+  iv: string;          // base64
 }
 ```
 
@@ -360,65 +333,7 @@ interface VaultKeyEntry {
 
 ## Important Notes
 
-1. **Vault Key is private** - Not accessible via `window.cryptoService.vaultKey` (closure pattern)
-2. **All crypto runs in browser** - No server involved
-3. **Use `encryptString/decryptString`** for any localStorage storage
-4. **Always handle errors** - Crypto operations can fail (e.g., wrong key)
-5. **People-first terminology** - Use "people"/"persoane" in all UI text
-
----
-
-## Examples
-
-### Full Encryption Flow (Manual)
-```typescript
-// 1. Generate key
-const key = 'ABCD-1234-EFGH-5678';
-
-// 2. Get file data
-const fileData = new Uint8Array(await file.arrayBuffer());
-
-// 3. Encrypt with chosen algorithm
-const encrypted = await cryptoService.encryptWithPassphrase(
-  fileData,
-  key,
-  'XChaCha20-Poly1305'
-);
-
-// 4. Save to vault
-await db.addItem({
-  id: crypto.randomUUID(),
-  parentId: null,
-  type: 'file',
-  name: file.name,
-  fileData: new Blob([encrypted.ciphertext]),
-  iv: btoa(String.fromCharCode(...encrypted.iv)),
-  salt: btoa(String.fromCharCode(...encrypted.salt)),
-  algorithm: 'XChaCha20-Poly1305',
-  isEncrypted: true
-});
-
-// 5. Optionally save key to vault storage
-await vaultStorage.saveAll([...existing, { name: 'My File Key', category: 'docs', key }]);
-```
-
-### Decryption Flow
-```typescript
-// 1. Get item from DB
-const item = await db.getItem(itemId);
-
-// 2. Decrypt
-const decrypted = await cryptoService.decrypt(
-  new Uint8Array(await item.fileData.arrayBuffer()),
-  base64ToArrayBuffer(item.iv),
-  undefined,
-  item.algorithm,
-  base64ToArrayBuffer(item.salt),
-  'ABCD-1234-EFGH-5678' // passphrase
-);
-
-// 3. Create download
-const blob = new Blob([decrypted]);
-const url = URL.createObjectURL(blob);
-// ... trigger download
-```
+1. **All crypto runs in WASM** — compiled from Rust `crypto-core/` crate. Functions are synchronous after WASM init.
+2. **Vault Key is private** — held as `Uint8Array` in `crypto-core/db.ts` module scope (`setVaultKey`/`getVaultKey`).
+3. **No server involved** — 100% client-side.
+4. **Error handling** — Crypto functions throw on invalid keys, corrupted data, or wrong algorithms.

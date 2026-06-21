@@ -38,12 +38,12 @@ By submitting a pull request, you agree that your contribution is licensed under
 - Use functional React components with hooks
 
 ### Security Requirements
-- **Cryptographic code is restricted to the project architect and approved external security auditors.** Contributors must never modify `utils/crypto.ts`, `utils/cryptoPrimitives.ts`, `utils/streamCrypto.ts`, `utils/backupCrypto.ts`, `utils/metadataCrypto.ts`, or any encryption-related logic. Report vulnerabilities via [GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories) — do not open public issues or PRs for crypto flaws. We prioritize security — vulnerability remediation and response will be as fast as possible.
+- **Cryptographic code is restricted to the project architect and approved external security auditors.** Contributors must never modify `crypto-core/src/*.rs` (kdf, aead, aes_ctr, chacha_salsa, stream, crypto, key_wrapping, backup_crypto, metadata_crypto, security, threat_model, sanitize, vault_storage, wasm_bindings), or any encryption-related logic. Report vulnerabilities via [GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories) — do not open public issues or PRs for crypto flaws.
 
 ### UI/UX Requirements
 - Follow glassmorphism design (`styles/glass.css`)
 - Use `t('key')` for all text (never hardcode strings)
-- Support all 50+ languages — update English source strings in `utils/i18n.ts` (other languages are translated by the community)
+- Support all 51 languages — update English source strings in `locales/en.ts` (other languages are translated by the community)
 - Responsive design: mobile-first, test at 375px and 1920px (test via browser DevTools at 375px)
 - Animations via Framer Motion with presets from `DESIGN.md`
 
