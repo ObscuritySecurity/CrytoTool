@@ -185,7 +185,6 @@ CrytoTool is built on the shoulders of giants. We are deeply grateful for these 
 
 #### Framework & Runtime
 - **[Tauri](https://tauri.app/)** — Secure, lightweight desktop and mobile backend (Rust + WebView)
-- **[Tauri Plugin Keyring](https://github.com/tauri-apps/plugins-workspace/tree/v2/plugins/keyring)** — OS keychain integration for biometric unlock
 - **[React](https://react.dev/)** — UI library (v19)
 - **[TypeScript](https://www.typescriptlang.org/)** — Type safety across the entire codebase
 - **[Vite](https://vitejs.dev/)** — Build tool and dev server (v8)

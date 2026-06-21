@@ -55,9 +55,9 @@ npx tsc --noEmit   # The only static check; required by PR template
 - **Tauri (npm):** `@tauri-apps/api: ^2.0.0`, `@tauri-apps/cli: ^2.11.2` (devDep)
 - **Tauri (Rust crate):** `tauri = "2"`, `tauri-build = "2"`
 - **Rust edition:** `2021`
-- **Runtime deps:** `serde 1.0` (with `derive`), `serde_json 1.0`, `crypto-core` (path crate), `tauri-plugin-keyring` (non-Android), `jni 0.21` (Android)
+- **Runtime deps:** `serde 1.0` (with `derive`), `serde_json 1.0`, `crypto-core` (path crate), 
 - **Features:** only `custom-protocol` (production builds)
-- **Rust surface:** 38 Tauri commands (all crypto operations, biometric, key wrapping, etc.) — listed in `src-tauri/src/lib.rs`. `withGlobalTauri: false`, but JS invokes commands via `@tauri-apps/api/core` invoke().
+- **Rust surface:** 38 Tauri commands (all crypto operations, key wrapping, etc.) — listed in `src-tauri/src/lib.rs`. `withGlobalTauri: false`, but JS invokes commands via `@tauri-apps/api/core` invoke().
 - **Linux runtime env:** `WEBKIT_DISABLE_DMABUF_RENDERER=1` + `WEBKIT_DISABLE_COMPOSITING_MODE=1` set before `tauri::Builder::default()`.
 
 ### Crypto
@@ -90,7 +90,6 @@ npx tsc --noEmit   # The only static check; required by PR template
   - `crytotool_destruct_time`, `crytotool_last_activity`
   - `app_language`, `app_region`, `app_theme_config`, `app_font_config`, `theme_accent`, `app_accent_manual`
 - **Randomness:** `window.crypto.getRandomValues` for all IVs/salts in JS layer; `rand` Rust crate inside crypto-core.
-- **Biometric:** `utils/biometric.ts` (107 lines) — dual path: desktop via `tauri-plugin-keyring`, Android via JNI (`biometric_android.rs`)
 
 ### i18n
 - **Total locales:** 51 files (one per language) + 3 support files (`types.ts`, `index.ts`, `i18nContext.tsx`)
@@ -121,7 +120,7 @@ npx tsc --noEmit   # The only static check; required by PR template
 ```
 CrytoTool/
 ├── AGENTS.md                     # This file
-├── App.tsx                       # Root component: 625 lines, state machine, biometric, threat model
+├── App.tsx                       # Root component: 625 lines, state machine, threat model
 ├── index.html                    # 136 lines; inline pre-React theme script, glass intensity vars
 ├── index.tsx                     # 18 lines; mounts <App /> via React 19 createRoot
 ├── index.css                     # 264 lines; @tailwind directives + safe-area CSS
@@ -149,7 +148,7 @@ CrytoTool/
 │   └── pkg/                      # WASM build output (crypto_core.js + .wasm + .d.ts)
 │
 ├── components/                   # 20 .tsx files
-│   ├── AuthScreen.tsx            # 1390 lines; unlock/setup/recovery/biometric
+│   ├── AuthScreen.tsx            # 1390 lines; unlock/setup/recovery
 │   ├── AutoDestructCountdown.tsx # 94 lines; self-destruct countdown timer
 │   ├── CopyMoveModal.tsx
 │   ├── CustomColorPicker.tsx     # HSL accent picker
@@ -188,7 +187,7 @@ CrytoTool/
 │   └── [48 other locale files]
 │
 ├── utils/                        # 1 file
-│   └── biometric.ts              # 107 lines; keyring + JNI biometric unlock
+
 │
 ├── styles/                       # 4 files (+ __tests__/ dir)
 │   ├── glass.css                 # 603 lines; glassmorphism design system
@@ -204,9 +203,9 @@ CrytoTool/
 │   ├── src/
 │   │   ├── main.rs               # 6 lines
 │   │   ├── lib.rs                # 276 lines; 38 Tauri commands + WebKit workarounds
-│   │   └── biometric_android.rs  # 88 lines; JNI biometric for Android
+
 │   ├── capabilities/
-│   │   └── default.json          # keyring:default permission
+│   │   └── default.json          # core:default permission
 │   └── icons/                    # 25+ icons including android/ + ios/
 │
 ├── .github/
@@ -230,18 +229,16 @@ CrytoTool/
 `App.tsx` (625 lines) owns the top-level state machine and wraps everything in `<I18nProvider>`. Transitions use `AnimatePresence`.
 
 ### `App.tsx` role
-- **State:** `isSetupRequired`, `autoBlurSeconds` (20), `autoLockSeconds` (25), `isBlurred`, `settingsPassword`, `vaultEnabled`, `vaultPin`, `progressiveLockSeconds` (60), `failedAttemptsThreshold` (3), `autoDestructEnabled`, `autoDestructAttempts` (5), `autoDestructInactivity` (0), `destructCountdownSeconds` (30), `biometricAvailable`, `biometricEnabled`, `newlyGeneratedCodes`, `failedAttempts`, `lockUntil`.
+- **State:** `isSetupRequired`, `autoBlurSeconds` (20), `autoLockSeconds` (25), `isBlurred`, `settingsPassword`, `vaultEnabled`, `vaultPin`, `progressiveLockSeconds` (60), `failedAttemptsThreshold` (3), `autoDestructEnabled`, `autoDestructAttempts` (5), `autoDestructInactivity` (0), `destructCountdownSeconds` (30),  `newlyGeneratedCodes`, `failedAttempts`, `lockUntil`.
 - **Master key:** `masterKeyRef: useRef<Uint8Array | null>` (raw bytes, not CryptoKey)
 - **Two inactivity timers:** one for authenticated state (blurs → locks → wipes), one for auth screen (wipes if inactivity exceeded).
 - **Self-destruct:** `AutoDestructCountdown` component with `destructRef`
 - **`performWipe()`:** `db.clearDatabase()` + localStorage.clear() + sessionStorage.clear() + setVaultKey(null) + reload
 - **`applyThreatModel(config)`:** writes all settings to localStorage from a tier config object
-- **Biometric unlock:** on mount, checks biometric availability, attempts auto-unlock via keyring
-- **Imports from:** `crypto-core/index` (derive_key, wrap_raw_key, unwrap_raw_key, base64, generate_recovery_codes, parse_code_index, get_argon_params, pin_hash), `crypto-core/db` (db, setVaultKey), `utils/biometric` (checkBiometricAvailability, retrieveMasterKeyBiometric, etc.)
 
 ### Auth flow — `components/AuthScreen.tsx` (1390 lines)
-- **Props:** `onUnlock, isSetup, lockUntil, onFailedAttempt, recoverySettings, onResetWithRecovery, destructRef, onDestructComplete, onApplyThreatModel, onSetupComplete, biometricAvailable, biometricEnabled, onBiometricUnlock, onStoreMasterKey, onNewCodes`
-- **Modes:** `setup` (master password + confirm + threat model tier selection) and `unlock` (password or biometric)
+- **Props:** `onUnlock, isSetup, lockUntil, onFailedAttempt, recoverySettings, onResetWithRecovery, destructRef, onDestructComplete, onApplyThreatModel, onSetupCompleteAvailableEnabled, onBiometricUnlock, onStoreMasterKey, onNewCodes`
+- **Modes:** `setup` (master password + confirm + threat model tier selection) and `unlock` (password)
 - **Recovery:** enter code + new password → `resetMasterPasswordWithRecovery()`
 - **Key derivation:** `derive_master_key(password, salt, isMobile)` → `wrap_raw_key(mvk, masterKey)` → localStorage
 - **Threat model setup:** 4 tier-uri with different Argon2id params + feature toggles
@@ -258,7 +255,7 @@ CrytoTool/
 All encryption, decryption, key derivation, metadata encryption, backup, PIN, sanitization runs through a single Rust crate compiled to WASM. JS imports from `crypto-core/index.ts` which wraps wasm-bindgen bindings. Tauri desktop builds link the same crate natively and expose 38 commands via `#[tauri::command]`.
 
 ### Tauri commands (38 total)
-`src-tauri/src/lib.rs` registers: `greet`, `check_biometric_available`, `authenticate_biometric`, `derive_key`, `aes_gcm_encrypt/decrypt`, `aes_ctr_encrypt/decrypt`, `chacha20_poly1305_encrypt/decrypt`, `xchacha20_poly1305_encrypt/decrypt`, `salsa20_poly1305_encrypt/decrypt`, `stream_encrypt/decrypt`, `random_bytes`, `base64_encode/decode`, `generate_passphrase`, `generate_recovery_codes`, `encrypt_with_passphrase/decrypt_with_passphrase`, `encrypt/decrypt`, `encrypt_string/decrypt_string`, `backup_encrypt/decrypt`, `wrap_raw_key/unwrap_raw_key`, `metadata_encrypt/decrypt`, `pin_hash/pin_verify`, `get_argon_params`.
+`src-tauri/src/lib.rs` registers: `greet`, `derive_key`, `aes_gcm_encrypt/decrypt`, `aes_ctr_encrypt/decrypt`, `chacha20_poly1305_encrypt/decrypt`, `xchacha20_poly1305_encrypt/decrypt`, `salsa20_poly1305_encrypt/decrypt`, `stream_encrypt/decrypt`, `random_bytes`, `base64_encode/decode`, `generate_passphrase`, `generate_recovery_codes`, `encrypt_with_passphrase/decrypt_with_passphrase`, `encrypt/decrypt`, `encrypt_string/decrypt_string`, `backup_encrypt/decrypt`, `wrap_raw_key/unwrap_raw_key`, `metadata_encrypt/decrypt`, `pin_hash/pin_verify`, `get_argon_params`.
 
 ### Biometric
 Dual-path: desktop via `tauri-plugin-keyring` (stores master key in OS keychain), Android via JNI (`biometric_android.rs` → `BiometricHelper`). JS orchestrates via `utils/biometric.ts`.

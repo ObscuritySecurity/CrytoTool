@@ -85,7 +85,6 @@ CrytoTool/
 │   ├── AuthScreen.tsx     # Setup/unlock/recovery
 │   ├── Dashboard.tsx      # Main shell + view router
 │   └── views/             # 8 page views
-├── utils/biometric.ts     # Keyring + JNI biometric
 ├── locales/               # 51 languages
 ├── styles/                # glass.css + themes + fonts
 └── src-tauri/             # Tauri backend (Rust)

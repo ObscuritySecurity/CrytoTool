@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, Monitor, LayoutGrid, Palette, PaintBucket, Moon, Sun, Shield, Terminal, 
   FileLock2, EyeOff, Heart, CheckCircle, Globe, Languages, KeyRound, Smartphone, Mail, 
-  Fingerprint, Info, CodeXml, MessageSquare, AtSign, ExternalLink, Ghost, Calendar, MapPin, 
+  Info, CodeXml, MessageSquare, AtSign, ExternalLink, Ghost, Calendar, MapPin, 
   Type, CaseUpper, ShieldAlert, Skull, Power, ShieldCheck, Lock, Check, Key, Sparkles, ChevronRight,
   Target
 } from 'lucide-react';
@@ -62,13 +62,6 @@ interface SettingsViewProps {
     openVault: () => void;
     disableVault: () => void;
     vaultPinAllowed?: boolean;
-  };
-  biometricSettings: {
-    available: boolean;
-    enabled: boolean;
-    enable: () => Promise<boolean>;
-    disable: () => Promise<boolean>;
-    biometricAllowed?: boolean;
   };
   openThemes: () => void;
   openFonts: () => void;
@@ -520,44 +513,7 @@ export const SettingsView: React.FC<SettingsViewProps> = (props) => {
                 </div>
 )}
 
-{/* --- BIOMETRIC UNLOCK --- */}
-{props.biometricSettings.biometricAllowed !== false && (
-<div className="pb-6 border-b border-border">
-    <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-             <Fingerprint size={16} className={props.biometricSettings.enabled ? "text-neon-green" : "text-muted"} />
-             <label className="text-sm font-bold uppercase tracking-wider text-primary">{t('biometricUnlockLabel')}</label>
-        </div>
-        <div className="flex items-center gap-2">
-            <button
-                onClick={async () => {
-                    if (props.biometricSettings.enabled) {
-                        await props.biometricSettings.disable();
-                    } else {
-                        await props.biometricSettings.enable();
-                    }
-                }}
-                className={`w-12 h-7 rounded-full transition-colors flex items-center px-1 ${props.biometricSettings.enabled ? 'bg-neon-green' : 'bg-surface border border-border'}`}
-            >
-                <motion.div
-                    layout
-                    className={`w-5 h-5 rounded-full bg-white shadow-sm`}
-                    animate={{ x: props.biometricSettings.enabled ? 18 : 0 }}
-                />
-            </button>
-        </div>
-    </div>
-    <p className="text-[10px] text-muted mb-2">{t('biometricUnlockDesc')}</p>
-    {!props.biometricSettings.available && (
-        <p className="text-[10px] text-zinc-600 flex items-center gap-1">
-            <ShieldAlert size={10} />
-            {t('biometricNotAvailable')}
-        </p>
-    )}
-</div>
-)}
-
-                  {/* === ZONA DE PERICOL: AUTODISTRUGERE === */}
+                   {/* === ZONA DE PERICOL: AUTODISTRUGERE === */}
                   <div className="border-t border-border pt-6 bg-red-500/5 -mx-6 px-6 pb-6 mt-6 border-b">
                       <div className="flex items-center justify-between mb-6">
                           <h4 className="text-[10px] font-black uppercase tracking-widest text-red-500 flex items-center gap-2">

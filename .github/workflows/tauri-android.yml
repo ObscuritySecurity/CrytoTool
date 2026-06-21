@@ -63,24 +63,6 @@ jobs:
       - name: Init Android project
         run: echo "y" | npm run tauri android init
 
-      - name: Patch Android minSdkVersion for biometry plugin
-        run: |
-          BUILD_FILE="src-tauri/gen/android/app/build.gradle.kts"
-          if [ -f "$BUILD_FILE" ]; then
-            sed -i 's/minSdk = 24/minSdk = 26/' "$BUILD_FILE"
-            echo "Patched minSdk to 26 in $BUILD_FILE"
-          else
-            echo "Warning: $BUILD_FILE not found"
-          fi
-
-      - name: Patch Kotlin version for biometry plugin
-        run: |
-          KOTLIN_FILE="src-tauri/gen/android/build.gradle.kts"
-          if [ -f "$KOTLIN_FILE" ]; then
-            sed -i 's/kotlin-gradle-plugin:1\.9\.[0-9]*/kotlin-gradle-plugin:2.1.0/' "$KOTLIN_FILE"
-            echo "Patched Kotlin in $KOTLIN_FILE"
-            grep 'kotlin-gradle-plugin' "$KOTLIN_FILE"
-          fi
 
       - name: Generate app icons
         run: npm run tauri -- icon src-tauri/icon-sources/icon-manifest.json -o src-tauri/icons

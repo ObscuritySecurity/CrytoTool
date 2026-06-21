@@ -40,8 +40,7 @@
     "lucide-react": "^1.18.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "react-icons": "^4.11.0",
-    "tauri-plugin-keyring-api": "^0.1.1"
+    "react-icons": "^4.11.0"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.11.2",
