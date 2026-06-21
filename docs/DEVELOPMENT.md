@@ -1,7 +1,5 @@
 # CrytoTool Development Guide
-_Version: 2.5.0-beta | Last Updated: 2026-05-27_
-
-This guide helps developers set up their environment and understand the development workflow for CrytoTool.
+_Version: 2.5.0-beta | Last Updated: 2026-06-21_
 
 ---
 
@@ -9,253 +7,125 @@ This guide helps developers set up their environment and understand the developm
 
 ### Required Software
 - **Node.js** v18+ (LTS recommended)
-- **npm** v9+ (comes with Node.js)
-- **Rust** (latest stable) - for Tauri desktop builds
-- **C/C++ compiler** - for native dependencies:
-  - Windows: [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
-  - macOS: Xcode Command Line Tools (`xcode-select --install`)
-  - Linux: `build-essential` (Ubuntu/Debian) or equivalent
+- **npm** v9+
+- **Rust** (latest stable) — required for WASM build + Tauri
+- **wasm-pack** — `cargo install wasm-pack`
+- **C/C++ compiler** — for native dependencies
 
-### For Mobile Development (Optional)
-- **Android Studio** + Android SDK (for Android)
-- **Xcode** (for iOS, macOS only)
-- **Tauri v2 mobile prerequisites**: `cargo install tauri-cli`
+### For Mobile Development
+- **Android Studio** + Android SDK 35 (Android)
+- **Xcode** (iOS, macOS only)
 
 ---
 
 ## Initial Setup
 
-### 1. Clone the Repository
 ```bash
 git clone https://github.com/ObscuritySecurity/CrytoTool.git
 cd CrytoTool
-```
-
-### 2. Install Dependencies
-```bash
 npm install
 ```
 
-This installs:
-- `hash-wasm` - Argon2id implementation
-- `libsodium-wrappers` - ChaCha20, XChaCha20, BLAKE2b
-- `framer-motion` - Animations
-- `lucide-react` - Icons
-- `idb` - IndexedDB wrapper
-- `vite`, `tailwindcss`, `typescript` - Build tooling
-
-### 3. Run Development Server (Web)
-```bash
-npm run dev
-```
-
-Opens at `http://localhost:5173`
+Key dependencies:
+- `hash-wasm` — Argon2id (fallback)
+- `libsodium-wrappers` — ChaCha20, XChaCha20 (fallback)
+- `framer-motion` — Animations
+- `lucide-react` — Icons
+- `@fontsource/*` — 17 font packages
 
 ---
 
 ## Development Workflow
 
-### Project Structure
+### Build Order
+
+**Always build WASM first, then the frontend:**
+
+```bash
+npm run build:wasm   # wasm-pack build crypto-core --target web --out-dir pkg
+npm run build        # tsc --noEmit + vite build
 ```
-CrytoTool/
-├── utils/           # Core logic & crypto
-│   ├── crypto.ts             # Master key derivation, AES-GCM
-│   ├── cryptoPrimitives.ts   # Isolated algorithms
-│   ├── streamCrypto.ts       # Chunked streaming
-│   ├── backupCrypto.ts       # Backup encryption
-│   ├── db.ts                 # IndexedDB wrapper
-│   ├── vaultStorage.ts       # Encrypted key storage
-│   ├── security.ts           # PIN, lockout
-│   ├── i18n.ts               # 50+ languages
-│   └── themes.ts             # Theme configurations
-│
-├── components/      # React UI
-│   ├── App.tsx               # Main app state
-│   ├── Dashboard.tsx         # File manager
-│   ├── AuthScreen.tsx        # Unlock/setup
-│   └── views/                # Full-page views
-│       ├── StorageView.tsx
-│       ├── GalleryView.tsx
-│       ├── MusicView.tsx
-│       ├── VaultView.tsx
-│       ├── BackupView.tsx
-│       └── SettingsView.tsx
-│
-├── styles/          # CSS
-│   └── glass.css             # Glassmorphism system
-│
-└── src-tauri/      # Tauri desktop (Rust)
+
+### Dev Server
+```bash
+npm run dev   # http://localhost:5173 (HTTPS if key.pem+cert.pem exist)
+```
+
+### Type Check
+```bash
+npx tsc --noEmit
 ```
 
 ### Available Scripts
 ```bash
-npm run dev          # Start Vite dev server
+npm run dev          # Vite dev server
+npm run build:wasm   # Build crypto-core Rust crate to WASM
 npm run build        # TypeScript check + Vite build
-npm run tauri       # Build Tauri desktop app
-npm run tauri       # Also builds Tauri mobile (Android/iOS) when configured
+npm run preview      # Preview production build
+npm run tauri        # Build Tauri desktop app
+npm run tauri android build   # Build Android APK
 ```
 
 ### Code Style
-- **TypeScript strict mode** - All code must pass `tsc --noEmit`
-- **English comments only** - For international contributors
-- **No console.log in production** - Use proper error handling
-- **People-first terminology** - "people"/"persoane", never "users"/"utilizatori"
-
-### Adding a New Feature
-
-1. **Create a branch**
-   ```bash
-   git checkout -b feature/my-feature
-   ```
-
-2. **Follow patterns**
-   - New views → `components/views/FeatureView.tsx`
-   - New modals → `components/FeatureModal.tsx`
-   - New crypto → add to `utils/crypto.ts` or `utils/cryptoPrimitives.ts`
-
-3. **Update i18n** - Add English source strings in `utils/i18n.ts` (other languages are translated by the community)
-
-4. **Test build**
-   ```bash
-   npm run build  # Must pass with no errors
-   ```
-
-5. **Update documentation** - `ARCHITECTURE.md`, `SECURITY.md`, or `API.md`
-
-6. **Commit**
-   ```bash
-   git commit -m "feat(scope): description"
-   ```
+- TypeScript strict mode — must pass `npx tsc --noEmit`
+- React hooks, no class components
+- Conventional commits: `type(scope): description`
+- Types: `feat, fix, docs, style, refactor, test, chore`
 
 ---
 
-## Building for Different Platforms
+## Project Structure
 
-### Web (Default)
-```bash
-npm run build
-# Output: dist/ folder
+```
+CrytoTool/
+├── crypto-core/           # Rust WASM crate (ALL crypto)
+│   ├── src/*.rs           # 14 modules + wasm bindings
+│   ├── index.ts           # JS bridge to WASM
+│   └── db.ts              # IndexedDB wrapper
+├── components/            # React UI
+│   ├── AuthScreen.tsx     # Setup/unlock/recovery
+│   ├── Dashboard.tsx      # Main shell + view router
+│   └── views/             # 8 page views
+├── utils/biometric.ts     # Keyring + JNI biometric
+├── locales/               # 51 languages
+├── styles/                # glass.css + themes + fonts
+└── src-tauri/             # Tauri backend (Rust)
 ```
 
-### Desktop (Tauri)
-```bash
-npm run tauri
-# Output: src-tauri/target/release/
-```
+---
 
-**Requirements:**
-- Rust installed (https://rustup.rs/)
-- System dependencies for Tauri (see https://v2.tauri.app/start/prerequisites/)
+## Adding a New Feature
 
-**First run:**
-```bash
-npm run tauri dev    # Development with hot reload
-```
+1. Create a branch: `git checkout -b feature/my-feature`
+2. New views → `components/views/FeatureView.tsx`
+3. New modals → `components/FeatureModal.tsx`
+4. **Crypto changes are RESTRICTED** — only `wtshex1` + approved auditors may touch `crypto-core/src/*.rs`
+5. Update i18n — add keys to `locales/en.ts`, `ro.ts`, `es.ts`
+6. Build & type-check: `npm run build:wasm && npm run build`
+7. Update docs: `ARCHITECTURE.md`, `API.md`, or `SECURITY.md`
+8. Commit & PR
 
-### Mobile (Tauri v2)
+---
 
-Tauri v2 includes native mobile build support:
+## Security Considerations
+
+1. **Never log the vault key** — even in development
+2. **Vault key is only in memory** — `masterKeyRef` in `App.tsx`
+3. **Encrypt before localStorage** — all sensitive data goes through WASM encrypt
+4. **Crypto code is off-limits** — `crypto-core/src/*.rs` may only be modified by the project architect
+5. Report vulnerabilities via GitHub Security Advisories
+
+---
+
+## Vitest (Testing)
+
+CrytoTool has `vitest` configured with `jsdom` for component testing:
 
 ```bash
-npm run tauri android build   # Build for Android
-npm run tauri ios build       # Build for iOS (macOS only)
+npx vitest
 ```
 
----
-
-## Debugging
-
-### Browser DevTools
-- **Console** - Check for errors
-- **Application tab** - Inspect IndexedDB, localStorage
-- **Network tab** - No network requests (100% client-side)
-
-### Crypto Debugging
-```typescript
-// Check Vault Key state
-console.log('Vault Key exists:', !!cryptoService.vaultKey);
-
-// Inspect localStorage
-console.log(localStorage.getItem('crytotool_salt'));
-console.log(localStorage.getItem('crytotool_vault_pin_hash'));
-```
-
-### Common Issues
-
-**TypeScript errors:**
-```bash
-npx tsc --noEmit  # Check errors
-```
-
-**Build fails:**
-```bash
-rm -rf node_modules package-lock.json
-npm install
-npm run build
-```
-
-**Tauri build fails:**
-- Check Rust version: `rustc --version`
-- Update Tauri: `npm update @tauri-apps/cli`
-
----
-
-## Environment Variables (Optional)
-
-Create `.env` file (not committed):
-```env
-VITE_APP_VERSION=2.5.0-beta
-VITE_BUILD_DATE=2026-05-01
-```
-
-Access in code:
-```typescript
-const version = import.meta.env.VITE_APP_VERSION;
-```
-
----
-
-## Working with Translations
-
-### Adding a New Language
-1. Open `utils/i18n.ts`
-2. Add language code to `SupportedLocale` type
-3. Add translation object following `Translation` interface
-4. Test with `App.tsx` locale state
-
-### Translation Rules
-- Keep strings concise (max 50 chars for buttons)
-- Use `{t('key')}` in components
-- Never hardcode strings (except error codes)
-- Use people-related terms (see `DESIGN.md`)
-
----
-
-## Security Considerations for Developers
-
-1. **Never log Vault Key** - Even in development
-2. **Never store Vault Key** - Only in memory (`cryptoService.vaultKey`)
-3. **Encrypt before localStorage** - Use `encryptString()` / `decryptString()`
-4. **Validate inputs** - Especially file names, sizes
-5. **Test CSP** - Ensure no inline scripts in production
-6. **Cryptographic code is restricted** — Only the project architect and approved external security auditors may modify `utils/crypto.ts`, `utils/cryptoPrimitives.ts`, `utils/streamCrypto.ts`, `utils/backupCrypto.ts`, `utils/metadataCrypto.ts`, or any encryption logic. Contributors must not touch crypto code. Report vulnerabilities via [GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories). We prioritize security — vulnerability remediation and response will be as fast as possible.
-
----
-
-## Performance Tips
-
-1. **Large files** - Use `AES-GCM-Stream` (4MB chunks)
-2. **Lazy loading** - Import views only when needed
-3. **Memoization** - Use `React.memo()` for FileItem components
-4. **IndexeDB** - Don't load all files at once, use pagination
-
----
-
-## Getting Help
-
-- **GitHub Issues**: https://github.com/ObscuritySecurity/CrytoTool/issues
-- **Security Issues**: https://github.com/ObscuritySecurity/CrytoTool/security/advisories — We prioritize security, vulnerability response is as fast as possible.
-- **Documentation**: See `README.md` for all doc links
+Config: `vitest.config.ts` — React plugin + jsdom environment.
 
 ---
 
@@ -264,10 +134,9 @@ const version = import.meta.env.VITE_APP_VERSION;
 | Task | Command |
 |------|---------|
 | Start dev server | `npm run dev` |
+| Build WASM | `npm run build:wasm` |
 | Check types | `npx tsc --noEmit` |
-| Build for web | `npm run build` |
+| Build web | `npm run build` |
 | Build desktop | `npm run tauri` |
-| Build mobile Android | `npm run tauri android build` |
-| Build mobile iOS | `npm run tauri ios build` |
-
-**Remember: We build software that respects people. Code accordingly.**
+| Build Android | `npm run tauri android build` |
+| Run tests | `npx vitest` |

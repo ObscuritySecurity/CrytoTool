@@ -1,301 +1,224 @@
 # CrytoTool Architecture Overview
-_Version: 2.5.0-beta | Last Updated: 2026-05-27_
+_Version: 2.5.0-beta | Last Updated: 2026-06-21_
 
 ## Table of Contents
-1. [Database Encryption (IndexedDB)](#1-database-encryption-indexeddb)
-2. [Metadata Encryption](#2-metadata-encryption)
-3. [Automatic Encryption (Vault Default)](#automatic-encryption-vault-default)
-4. [Manual Encryption](#manual-encryption)
-5. [Encrypted Backup System](#4-encrypted-backup-system)
-6. [Streaming Encryption](#5-streaming-encryption)
-7. [Project Directory Structure](#6-project-directory-structure)
-   - [Source Code Tree](#source-code-tree)
-   - [IndexedDB Data Hierarchy](#indexeddb-data-hierarchy)
+1. [Crypto Layer (crypto-core)](#1-crypto-layer-crypto-core)
+2. [Database Encryption (IndexedDB)](#2-database-encryption-indexeddb)
+3. [Metadata Encryption](#3-metadata-encryption)
+4. [Automatic Encryption (Vault Default)](#4-automatic-encryption-vault-default)
+5. [Manual Encryption](#5-manual-encryption)
+6. [Encrypted Backup System](#6-encrypted-backup-system)
+7. [Streaming Encryption](#7-streaming-encryption)
+8. [Biometric Authentication](#8-biometric-authentication)
+9. [Project Directory Structure](#9-project-directory-structure)
 
 ---
 
-## 1. Database Encryption (IndexedDB)
+## 1. Crypto Layer (crypto-core)
 
-### Master Key Derivation
-The vault master key is derived from the person's Master Password using **Argon2id** via the `hash-wasm` library (`utils/crypto.ts:26-44`):
+All cryptographic operations run through a single Rust crate `crypto-core/` compiled to WASM (for browser/webview) and linked natively (for Tauri desktop).
+
+### Rust Crate Modules (`crypto-core/src/`)
+
+| File | Purpose |
+|------|---------|
+| `kdf.rs` | Argon2id key derivation (configurable iterations/memory/parallelism) |
+| `aead.rs` | AES-256-GCM encrypt/decrypt, 12-byte nonce |
+| `aes_ctr.rs` | AES-CTR + HKDF-SHA256 subkey split + HMAC-SHA256 Encrypt-then-MAC |
+| `chacha_salsa.rs` | ChaCha20-Poly1305 (12B nonce), XChaCha20-Poly1305 (24B), Salsa20-Poly1305 (24B) |
+| `stream.rs` | 4MB chunked streaming, `CRYTO_STREAM` magic header v1, per-chunk HMAC IV |
+| `crypto.rs` | Composite ops: random_bytes, base64, encrypt/decrypt (vault default AES-GCM), encrypt_with_passphrase (6 algoritmi + Argon2id) |
+| `key_wrapping.rs` | Recovery codes (10x CRYTO-NN-XXXX-XXXX-XXXX), wrap/unwrap raw key, derive_master_key |
+| `backup_crypto.rs` | 26-char passphrase, backup_encrypt/decrypt Argon2id→AES-GCM `[16B salt][12B iv][ct+tag]` |
+| `metadata_crypto.rs` | Encrypted metadata blobs AES-GCM (JSON → base64) |
+| `security.rs` | PIN validation (6 digit, blacklist), exponential backoff, pin_hash/pin_verify |
+| `threat_model.rs` | `get_argon_params(purpose, tier)` — JSON with iterations/memorySize/parallelism for 4 tiers |
+| `sanitize.rs` | URL sanitization, HTML escape, MIME type safety (svg/html extension blocking) |
+| `vault_storage.rs` | Encrypted key storage for vault entries (AES-GCM, JSON integrity) |
+| `wasm_bindings.rs` | `#[wasm_bindgen]` bindings for all functions (307 lines) |
+
+### JS Bridge (`crypto-core/index.ts`, 269 lines)
+
+Imports from `./pkg/crypto_core.js` (wasm-bindgen output). Lazy-init with `ensureInit()`. 50+ exported functions: `derive_key`, `aes_gcm_encrypt/decrypt`, `aes_ctr_encrypt/decrypt`, `chacha20_poly1305_encrypt/decrypt`, `xchacha20_poly1305_encrypt/decrypt`, `salsa20_poly1305_encrypt/decrypt`, `stream_encrypt/decrypt`, `random_bytes`, `base64_encode/decode`, `generate_passphrase`, `generate_recovery_codes`, `parse_code_index`, `encrypt_with_passphrase/decrypt_with_passphrase`, `encrypt/decrypt`, `encrypt_string/decrypt_string`, `backup_encrypt/decrypt`, `wrap_raw_key/unwrap_raw_key`, `metadata_encrypt/decrypt`, `pin_hash/pin_verify`, `get_argon_params`, `vault_encrypt_keys/decrypt_keys`, `derive_master_key`, `generate_vault_key`, `validate_pin`, `get_backoff_time`, `is_safe_image_url`, `sanitize_url`, `escape_html`, `safe_mime_type_for_ext`.
+
+### Tauri Native Bridge (`src-tauri/src/lib.rs`, 276 lines)
+
+Same `crypto-core` crate linked natively. 38 `#[tauri::command]` functions registered covering all operations plus `greet`, `check_biometric_available`, `authenticate_biometric`.
+
+### Key Derivation
+
 ```
-Master Password + Random Salt (16 bytes) → Argon2id (19 iterations, 128MB memory, 4-way parallelism) → 32-byte hash → Imported as AES-256-GCM CryptoKey
+Master Password + Random Salt (16 bytes)
+  → Argon2id (19 iterations / 131072 KB / 4 parallelism)
+  → 32-byte raw key
+  → wrap_raw_key(MVK, masterKey) → localStorage crytotool_vault_wrappers
 ```
-Parameters:
-- Iterations: 19
-- Memory: 131072 KB (128MB)
-- Parallelism: 4 threads
-- Hash length: 32 bytes (256 bits)
-- Output: Raw binary, imported as `CryptoKey` for AES-GCM operations
 
-The derived key is stored **only in memory** (`cryptoService.vaultKey`) and never written to localStorage to minimize leakage risk.
+### Tauri Commands (38)
 
-### Automatic Encryption on File Add
-When a file is added via `db.addItem()` (`utils/db.ts:65-83`):
+Utilitare: `greet`, `random_bytes`, `base64_encode`, `base64_decode`, `get_argon_params`
+KDF: `derive_key`
+AEAD: `aes_gcm_encrypt/decrypt`, `aes_ctr_encrypt/decrypt`
+ChaCha/Salsa: `chacha20_poly1305_encrypt/decrypt`, `xchacha20_poly1305_encrypt/decrypt`, `salsa20_poly1305_encrypt/decrypt`
+Streaming: `stream_encrypt/decrypt`
+Composite: `encrypt_with_passphrase/decrypt_with_passphrase`, `encrypt/decrypt`, `encrypt_string/decrypt_string`
+Backup/Recovery: `backup_encrypt/decrypt`, `generate_passphrase`, `generate_recovery_codes`, `wrap_raw_key/unwrap_raw_key`
+Metadata: `metadata_encrypt/decrypt`
+Security: `pin_hash`, `pin_verify`
+Android: `check_biometric_available`, `authenticate_biometric`
+
+---
+
+## 2. Database Encryption (IndexedDB)
+
+Implemented in `crypto-core/db.ts` (305 lines). `DB_NAME = 'CrytoToolVault'`, `DB_VERSION = 3`, single store `'files'` with `keyPath: 'id'`.
+
+### Encryption on File Add
+When a file is added via `db.addItem()`:
 1. Check if `item.fileData` exists and `!item.isEncrypted`
-2. Call `cryptoService.encrypt(item.fileData)` which:
-   - Generates a random 12-byte IV
-   - Encrypts the file blob using AES-GCM with the in-memory vault key
-   - Returns `{ ciphertext: Uint8Array, iv: Uint8Array, salt: empty Uint8Array, algorithm: 'AES-GCM' }`
-3. Store in IndexedDB:
-   - `fileData`: Blob containing the ciphertext
-   - `iv`: Base64-encoded IV
-   - `algorithm`: 'AES-GCM'
-   - `isEncrypted`: true
+2. Call `encrypt(plaintext, vaultKey)` (WASM) → `{ciphertext, iv}` JSON
+3. Store in IndexedDB: `fileData`: Blob(ciphertext), `iv`, `algorithm: 'AES-GCM'`, `isEncrypted: true`
+
+### VaultDB Methods
+- `init()` — open/upgrade DB, v3 migration encrypts legacy metadata via cursor
+- `addItem()` — encrypts metadata + fileData before store
+- `updateItem()` — same encryption flow
+- `getAllItems()` — returns all items
+- `deleteItem()` — delete by id
+- `clearDatabase()` — clear store
+- `exportDatabase()` — items with fileDataBase64
+- `importDatabase()` — validate + restore
+
+Vault key is held in memory: `setVaultKey(key)`, `getVaultKey()`.
 
 ---
 
-## 2. Metadata Encryption
-Implemented in `utils/metadataCrypto.ts`. All sensitive metadata fields (file names, tags, artist, album, coverUrl, customIcon, externalUrl) are encrypted with AES-256-GCM using the in-memory vault key before being stored in IndexedDB.
+## 3. Metadata Encryption
 
-### Encryption Flow (`metadataCrypto.ts:21-24`)
+Implemented in `crypto-core/src/metadata_crypto.rs` (46 lines) + WASM bindings. All sensitive metadata fields are encrypted with AES-256-GCM.
+
+### Encryption Flow
 ```
 { name, tags, artist, album, coverUrl, customIcon, externalUrl }
   → JSON.stringify
-  → cryptoService.encryptString(json)  // AES-256-GCM with vault key + random IV
+  → metadata_encrypt(json, vaultKey)  // AES-256-GCM
   → { ciphertext: base64, iv: base64 }
   → stored in DBItem.encryptedMeta
 ```
 
-### Metadata Fields Protected
-| Field | Description | Encrypted? |
-|-------|-------------|------------|
-| `name` | File/folder display name | **YES** |
-| `tags` | Person-assigned tags with label + color | **YES** |
-| `artist` | Audio artist metadata | **YES** |
-| `album` | Audio album metadata | **YES** |
-| `coverUrl` | Cover image URL | **YES** |
-| `customIcon` | Custom icon identifier | **YES** |
-| `externalUrl` | External file reference URL | **YES** |
-
-### Fields That Remain Plaintext
-These fields stay unencrypted because they are required for IndexedDB queries, filtering, and UI rendering without needing to decrypt every record:
+### Fields Remain Plaintext
 `id`, `parentId`, `type`, `size`, `date`, `category`, `isEncrypted`, `isTrashed`, `isFavorite`, `iv`, `salt`, `algorithm`, `iconOnlyMode`
 
-### Write Path (`db.ts:94-109`)
-When `addItem()` or `updateItem()` is called:
-1. Check if `item.encryptedMeta` is absent and sensitive fields exist
-2. Call `metadataCrypto.encrypt()` → produces `{ ciphertext, iv }`
-3. Call `metadataCrypto.stripFromItem()` → removes plaintext name, tags, artist etc.
-4. Set `item.encryptedMeta` to the encrypted blob
-5. Store the item in IndexedDB
+---
 
-### Read Path
-Items are returned from IndexedDB with `encryptedMeta` intact. The UI layer calls `metadataCrypto.extractPlaintext(item)` or `metadataCrypto.getDisplayName(item)` to decrypt on-demand using the in-memory vault key. Fallback to legacy plaintext fields if `encryptedMeta` is absent (backward compatibility).
-
-### Schema Migration (`db.ts:61-86`)
-On upgrade to `DB_VERSION = 3`, existing items without `encryptedMeta` are migrated via a cursor:
-- Plaintext `name` is base64-encoded into `encryptedMeta.ciphertext`
-- Legacy `tags`, `artist`, `album`, `coverUrl`, `customIcon`, `externalUrl` are removed
-
-
-### Automatic Encryption (Vault Default)
-- **Trigger**: Any file added via the Dashboard, Upload, or New Folder action
-- **Algorithm**: AES-256-GCM (industry standard)
-- **Key**: In-memory Vault Key (derived from Master Password via Argon2id)
+## 4. Automatic Encryption (Vault Default)
+- **Trigger**: Any file added via Dashboard, Upload, or New Folder
+- **Algorithm**: AES-256-GCM
+- **Key**: In-memory Vault Key (raw Uint8Array, not CryptoKey)
 - **Storage**: IndexedDB with `isEncrypted: true` flag
-- **No intervention required**: Key management is automatic
-
-### Manual Encryption
-Triggered via the `EncryptionModal` component (`components/EncryptionModal.tsx`) for files already in the vault.
-
-#### Workflow (`EncryptionModal.tsx:200-269`):
-1. **Algorithm Selection**: Choose from 6 supported algorithms:
-   | Algorithm | Description | Use Case |
-   |------------|-------------|----------|
-   | AES-GCM-Stream | 4MB chunked streaming | Large files, low-RAM devices |
-   | AES-GCM | NIST-recommended standard | General purpose, documents, photos |
-   | XChaCha20-Poly1305 | Extended 192-bit nonce | Cloud storage, long-term archival |
-   | ChaCha20-Poly1305 | Mobile-optimized | Fast encryption on phones/tablets |
-   | AES-CTR + HMAC | Classic AES with integrity check | Legacy compatibility |
-   | Salsa20-Poly1305 | DJB's original stream cipher | Enthusiast choice, eSTREAM finalist |
-
-2. **Key Generation**: A 32-byte random key is generated via `window.crypto.getRandomValues()`, formatted as uppercase hex with dashes (e.g., `A1B2-C3D4-E5F6-...`)
-
-3. **Decrypt (if needed)**: If the file was previously encrypted with the default Vault Key, it is first decrypted using the in-memory vault key
-
-4. **Encrypt with selected algorithm**:
-   - For AES-GCM-Stream: `streamCrypto.encrypt(rawData, generatedKey)`
-   - For other algorithms: `cryptoService.encryptWithPassphrase(rawData, generatedKey, algorithm)`
-
-5. **Store in IndexedDB**: Update the file entry with `ciphertext`, `iv` (base64), `salt` (base64, for key derivation), `algorithm`, `isEncrypted: true`
-
-6. **Optional Vault Storage**: Save the generated key to `vaultStorage` with a selected category for easy reuse. **Security note**: All keys in `vaultStorage` are now encrypted with the Vault Key (AES-256-GCM) before being stored in localStorage (`utils/vaultStorage.ts`). The encrypted format is: `{ iv: base64, data: base64 }` where `data` is the encrypted JSON of all vault key entries.
-
-#### Manual Encryption Key Derivation (`crypto.ts:75-83`):
-```
-Person-Generated Passphrase + Random Salt (16 bytes) → Argon2id (hash-wasm, 4 iterations, 128MB memory, 4-way parallel) → 32-byte raw key → Passed to selected primitive
-```
-The passphrase-based KDF uses `argon2id` from `hash-wasm`, replacing the previous `libsodium.crypto_pwhash()` dependency. This provides proper key stretching against brute-force attacks without requiring WebAssembly loading for libsodium's pwhash module.
-
-#### Vault Key Storage Encryption (`utils/crypto.ts:232-266`, `utils/vaultStorage.ts`):
-```
-JSON.stringify(vaultKeyEntries) → TextEncoder → AES-GCM (Vault Key, random IV) → Base64 encode → localStorage
-```
-- On read: localStorage → Base64 decode (iv + data) → AES-GCM decrypt (Vault Key) → JSON.parse
-- The Vault Key is never stored; it is derived from Master Password via Argon2id and kept only in memory
-- Legacy plaintext keys (older versions) are handled: returned as-is and migrated to encrypted format on next save
 
 ---
 
-## 4. Encrypted Backup System
-Implemented in `utils/backupCrypto.ts` and `components/views/BackupView.tsx`. Backups are fully client-side and never sent to a server.
+## 5. Manual Encryption
 
-### Backup Creation Flow (`BackupView.tsx:30-74`):
-1. **Generate Backup Key**: 26-character alphanumeric key (130 bits entropy) via `backupCryptoService.generatePassphrase()`
-   - Character set: `ABCDEFGHJKLMNPQRSTUVWXYZ23456789` (excludes ambiguous characters)
-   - Format: 26 characters with dashes every 4th character (e.g., `X9F2-KLP0-ABCD-EFGH-IJKL-MNOP-QR`)
+Triggered via `EncryptionModal` component (`components/EncryptionModal.tsx`, 536 lines).
 
-2. **Collect Data**:
-   - IndexedDB dump: `db.exportDatabase()` (all file entries, converted to Base64)
-   - LocalStorage entries: `crytotool_theme_config`, `crytotool_vault_cats`, `crytotool_salt`, `crytotool_iv`, `crytotool_vault_blob`, `crytotool_vault_enabled`, `crytotool_vault_pin`, `crytotool_recovery_codes`
-   - Package as JSON:
-     ```json
-     {
-       "localStorage": { ... },
-       "db": [ ... ],
-       "timestamp": 1714523200000,
-       "version": "2.5.0-beta"
-     }
-     ```
+### 6 Supported Algorithms
+| Algorithm | Description |
+|-----------|-------------|
+| AES-GCM-Stream | 4MB chunked streaming |
+| AES-GCM | NIST-recommended standard |
+| XChaCha20-Poly1305 | Extended 192-bit nonce |
+| ChaCha20-Poly1305 | Mobile-optimized |
+| AES-CTR + HMAC | Classic AES with integrity check |
+| Salsa20-Poly1305 | DJB's original stream cipher |
 
-3. **Encrypt Backup** (`backupCryptoService.encryptBackup`):
-   - Generate random 16-byte salt
-    - Derive AES-256 key: `Passphrase + Salt → Argon2id (19 iterations, 128MB memory) → AES-256-GCM CryptoKey`
-   - Generate random 12-byte IV
-   - Encrypt JSON string with AES-GCM (includes 16-byte GCM authentication tag)
-
-4. **File Format**:
-   ```
-   [16-byte Salt][12-byte IV][Ciphertext + 16-byte GCM Tag]
-   ```
-
-5. **Download**: Auto-triggered as `crytotool-backup-YYYY-MM-DD.enc`
-
-### Backup Restoration Flow (`BackupView.tsx:83-110`):
-1. Upload `.enc` backup file
-2. Enter 26-character backup key
-3. Extract salt (16 bytes) + IV (12 bytes) + ciphertext
-4. Derive key with Argon2id (19 iterations, 128MB memory)
-5. Decrypt with AES-GCM → Parse JSON
-6. Restore localStorage entries and import IndexedDB data via `db.importDatabase()`
-7. Reload the application
+### Flow
+1. Algorithm selection
+2. 32-byte random key generation
+3. Decrypt if previously vault-encrypted
+4. Encrypt with selected algorithm via WASM
+5. Store in IndexedDB
+6. Optional save to vault storage (encrypted in localStorage)
 
 ---
 
-## 5. Streaming Encryption
-Designed for large files on low-RAM devices, implemented in `utils/streamCrypto.ts`. Processes files in 4MB chunks to avoid loading the entire file into memory.
+## 6. Encrypted Backup System
 
-### Encryption Flow (`streamCrypto.encrypt`):
-1. Generate random 16-byte salt and 12-byte base IV
-2. Derive stream key: `Passphrase + Salt → Argon2id (hash-wasm, 4 iterations, 128MB memory) → AES-256-GCM CryptoKey`
-3. Calculate total chunks: `Math.ceil(fileSize / 4MB)`
-4. Build header:
-   ```typescript
-   interface StreamHeader {
-     magic: 'CRYTO_STREAM';
-     version: 1;
-     algorithm: 'AES-GCM-Stream';
-     chunkSize: 4194304; // 4MB
-     totalChunks: number;
-     originalSize: number;
-     salt: Uint8Array; // 16 bytes
-     baseIV: Uint8Array; // 12 bytes
-   }
-   ```
-5. For each chunk:
-    - Derive chunk IV: `HMAC-SHA256(chunkIndex, keyed with baseIV) → first 12 bytes`
-    - Encrypt chunk with AES-GCM using the derived key
-   - Append encrypted chunk (includes GCM tag) to output
-6. Final output: `[Encoded Header][Chunk 0][Chunk 1]...[Chunk N]`
+Implemented in `crypto-core/src/backup_crypto.rs` (88 lines) + `components/views/BackupView.tsx` (425 lines).
 
-### Decryption Flow (`streamCrypto.decrypt`):
-1. Decode header from first `headerSize` bytes
-2. Verify magic: `CRYTO_STREAM`
-3. Derive stream key once using salt from header (Argon2id, 4 iterations, 128MB memory)
-4. For each chunk:
-   - Derive chunk IV via `HMAC-SHA256(chunkIndex keyed with baseIV) → first 12 bytes`
-   - Decrypt chunk with AES-GCM
-5. Reassemble all decrypted chunks into the original file
+### Backup Creation
+1. Generate 26-char passphrase (130 bits entropy, alphabet excludes ambiguous chars)
+2. Collect: IndexedDB dump + whitelisted localStorage keys
+3. Encrypt: Argon2id → AES-256-GCM → `[16B salt][12B IV][ciphertext + 16B GCM tag]`
+4. Download as `.enc` file
+
+### Backup Restoration
+1. Upload `.enc` file + enter 26-char key
+2. Decrypt → validate → restore whitelisted localStorage keys (18 keys) + `db.importDatabase()`
+3. Reload
 
 ---
 
-## 6. Project Directory Structure
+## 7. Streaming Encryption
 
-### Source Code Tree
+Implemented in `crypto-core/src/stream.rs` (259 lines). Processes files in 4MB chunks.
+
+### Format
+```
+[CRYTO_STREAM header v1][Chunk 0][Chunk 1]...[Chunk N]
+```
+
+Each chunk: AES-GCM encrypted with per-chunk IV derived via HMAC-SHA256(baseIV, chunkIndex).
+
+---
+
+## 8. Biometric Authentication
+
+Dual-path implementation:
+- **Desktop**: `tauri-plugin-keyring` stores master key in OS keychain (macOS Keychain, Linux Secret Service, Windows Credential Manager)
+- **Android**: JNI calls to `BiometricHelper` (Kotlin) via `src-tauri/src/biometric_android.rs` (88 lines)
+- **JS**: `utils/biometric.ts` (107 lines) orchestrates via `@tauri-apps/api/core` invoke()
+
+`App.tsx` checks biometric availability on mount and attempts auto-unlock via `retrieveMasterKeyBiometric()`.
+
+---
+
+## 9. Project Directory Structure
+
 ```
 CrytoTool/
-├── 📄 index.html                # App entry point
-├── 📄 package.json              # Dependencies & scripts
-├── 📄 vite.config.ts            # Vite build config
-├── 📄 tailwind.config.js        # Tailwind CSS config
-├── 📄 tsconfig.json             # TypeScript config
-├── 📄 postcss.config.js         # PostCSS config
-├── 📄 AGENTS.md                 # Agent instructions
-├── 📄 README.md                 # Project readme
+├── App.tsx                       # Root state machine (625ln)
+├── index.tsx / index.html        # Entry points
+├── index.css / types.ts          # Styles + types
 │
-├── 📁 src-tauri/                # Tauri desktop backend (Rust)
-│   ├── 📄 Cargo.toml            # Rust dependencies
-│   ├── 📄 tauri.conf.json       # Tauri config
-│   └── 📁 icons/                # Desktop app icons
-│       ├── icon.ico, icon.icns, 128x128.png, etc.
+├── crypto-core/                  # Rust WASM crate (inima proiectului)
+│   ├── Cargo.toml
+│   ├── src/lib.rs + 14 modules   # All crypto logic
+│   ├── index.ts                  # JS bridge (269ln)
+│   ├── db.ts                     # IndexedDB wrapper (305ln)
+│   └── pkg/                      # WASM build output
 │
-├── 📁 android/                  # Android mobile project
-│   └── 📁 app/src/
+├── components/                   # 20 .tsx files
+│   ├── AuthScreen.tsx (1390ln)   # Setup/unlock/recovery/biometric
+│   ├── Dashboard.tsx (1203ln)    # Main shell + view router + modals
+│   ├── ui.tsx (662ln)            # Shared primitives
+│   ├── AutoDestructCountdown     # Self-destruct timer
+│   ├── LiquidGlassOverlay        # Glass overlay effect
+│   └── views/ (8 views)
 │
-├── 📁 ios/                      # iOS mobile project
-│   └── 📁 App/Assets.xcassets/
+├── utils/
+│   └── biometric.ts              # Keyring + JNI biometric (singurul fișier)
 │
-├── 📁 utils/                    # Core logic & crypto services
-│   ├── 📄 crypto.ts             # Master key derivation, AES-GCM encrypt/decrypt
-│   ├── 📄 cryptoPrimitives.ts   # Isolated crypto primitives (aesGcm, aesCtr, chacha20, etc.)
-│   ├── 📄 streamCrypto.ts       # 4MB chunked streaming encryption
-│   ├── 📄 metadataCrypto.ts     # AES-GCM metadata encryption (names, tags, artist, etc.)
-│   ├── 📄 backupCrypto.ts       # Backup key gen, PBKDF2, AES-256-GCM backup encrypt/decrypt
-│   ├── 📄 db.ts                 # IndexedDB wrapper (CRUD, export/import)
-│   ├── 📄 vaultStorage.ts       # localStorage vault key management
-│   ├── 📄 security.ts           # PIN, auto-lock, failed attempt handling
-│   ├── 📄 i18n.ts               # 50+ language translations
-│   ├── 📄 i18nContext.tsx       # React i18n context provider
-│   ├── 📄 themes.ts             # Theme configurations
-│   ├── 📄 fonts.ts              # Font configurations
-│   └── 📄 fonts-imports.ts      # Font face imports
+├── locales/                      # 51 limbi
 │
-├── 📁 components/               # React UI components
-│   ├── 📄 App.tsx               # Main app state, auth flow, recovery codes
-│   ├── 📄 index.tsx             # React entry point
-│   ├── 📄 LandingPage.tsx       # Welcome/landing screen
-│   ├── 📄 SplashScreen.tsx      # App splash screen
-│   ├── 📄 AuthScreen.tsx        # Unlock/setup screen + recovery modal
-│   ├── 📄 Dashboard.tsx         # Main file manager view
-│   ├── 📄 EncryptionModal.tsx   # Manual encryption UI
-│   ├── 📄 DecryptModal.tsx      # Decryption UI
-│   ├── 📄 PinModal.tsx          # PIN input modal
-│   ├── 📄 FileItem.tsx          # Individual file/folder component
-│   ├── 📄 FileActionMenu.tsx    # File right-click action menu
-│   ├── 📄 CopyMoveModal.tsx     # Copy/move files modal
-│   ├── 📄 TopActions.tsx        # Top bar actions
-│   ├── 📄 ui.tsx                # Reusable UI components
-│   │
-│   └── 📁 views/                # Full-page views
-│       ├── 📄 StorageView.tsx    # Main file storage view
-│       ├── 📄 GalleryView.tsx    # Image gallery view
-│       ├── 📄 MusicView.tsx      # Audio/music view
-│       ├── 📄 VaultView.tsx      # Saved encryption keys vault
-│       ├── 📄 BackupView.tsx     # Backup & restore UI
-│       ├── 📄 SettingsView.tsx   # App settings + recovery codes
-│       ├── 📄 SearchView.tsx     # Cross-file search
-│       └── 📄 TrashView.tsx      # Trash/bin view
+├── styles/                       # glass.css (603ln) + themes + fonts
 │
-├── 📁 styles/
-│   └── 📄 glass.css             # Glassmorphism UI styles
+├── src-tauri/                    # Tauri backend
+│   ├── src/lib.rs (276ln)        # 38 comenzi + biometric JNI
+│   └── src/biometric_android.rs  # Android biometric (88ln)
 │
-└── 📁 .github/workflows/        # CI/CD pipelines
-    ├── 📄 tauri-macos.yml
-    ├── 📄 tauri-windows.yml
-    ├── 📄 tauri-linux.yml
-    ├── 📄 tauri-android.yml
-    └── 📄 release.yml
+└── .github/workflows/            # 7 CI files
 ```
 
 ### IndexedDB Data Hierarchy
@@ -303,35 +226,33 @@ CrytoTool/
 IndexedDB: "CrytoToolVault" (Version 3)
 └── Object Store: "files" (keyPath: 'id')
     │
-    ├── 📁 Root Folder (parentId: null, type: 'folder')
-    │   ├── 📄 File 1 (parentId: root_id, type: 'file', isEncrypted: true, algorithm: 'AES-GCM')
-    │   ├── 📄 File 2 (parentId: root_id, type: 'file', isEncrypted: true, algorithm: 'XChaCha20-Poly1305')
-    │   └── 📁 Subfolder (parentId: root_id, type: 'folder')
-    │       ├── 📄 File 3 (parentId: subfolder_id, type: 'file', isEncrypted: true, algorithm: 'AES-GCM-Stream')
-    │       └── 📁 Sub-Subfolder (parentId: subfolder_id, type: 'folder')
-    │           └── 📄 File 4 (parentId: subsubfolder_id, type: 'file', isEncrypted: true)
-    │
-    ├── 📁 Gallery Folder (parentId: null, type: 'folder', category: 'image')
-    ├── 📁 Music Folder (parentId: null, type: 'folder', category: 'audio')
-    └── 📁 System Folder (parentId: null, type: 'system')  # Protected system files
+    ├── 📁 Root Folder (parentId: null)
+    │   ├── 📄 File 1 (isEncrypted: true, algorithm: 'AES-GCM')
+    │   ├── 📁 Subfolder
+    │   │   ├── 📄 File 2 (isEncrypted: true, algorithm: 'XChaCha20-Poly1305')
+    │   │   └── 📄 File 3 (isEncrypted: true, algorithm: 'AES-GCM-Stream')
+    │   └── ...
+    ├── 📁 Gallery Folder (category: 'image')
+    ├── 📁 Music Folder (category: 'audio')
+    └── 📁 System Folder (type: 'system')
 ```
 
-#### DBItem Fields (from `utils/db.ts`):
+### DBItem Fields
 | Field | Type | Description |
 |-------|------|-------------|
-| `id` | string | Unique UUID for the item |
-| `parentId` | string \| null | ID of parent folder (null = root level) |
+| `id` | string | UUID |
+| `parentId` | string \| null | Parent folder ID |
 | `type` | 'file' \| 'folder' \| 'system' | Item type |
 | `name` | string | Display name (empty if encryptedMeta present) |
-| `encryptedMeta` | `{ ciphertext: string, iv: string }` (optional) | AES-256-GCM encrypted metadata blob (name, tags, artist, album, etc.) |
-| `size` | string (optional) | Human-readable file size |
-| `date` | string | Creation/modification date |
-| `fileData` | Blob (optional) | Encrypted file data (files only) |
-| `iv` | string (optional) | Base64-encoded IV |
-| `salt` | string (optional) | Base64-encoded salt (for manual encryption key derivation) |
-| `algorithm` | CryptoAlgorithm (optional) | Encryption algorithm used |
-| `isEncrypted` | boolean (optional) | Whether the file is encrypted |
-| `category` | 'image' \| 'video' \| 'audio' \| 'doc' \| 'other' (optional) | File category |
-| `isTrashed` | boolean (optional) | Whether the item is in the trash |
-| `tags` | Tag[] (optional) | Person-assigned tags |
-| `customIcon` | string (optional) | Custom icon for the item |
+| `encryptedMeta` | `{ ciphertext, iv }` | AES-GCM encrypted metadata |
+| `size` | string | Human-readable size |
+| `date` | string | Date |
+| `fileData` | Blob | Encrypted file data |
+| `iv` | string | Base64 IV |
+| `salt` | string | Base64 salt (manual encryption) |
+| `algorithm` | CryptoAlgorithm | Encryption algorithm |
+| `isEncrypted` | boolean | Encrypted flag |
+| `category` | 'image'\|'video'\|'audio'\|'doc'\|'other' | File category |
+| `isTrashed` | boolean | Trash flag |
+| `isFavorite` | boolean | Favorite flag |
+| `tags` | Tag[] | Person tags |
