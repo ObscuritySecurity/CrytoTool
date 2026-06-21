@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, Loader2, ShieldCheck, Timer, Fingerprint, Key, Sparkles, Edit3, Copy, Check, ChevronRight, Target, Shield, ShieldAlert, Skull, AlertTriangle, HelpCircle } from 'lucide-react';
+import { Eye, EyeOff, Loader2, ShieldCheck, Timer, Key, Sparkles, Edit3, Copy, Check, ChevronRight, Target, Shield, ShieldAlert, Skull, AlertTriangle, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '../locales/i18nContext';
 import crytoLogo from '../assets/CrytoTool.png';
@@ -34,14 +34,10 @@ interface AuthScreenProps {
   onDestructComplete: () => void;
   onNewCodes?: (codes: string[]) => void;
   onStoreMasterKey?: (key: Uint8Array) => void;
-  onApplyThreatModel?: (config: { autoBlurSeconds: number; autoLockSeconds: number; failedAttemptsThreshold: number; progressiveLockSeconds: number; autoDestructEnabled: boolean; autoDestructAttempts: number; autoDestructInactivity: number; destructCountdownSeconds: number; minPasswordLength?: number; settingsPasswordRequired?: boolean; biometricAllowed?: boolean; vaultPinAllowed?: boolean }) => void;
-  biometricAvailable?: boolean;
-  biometricEnabled?: boolean;
-  onBiometricUnlock?: () => Promise<void>;
-  onSetupComplete?: (biometricWanted: boolean) => void;
+  onApplyThreatModel?: (config: { autoBlurSeconds: number; autoLockSeconds: number; failedAttemptsThreshold: number; progressiveLockSeconds: number; autoDestructEnabled: boolean; autoDestructAttempts: number; autoDestructInactivity: number; destructCountdownSeconds: number; minPasswordLength?: number; settingsPasswordRequired?: boolean; vaultPinAllowed?: boolean }) => void;
 }
 
-export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockUntil, onFailedAttempt, recoverySettings, onResetWithRecovery, destructRef, onDestructComplete, onNewCodes, onStoreMasterKey, onApplyThreatModel, biometricAvailable, biometricEnabled, onBiometricUnlock, onSetupComplete }) => {
+export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockUntil, onFailedAttempt, recoverySettings, onResetWithRecovery, destructRef, onDestructComplete, onNewCodes, onStoreMasterKey, onApplyThreatModel }) => {
   const { t } = useI18n();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -49,15 +45,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
-  const [biometricError, setBiometricError] = useState(false);
   const [isDestructing, setIsDestructing] = useState(false);
-  const [setupStep, setSetupStep] = useState<'welcome' | 'create' | 'biometric-threat'>('welcome');
+  const [setupStep, setSetupStep] = useState<'welcome' | 'create' | 'threat'>('welcome');
   const [selectedTier, setSelectedTier] = useState<number | null>(null);
   const [infoTier, setInfoTier] = useState<number | null>(null);
   const [blockedTier, setBlockedTier] = useState<number | null>(null);
   const [confirmTier, setConfirmTier] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
-  const [enableBiometricOn, setEnableBiometricOn] = useState(false);
 
   const [setupProgress, setSetupProgress] = useState(0);
   const [setupProgressLabel, setSetupProgressLabel] = useState('');
@@ -183,7 +177,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
       setError(t('passwordsDoNotMatch'));
       return;
     }
-    setSetupStep('biometric-threat');
+    setSetupStep('threat');
   };
 
   const completeSetup = async (argonParams: { iterations: number; memoryKib: number; parallelism: number }, tierId: number) => {
@@ -263,7 +257,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
       setSetupProgress(100);
       setSetupProgressLabel('Done!');
       await yieldToReact();
-      await onSetupComplete?.(enableBiometricOn);
+      onUnlock();
     } catch (err) {
       console.error(err);
       setError(t('cryptoError'));
@@ -282,7 +276,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
     destructCountdownSeconds: 30,
     minPasswordLength: 30,
     settingsPasswordRequired: false,
-    biometricAllowed: true,
     vaultPinAllowed: true,
     backupFilenameRandom: false,
     recoveryFilenameRandom: false,
@@ -302,7 +295,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
     destructCountdownSeconds: 30,
     minPasswordLength: 30,
     settingsPasswordRequired: false,
-    biometricAllowed: true,
     vaultPinAllowed: true,
     backupFilenameRandom: true,
     recoveryFilenameRandom: true,
@@ -322,7 +314,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
     destructCountdownSeconds: 30,
     minPasswordLength: 40,
     settingsPasswordRequired: true,
-    biometricAllowed: false,
     vaultPinAllowed: false,
     backupFilenameRandom: true,
     recoveryFilenameRandom: true,
@@ -342,7 +333,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
     destructCountdownSeconds: 15,
     minPasswordLength: 50,
     settingsPasswordRequired: true,
-    biometricAllowed: false,
     vaultPinAllowed: false,
     backupFilenameRandom: true,
     recoveryFilenameRandom: true,
@@ -621,41 +611,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
                 <p className="text-zinc-400 text-xs text-center">{t('threatModelDesc')}</p>
               </div>
 
-              {(!selectedTier || TIERS.find(t => t.id === selectedTier)?.config.biometricAllowed !== false) && (
-              <div className="w-full max-w-sm mb-3 glass-card border border-white/10 rounded-2xl p-3">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-xl ${biometricAvailable ? 'bg-neon-green/20 text-neon-green' : 'bg-zinc-800 text-zinc-500'}`}>
-                    <Fingerprint size={18} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold text-white">{t('biometricSectionTitle')}</span>
-                    </div>
-                    <p className={`text-[10px] mt-0.5 ${biometricAvailable ? 'text-zinc-400' : 'text-zinc-600'}`}>
-                      {biometricAvailable ? t('biometricSectionDesc') : t('biometricNotAvailable')}
-                    </p>
-                  </div>
-                  <div className="shrink-0">
-                    {biometricAvailable ? (
-                      <button
-                        type="button"
-                        onClick={() => setEnableBiometricOn(!enableBiometricOn)}
-                        className={`relative w-10 h-6 rounded-full transition-colors ${
-                          enableBiometricOn ? 'bg-neon-green' : 'bg-zinc-700'
-                        }`}
-                      >
-                        <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
-                          enableBiometricOn ? 'translate-x-[18px]' : 'translate-x-0.5'
-                        }`} />
-                      </button>
-                    ) : (
-                      <span className="text-[10px] text-zinc-600 font-medium px-2">{t('disabled')}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-              )}
-
               <div className="w-full max-w-sm space-y-2">
                 {TIERS.map((tier) => {
                   const Icon = tier.icon;
@@ -860,7 +815,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
                           {([
                             { label: 'min pwd', value: `${cfg.minPasswordLength} chars` },
                             { label: 'settings pwd', value: cfg.settingsPasswordRequired ? 'required' : 'optional' },
-                            { label: 'biometric', value: cfg.biometricAllowed ? 'allowed' : 'disabled' },
                             { label: 'vault PIN', value: cfg.vaultPinAllowed ? 'allowed' : 'disabled' },
                             { label: 'backup name', value: cfg.backupFilenameRandom ? 'random' : 'descriptive' },
                             { label: 'recovery file', value: cfg.recoveryFilenameRandom ? 'random' : 'descriptive' },
@@ -989,7 +943,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
                         {([
                           { label: 'min pwd', value: `${cfg.minPasswordLength} chars` },
                           { label: 'settings pwd', value: cfg.settingsPasswordRequired ? 'required' : 'optional' },
-                          { label: 'biometric', value: cfg.biometricAllowed ? 'allowed' : 'disabled' },
                           { label: 'vault PIN', value: cfg.vaultPinAllowed ? 'allowed' : 'disabled' },
                           { label: 'backup name', value: cfg.backupFilenameRandom ? 'random' : 'descriptive' },
                           { label: 'recovery file', value: cfg.recoveryFilenameRandom ? 'random' : 'descriptive' },
@@ -1266,38 +1219,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
                 >
                   <Timer className="text-red-500 mb-3 animate-pulse" size={36} />
                   <div className="text-3xl font-black font-mono text-red-500">{timeLeft}s</div>
-                </motion.div>
-              )}
-
-              {(biometricAvailable && biometricEnabled && !isSetup && !isLocked && !isDestructing && onBiometricUnlock) && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mb-4"
-                >
-                  <button
-                    onClick={async () => {
-                      setBiometricError(false);
-                      setIsProcessing(true);
-                      try {
-                        await onBiometricUnlock();
-                      } catch {
-                        setBiometricError(true);
-                        setIsProcessing(false);
-                      }
-                    }}
-                    disabled={isProcessing}
-                    className="w-full bg-gradient-to-br from-neon-green/20 to-neon-green/5 border border-neon-green/30 text-white font-bold py-3 rounded-xl hover:from-neon-green/30 hover:to-neon-green/10 transition-all flex items-center justify-center gap-3 active:scale-[0.99] disabled:opacity-50 group"
-                  >
-                    <Fingerprint size={20} className="text-neon-green group-hover:scale-110 transition-transform" />
-                    <div className="text-left">
-                      <span className="text-sm">{t('unlockWithBiometric')}</span>
-                      <p className="text-[10px] text-zinc-500 font-normal">{t('biometricPromptHint')}</p>
-                    </div>
-                  </button>
-                  {biometricError && (
-                    <p className="text-red-500 text-xs text-center mt-2">{t('biometricFailed')}</p>
-                  )}
                 </motion.div>
               )}
 

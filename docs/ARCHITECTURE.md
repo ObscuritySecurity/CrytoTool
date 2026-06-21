@@ -9,7 +9,6 @@ _Version: 2.5.0-beta | Last Updated: 2026-06-21_
 5. [Manual Encryption](#5-manual-encryption)
 6. [Encrypted Backup System](#6-encrypted-backup-system)
 7. [Streaming Encryption](#7-streaming-encryption)
-8. [Biometric Authentication](#8-biometric-authentication)
 9. [Project Directory Structure](#9-project-directory-structure)
 
 ---
@@ -43,7 +42,7 @@ Imports from `./pkg/crypto_core.js` (wasm-bindgen output). Lazy-init with `ensur
 
 ### Tauri Native Bridge (`src-tauri/src/lib.rs`, 276 lines)
 
-Same `crypto-core` crate linked natively. 38 `#[tauri::command]` functions registered covering all operations plus `greet`, `check_biometric_available`, `authenticate_biometric`.
+Same `crypto-core` crate linked natively. 38 `#[tauri::command]` functions registered covering all operations plus `greet`.
 
 ### Key Derivation
 
@@ -65,7 +64,6 @@ Composite: `encrypt_with_passphrase/decrypt_with_passphrase`, `encrypt/decrypt`,
 Backup/Recovery: `backup_encrypt/decrypt`, `generate_passphrase`, `generate_recovery_codes`, `wrap_raw_key/unwrap_raw_key`
 Metadata: `metadata_encrypt/decrypt`
 Security: `pin_hash`, `pin_verify`
-Android: `check_biometric_available`, `authenticate_biometric`
 
 ---
 
@@ -173,15 +171,6 @@ Each chunk: AES-GCM encrypted with per-chunk IV derived via HMAC-SHA256(baseIV, 
 
 ---
 
-## 8. Biometric Authentication
-
-Dual-path implementation:
-- **Desktop**: `tauri-plugin-keyring` stores master key in OS keychain (macOS Keychain, Linux Secret Service, Windows Credential Manager)
-- **Android**: JNI calls to `BiometricHelper` (Kotlin) via `src-tauri/src/biometric_android.rs` (88 lines)
-- **JS**: `utils/biometric.ts` (107 lines) orchestrates via `@tauri-apps/api/core` invoke()
-
-`App.tsx` checks biometric availability on mount and attempts auto-unlock via `retrieveMasterKeyBiometric()`.
-
 ---
 
 ## 9. Project Directory Structure
@@ -200,7 +189,7 @@ CrytoTool/
 │   └── pkg/                      # WASM build output
 │
 ├── components/                   # 20 .tsx files
-│   ├── AuthScreen.tsx (1390ln)   # Setup/unlock/recovery/biometric
+│   ├── AuthScreen.tsx (1390ln)   # Setup/unlock/recovery
 │   ├── Dashboard.tsx (1203ln)    # Main shell + view router + modals
 │   ├── ui.tsx (662ln)            # Shared primitives
 │   ├── AutoDestructCountdown     # Self-destruct timer
@@ -208,15 +197,13 @@ CrytoTool/
 │   └── views/ (8 views)
 │
 ├── utils/
-│   └── biometric.ts              # Keyring + JNI biometric (singurul fișier)
 │
 ├── locales/                      # 51 limbi
 │
 ├── styles/                       # glass.css (603ln) + themes + fonts
 │
 ├── src-tauri/                    # Tauri backend
-│   ├── src/lib.rs (276ln)        # 38 comenzi + biometric JNI
-│   └── src/biometric_android.rs  # Android biometric (88ln)
+│   ├── src/lib.rs (276ln)        # 38 comenzi
 │
 └── .github/workflows/            # 7 CI files
 ```

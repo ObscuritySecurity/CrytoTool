@@ -9,10 +9,6 @@ import { db, setVaultKey } from './crypto-core/db';
 import { I18nProvider } from './locales/i18nContext';
 import { pin_hash as hashPin } from './crypto-core/index';
 import {
-  checkBiometricAvailability, retrieveMasterKeyBiometric, storeMasterKeyBiometric,
-  removeBiometricKey, isBiometricEnabled, setBiometricEnabled,
-} from './utils/biometric';
-import {
   derive_key,
   wrap_raw_key,
   unwrap_raw_key,
@@ -109,12 +105,8 @@ const App: React.FC = () => {
 
   const destructRef = useRef<AutoDestructCountdownHandle>(null);
 
-  const [biometricAvailable, setBiometricAvailable] = useState(false);
-  const [biometricEnabled, setBiometricEnabledState] = useState(() => isBiometricEnabled());
-
   const [newlyGeneratedCodes, setNewlyGeneratedCodes] = useState<string[] | null>(null);
   const masterKeyRef = useRef<Uint8Array | null>(null);
-  const biometricAttemptedRef = useRef(false);
   const [recoveryWrappersCount, setRecoveryWrappersCount] = useState(() => {
     const raw = localStorage.getItem('crytotool_vault_wrappers');
     if (!raw) return 0;
@@ -199,38 +191,6 @@ const App: React.FC = () => {
     return () => clearInterval(checkInactivityOnAuthScreen);
   }, [isAuthenticated, autoDestructEnabled, autoDestructInactivity]);
 
-  useEffect(() => {
-    if (showSplash) return;
-    checkBiometricAvailability().then(r => setBiometricAvailable(r.available));
-  }, [showSplash]);
-
-  useEffect(() => {
-    if (showSplash) return;
-    if (isAuthenticated) return;
-    if (!biometricEnabled) return;
-    if (biometricAttemptedRef.current) return;
-    biometricAttemptedRef.current = true;
-    (async () => {
-      const availability = await checkBiometricAvailability();
-      setBiometricAvailable(availability.available);
-      if (!availability.available) return;
-      const rawBytes = await retrieveMasterKeyBiometric();
-      if (!rawBytes) return;
-      try {
-        const wrappersRaw = localStorage.getItem('crytotool_vault_wrappers');
-        if (!wrappersRaw) return;
-        const wrappers = JSON.parse(wrappersRaw);
-        const mvkBytes = await unwrap_raw_key(wrappers.master, rawBytes);
-        setVaultKey(mvkBytes);
-        mvkBytes.fill(0);
-        masterKeyRef.current = rawBytes;
-        handleUnlock();
-      } catch {
-        /* fall through to AuthScreen */
-      }
-    })();
-  }, [showSplash, biometricAvailable, biometricEnabled, isAuthenticated]);
-
   const performWipe = async () => {
     try {
       await db.clearDatabase();
@@ -272,20 +232,6 @@ const App: React.FC = () => {
     setIsBlurred(false);
     setVaultKey(null);
     masterKeyRef.current = null;
-    biometricAttemptedRef.current = false;
-  };
-
-  const enableBiometric = async (): Promise<boolean> => {
-    if (!masterKeyRef.current) return false;
-    const ok = await storeMasterKeyBiometric(masterKeyRef.current);
-    if (ok) setBiometricEnabledState(true);
-    return ok;
-  };
-
-  const disableBiometric = async (): Promise<boolean> => {
-    const ok = await removeBiometricKey();
-    if (ok) setBiometricEnabledState(false);
-    return ok;
   };
 
   useEffect(() => {
@@ -369,10 +315,6 @@ const App: React.FC = () => {
       masterKeyRef.current = newMasterKey;
       syncRecoveryCount();
 
-      if (biometricEnabled) {
-        await storeMasterKeyBiometric(newMasterKey);
-      }
-
       return { success: true };
     } catch (e) {
       return { success: false, error: 'Eroare la resetare' };
@@ -421,19 +363,12 @@ const App: React.FC = () => {
     syncRecoveryCount();
   };
 
-  const handleSetupComplete = async (biometricWanted: boolean) => {
-    if (biometricWanted && biometricAvailable) {
-      await enableBiometric();
-    }
-    handleUnlock();
-  };
-
   const applyThreatModel = (config: {
     autoBlurSeconds: number; autoLockSeconds: number; failedAttemptsThreshold: number;
     progressiveLockSeconds: number; autoDestructEnabled: boolean; autoDestructAttempts: number;
     autoDestructInactivity: number; destructCountdownSeconds: number;
     minPasswordLength?: number; settingsPasswordRequired?: boolean;
-    biometricAllowed?: boolean; vaultPinAllowed?: boolean;
+    vaultPinAllowed?: boolean;
   }) => {
     setAutoBlurSeconds(config.autoBlurSeconds);
     localStorage.setItem('crytotool_blur_time', config.autoBlurSeconds.toString());
@@ -457,9 +392,6 @@ const App: React.FC = () => {
     } else if (config.settingsPasswordRequired === false) {
       localStorage.removeItem('crytotool_settings_password_required');
     }
-    if (config.biometricAllowed === false && biometricEnabled) {
-      disableBiometric();
-    }
     if (config.vaultPinAllowed === false && vaultEnabled) {
       updateVaultSettings(false, null);
     }
@@ -473,43 +405,28 @@ const App: React.FC = () => {
           <SplashScreen key="splash" onComplete={() => setShowSplash(false)} />
         ) : !isAuthenticated ? (
           <motion.div key="auth" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <AuthScreen
-              onUnlock={handleUnlock}
-              isSetup={isSetupRequired}
-              lockUntil={lockUntil}
-              onFailedAttempt={handleFailedAttempt}
-              recoverySettings={{
-                count: recoveryWrappersCount
-              }}
-               onResetWithRecovery={resetMasterPasswordWithRecovery}
-               onStoreMasterKey={(key) => { masterKeyRef.current = key; }}
-               onApplyThreatModel={applyThreatModel}
-               onSetupComplete={handleSetupComplete}
-               destructRef={destructRef}
-               onDestructComplete={performWipe}
-                onNewCodes={(codes) => {
-                 setNewlyGeneratedCodes(codes);
-                 const tier = (() => { try { return JSON.parse(localStorage.getItem('crytotool_crypto_metadata') || '{}').tier || 1; } catch { return 1; } })();
-                 downloadCodes(codes, tier >= 2);
-                 syncRecoveryCount();
+             <AuthScreen
+               onUnlock={handleUnlock}
+               isSetup={isSetupRequired}
+               lockUntil={lockUntil}
+               onFailedAttempt={handleFailedAttempt}
+               recoverySettings={{
+                 count: recoveryWrappersCount
                }}
-              biometricAvailable={biometricAvailable}
-              biometricEnabled={biometricEnabled}
-              onBiometricUnlock={async () => {
-                const rawBytes = await retrieveMasterKeyBiometric();
-                if (!rawBytes) throw new Error('Biometric unlock cancelled');
-                const wrappersRaw = localStorage.getItem('crytotool_vault_wrappers');
-                if (!wrappersRaw) throw new Error('No vault wrappers');
-                const wrappers = JSON.parse(wrappersRaw);
-        const mvkBytes = await unwrap_raw_key(JSON.stringify(wrappers.master), rawBytes);
-                setVaultKey(mvkBytes);
-                mvkBytes.fill(0);
-                masterKeyRef.current = rawBytes;
-                handleUnlock();
-              }}
-            />
-          </motion.div>
-        ) : (
+                onResetWithRecovery={resetMasterPasswordWithRecovery}
+                onStoreMasterKey={(key) => { masterKeyRef.current = key; }}
+                onApplyThreatModel={applyThreatModel}
+                destructRef={destructRef}
+                onDestructComplete={performWipe}
+                onNewCodes={(codes) => {
+                  setNewlyGeneratedCodes(codes);
+                  const tier = (() => { try { return JSON.parse(localStorage.getItem('crytotool_crypto_metadata') || '{}').tier || 1; } catch { return 1; } })();
+                  downloadCodes(codes, tier >= 2);
+                  syncRecoveryCount();
+                }}
+             />
+           </motion.div>
+         ) : (
            <motion.div key="dashboard" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="relative h-full">
               <Dashboard
                 settingsLock={{
@@ -540,20 +457,7 @@ const App: React.FC = () => {
                     } catch { return true; }
                   })()
                 }}
-                biometricSettings={{
-                  available: biometricAvailable,
-                  enabled: biometricEnabled,
-                  enable: enableBiometric,
-                  disable: disableBiometric,
-                  setAvailable: setBiometricAvailable,
-                  biometricAllowed: (() => {
-                    try {
-                      const m = JSON.parse(localStorage.getItem('crytotool_crypto_metadata') || '{}');
-                      return (m.tier || 1) < 3;
-                    } catch { return true; }
-                  })()
-                }}
-               autoBlurSettings={{
+                autoBlurSettings={{
                  value: autoBlurSeconds,
                  setValue: (v) => {
                    setAutoBlurSeconds(v);
