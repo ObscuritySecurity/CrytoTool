@@ -403,7 +403,7 @@ export const translations: Translations = {
   packFontAwesome: 'FontAwesome',
   packFontAwesomeDesc: 'Classic, Robust',
   packMaterial: 'Material',
-  packMaterialDesc: 'Google, Geometric',
+  packMaterialDesc: 'Google Material',
   packBootstrap: 'Bootstrap',
   packBootstrapDesc: 'Web, Simple',
   packBoxIcons: 'BoxIcons',

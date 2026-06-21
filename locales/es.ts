@@ -404,7 +404,7 @@ export const translations: Translations = {
   packFontAwesome: 'FontAwesome',
   packFontAwesomeDesc: 'Clásico, Robusto',
   packMaterial: 'Material',
-  packMaterialDesc: 'Google, Geométrico',
+  packMaterialDesc: 'Google Material',
   packBootstrap: 'Bootstrap',
   packBootstrapDesc: 'Web, Simple',
   packBoxIcons: 'BoxIcons',
