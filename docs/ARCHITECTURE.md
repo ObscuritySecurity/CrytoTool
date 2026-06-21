@@ -49,7 +49,7 @@ Same `crypto-core` crate linked natively. 38 `#[tauri::command]` functions regis
 
 ```
 Master Password + Random Salt (16 bytes)
-  → Argon2id (19 iterations / 131072 KB / 4 parallelism)
+  → Argon2id (params per threat model tier, e.g. tier 4 = 19 iters / 262144 KB / 1 par)
   → 32-byte raw key
   → wrap_raw_key(MVK, masterKey) → localStorage crytotool_vault_wrappers
 ```

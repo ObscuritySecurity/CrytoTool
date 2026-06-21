@@ -43,9 +43,9 @@ import { derive_key } from './crypto-core/index';
 const key = derive_key(
   new TextEncoder().encode(password),
   salt,
-  19,       // iterations
-  131072,   // memory (KB)
-  4,        // parallelism
+  19,       // iterations (variază per tier, aici tier 4)
+  262144,   // memory KB (variază per tier, aici tier 4)
+  1,        // parallelism (mereu 1 în WASM)
   32        // output length
 ); // returns Uint8Array
 ```
@@ -62,7 +62,8 @@ Returns Argon2id parameters for a given purpose (`'master'`, `'pin'`, `'recovery
 
 ```typescript
 const params = JSON.parse(get_argon_params('master', 1));
-// { iterations: 19, memorySize: 131072, parallelism: 4 }
+// tier 1: { iterations: 2, memorySize: 19456, parallelism: 1 }
+// tier 4: { iterations: 19, memorySize: 262144, parallelism: 1 }
 ```
 
 ---
@@ -99,7 +100,7 @@ const result = encrypt_with_passphrase(
   fileBytes,
   'MY-SECRET-KEY',
   'XChaCha20-Poly1305',
-  4, 131072, 4
+  10, 131072, 1  // params per threat model tier (aici tier 3)
 ); // Returns: JSON string with ciphertext, iv, salt, algorithm
 ```
 
@@ -139,7 +140,7 @@ Generates a 32-byte random key.
 4MB chunked encryption. Returns header + encrypted chunks.
 
 ```typescript
-const encrypted = stream_encrypt(largeFileBytes, 'STREAM-KEY', 4, 131072, 4);
+const encrypted = stream_encrypt(largeFileBytes, 'STREAM-KEY', 10, 131072, 1);
 ```
 
 ### `stream_decrypt(encryptedData, passphrase, argonIterations, argonMemoryKib, argonParallelism)`
@@ -177,7 +178,7 @@ Encrypts backup data. Returns `Uint8Array`:
 const backup = backup_encrypt(
   new TextEncoder().encode(JSON.stringify(backupData)),
   passphrase,
-  19, 131072, 4
+  19, 262144, 1  // tier 4
 );
 // Format: [16B salt][12B IV][ciphertext + 16B GCM tag]
 ```

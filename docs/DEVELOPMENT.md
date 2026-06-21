@@ -27,8 +27,7 @@ npm install
 ```
 
 Key dependencies:
-- `hash-wasm` — Argon2id (fallback)
-- `libsodium-wrappers` — ChaCha20, XChaCha20 (fallback)
+- `crypto-core/` — Rust crate with all crypto (Argon2id, AES-GCM, ChaCha20-Poly1305, etc.) compiled to WASM
 - `framer-motion` — Animations
 - `lucide-react` — Icons
 - `@fontsource/*` — 17 font packages
