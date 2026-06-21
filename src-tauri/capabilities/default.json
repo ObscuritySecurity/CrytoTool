@@ -3,6 +3,6 @@
   "description": "Default capabilities for CrytoTool",
   "windows": ["main"],
   "permissions": [
-    "keyring:default"
+    "core:default"
   ]
 }
