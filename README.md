@@ -173,23 +173,30 @@ Want to see your name here? Check the [Contributing Guide](https://github.com/Ob
 CrytoTool is built on the shoulders of giants. We are deeply grateful for these open-source projects and standards:
 
 #### Core Crypto
-- **[Web Crypto API](https://www.w3.org/TR/WebCryptoAPI/)** — AES-256-GCM encryption, random IV generation, and CryptoKey management. The heart of every encryption operation in CrytoTool. Built into the browser — no third-party code needed for the most critical operations.
-- **[hash-wasm](https://github.com/Daninet/hash-wasm)** — Argon2id implementation for master key derivation (128 MB memory, 19 iterations)
-- **[libsodium-wrappers](https://github.com/jedisct1/libsodium.js)** — Audited ChaCha20, XChaCha20, Salsa20, and BLAKE2b primitives
+- **[Rust crypto-core crate](https://github.com/ObscuritySecurity/CrytoTool/tree/main/crypto-core/src)** — All encryption runs through a single Rust crate compiled to WASM. AES-256-GCM, Argon2id, ChaCha20-Poly1305, XChaCha20-Poly1305, Salsa20-Poly1305, AES-CTR + HMAC — all audited implementations, no JS crypto code.
+- **[aes-gcm](https://docs.rs/aes-gcm)** — AES-256-GCM encryption (12-byte nonce, NIST SP 800-38D)
+- **[argon2](https://docs.rs/argon2)** — Argon2id key derivation (19 iterations, 128 MB memory, 4-way parallel)
+- **[wasm-bindgen](https://github.com/rustwasm/wasm-bindgen)** — The bridge that compiles Rust to WebAssembly, making native crypto available in the browser
+- **[wasm-pack](https://rustwasm.github.io/wasm-pack/)** — Build tool for the Rust→WASM pipeline
+- **[chacha20poly1305](https://docs.rs/chacha20poly1305)** — ChaCha20-Poly1305 (IETF RFC 8439) and XChaCha20-Poly1305 implementations
+- **[xsalsa20poly1305](https://docs.rs/xsalsa20poly1305)** — Salsa20-Poly1305 (XSalsa20+Poly1305) implementation
+- **[Web Crypto API](https://www.w3.org/TR/WebCryptoAPI/)** — Used for cryptographically secure random IV and salt generation (`getRandomValues`)
 - **[NIST SP 800-38D](https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-38d.pdf)** — The AES-GCM standard that governs our encryption
 
 #### Framework & Runtime
-- **[Tauri](https://tauri.app/)** — Secure, lightweight desktop backend (Rust + WebView)
-- **[React](https://react.dev/)** — UI library
+- **[Tauri](https://tauri.app/)** — Secure, lightweight desktop and mobile backend (Rust + WebView)
+- **[Tauri Plugin Keyring](https://github.com/tauri-apps/plugins-workspace/tree/v2/plugins/keyring)** — OS keychain integration for biometric unlock
+- **[React](https://react.dev/)** — UI library (v19)
 - **[TypeScript](https://www.typescriptlang.org/)** — Type safety across the entire codebase
-- **[Vite](https://vitejs.dev/)** — Build tool and dev server
+- **[Vite](https://vitejs.dev/)** — Build tool and dev server (v8)
 - **[Tailwind CSS](https://tailwindcss.com/)** — Utility-first CSS framework
 - **[Framer Motion](https://www.framer.com/motion/)** — Animation library
+- **[Rust](https://www.rust-lang.org/)** — Systems language powering both the crypto layer and Tauri backend
 
 #### Icons & Fonts
 - **[Lucide](https://lucide.dev/)** — Beautiful icon set
 - **[Heroicons](https://heroicons.com/)** — Icon set by the Tailwind team
-- **[Fontsource](https://fontsource.org/)** — Self-hosted open-source fonts (20 font families)
+- **[Fontsource](https://fontsource.org/)** — Self-hosted open-source fonts (17 font families)
 
 #### Inspiration
 - **[Protocol-3305](https://github.com/ObscuritySecurity/protocol-3305)** — The foundational protocol guiding our privacy-first principles
