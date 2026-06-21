@@ -65,7 +65,16 @@ npx tsc --noEmit   # The only static check; required by PR template
 - **Argon2id:** via `argon2` Rust crate (native, no WASM overhead)
 - **Algorithms:** AES-256-GCM (aes-gcm crate), AES-CTR + HMAC-SHA256 (aes + ctr + hmac + sha2 + hkdf + subtle crates), ChaCha20-Poly1305 (chacha20poly1305 crate), XChaCha20-Poly1305 (chacha20poly1305 crate), Salsa20-Poly1305/ XSalsa20+Poly1305 (xsalsa20poly1305 crate)
 - **Streaming chunk size:** `4 * 1024 * 1024` (4 MB), magic header `'CRYTO_STREAM'`, version `1` (`crypto-core/src/stream.rs`)
-- **Argon2id params (`crypto-core/src/threat_model.rs`):** 4 tier-uri, default desktop = 19 iterations, 131072 KB memory, 4 parallelism, 32-byte hash; mobile = 3 iterations, 65536 KB, 4 parallelism
+- **Argon2id params (`crypto-core/src/threat_model.rs`):** 4 tier-uri, parametri diferiți per purpose (`master`/`recovery`/`pin`):
+
+  | Tier | Master/Recovery (iters / mem / par) | PIN (iters / mem / par) |
+  |------|--------------------------------------|-------------------------|
+  | 1 | 2 / 19456 KB / 1 | 2 / 32768 KB / 1 |
+  | 2 | 3 / 65536 KB / 1 | 3 / 65536 KB / 1 |
+  | 3 | 10 / 131072 KB / 1 | 10 / 131072 KB / 1 |
+  | 4 | 19 / 262144 KB / 1 | 19 / 262144 KB / 1 |
+
+  Paralelismul e mereu 1 (single-threaded WASM constraint). Se aleg prin `get_argon_params(purpose, tier)`.
 - **Backup passphrase:** 26 chars from alphabet `ABCDEFGHJKLMNPQRSTUVWXYZ23456789` (130 bits entropy, unbiased sampling)
 - **Backup file format:** `[16-byte salt][12-byte IV][ciphertext + 16-byte GCM tag]`
 - **JS bridge:** `crypto-core/index.ts` (269 lines) wraps `pkg/crypto_core.js` (wasm-bindgen output) with 50+ exported functions

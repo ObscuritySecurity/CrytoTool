@@ -13,7 +13,7 @@ CrytoTool is a four-in-one, client-side encrypted file manager, gallery, music p
 
 ### Encryption System — 4 Layers
 
-- **Layer 1 — Database Encryption (IndexedDB):** Every file stored in IndexedDB is auto-encrypted with AES-256-GCM. Master key derived from the person's Master Password via Argon2id (128MB memory, 19 iterations, 4-way parallelism).
+- **Layer 1 — Database Encryption (IndexedDB):** Every file stored in IndexedDB is auto-encrypted with AES-256-GCM. Master key derived from the person's Master Password via Argon2id (params per threat model tier, e.g. tier 4: 256 MB memory, 19 iterations).
 - **Layer 2 — File & Folder Encryption:** Manual encryption supporting 6 algorithms: AES-256-GCM, XChaCha20-Poly1305, ChaCha20-Poly1305, AES-CTR (256-bit), Salsa20-Poly1305, AES-GCM-Stream.
 - **Layer 3 — Encrypted Backup:** Full vault backups protected with Argon2id + AES-256-GCM and a unique 26-character key.
 - **Layer 4 — Streaming Encryption:** Large files processed in 4MB chunks with per-chunk AES-GCM encryption, safe for low-RAM devices.
@@ -33,10 +33,10 @@ CrytoTool is a four-in-one, client-side encrypted file manager, gallery, music p
 
 ### Key Management
 
-- **Master Key Derivation:** Argon2id (128MB memory, 19 iterations, 4 parallelism) via hash-wasm
-- **Passphrase KDF:** Argon2id (128MB memory, 19 iterations) for manual file encryption
-- **Backup KDF:** Argon2id + AES-256-GCM with 600,000 PBKDF2-SHA256 iterations
-- **Streaming KDF:** Argon2id (128MB memory, 19 iterations)
+- **Master Key Derivation:** Argon2id (params per threat model tier, Rust crypto-core WASM)
+- **Passphrase KDF:** Argon2id (params per tier) for manual file encryption
+- **Backup KDF:** Argon2id + AES-256-GCM
+- **Streaming KDF:** Argon2id (params per tier)
 - **AES-CTR Key Derivation:** WebCrypto native HKDF-SHA256
 - **Streaming Nonces:** HMAC-SHA256-based per-chunk derivation (prevents collision)
 
