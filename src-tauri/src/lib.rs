@@ -14,6 +14,8 @@ fn setup_webkit_env() {
 pub fn run() {
     setup_webkit_env();
 
+    let builder = tauri::Builder::default();
+
     builder
         .invoke_handler(tauri::generate_handler![
             greet,
