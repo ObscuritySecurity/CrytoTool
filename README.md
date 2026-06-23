@@ -8,7 +8,7 @@
 
 <div align="center">
   <img src="assets/CrytoTool.png" alt="CrytoTool Logo" width="2000px" />
-  <h1>Privon Vault</h1>
+  <h1>Privonn Vault</h1>
   <p><strong>All-in-One Privacy.</strong></p>
   <br>
   <a href="https://github.com/ObscuritySecurity/CrytoTool/releases"><img src="https://img.shields.io/badge/2.5.0--beta-000000?style=flat" alt="Version" /></a> <a href="https://github.com/ObscuritySecurity/CrytoTool/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-000000?style=flat&cacheSeconds=0" alt="License" /></a>   <a href="https://github.com/ObscuritySecurity/CrytoTool/commits/main"><img src="https://img.shields.io/github/last-commit/ObscuritySecurity/CrytoTool?style=flat&color=000000" alt="Last Commit" /></a> <a href="https://www.bestpractices.dev/projects/13309"><img src="https://img.shields.io/badge/openssf Best Practices passing-000000?style=flat" alt="CII Best Practices" /></a>
