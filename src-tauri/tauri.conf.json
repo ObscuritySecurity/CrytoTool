@@ -1,7 +1,7 @@
 {
-  "productName": "CrytoTool",
+  "productName": "Privon Vault",
   "version": "2.5.0-beta",
-  "identifier": "com.crytotool.vault",
+  "identifier": "com.privon.vault",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
@@ -15,7 +15,7 @@
     },
     "windows": [
       {
-        "title": "CrytoTool",
+        "title": "Privon Vault",
         "width": 1200,
         "height": 800,
         "resizable": true,

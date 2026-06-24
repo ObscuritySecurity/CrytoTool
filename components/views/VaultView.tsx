@@ -54,7 +54,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
   const { t } = useI18n();
   
   const [categories, setCategories] = useState<VaultCategory[]>(() => {
-    const saved = localStorage.getItem('crytotool_vault_cats');
+    const saved = localStorage.getItem('privon_vault_cats');
     if (saved) {
       try { return JSON.parse(saved); } catch {}
     }
@@ -64,7 +64,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
 
   // Load counts
   useEffect(() => {
-    const raw = localStorage.getItem('crytotool_vault_keys');
+    const raw = localStorage.getItem('privon_vault_keys');
     const vk = getVaultKey();
     if (raw && vk) {
       try {
@@ -88,12 +88,12 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
-    localStorage.setItem('crytotool_vault_cats', JSON.stringify(categories));
+    localStorage.setItem('privon_vault_cats', JSON.stringify(categories));
   }, [categories]);
 
   useEffect(() => {
     if (activeCategory) {
-      const raw = localStorage.getItem('crytotool_vault_keys');
+      const raw = localStorage.getItem('privon_vault_keys');
       const vk = getVaultKey();
       let items: VaultKeyEntry[] = [];
       if (raw && vk) {
@@ -130,13 +130,13 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
   };
 
   const handleDelete = (id: string) => {
-    const raw = localStorage.getItem('crytotool_vault_keys');
+    const raw = localStorage.getItem('privon_vault_keys');
     const vk = getVaultKey();
     if (raw && vk) {
       try {
         const all: VaultKeyEntry[] = JSON.parse(vault_decrypt_keys(raw, vk));
         const filtered = all.filter(k => k.id !== id);
-        localStorage.setItem('crytotool_vault_keys', vault_encrypt_keys(JSON.stringify(filtered), vk));
+        localStorage.setItem('privon_vault_keys', vault_encrypt_keys(JSON.stringify(filtered), vk));
       } catch {}
     }
     setItems(prev => prev.filter(i => i.id !== id));
@@ -272,7 +272,7 @@ export const VaultView: React.FC<VaultViewProps> = ({ onBack }) => {
                         <button
                           onClick={async () => {
                             if (confirm(t('vaultDeleteAllConfirm'))) {
-                              localStorage.removeItem('crytotool_vault_keys');
+                              localStorage.removeItem('privon_vault_keys');
                               setCategories(prev => prev.map(c => ({ ...c, count: 0 })));
                               setTotalCount(0);
                             }

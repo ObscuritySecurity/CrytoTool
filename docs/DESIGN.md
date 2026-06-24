@@ -1,8 +1,8 @@
-# CrytoTool UI/UX Design Standards
+# Privon Vault UI/UX Design Standards
 _Version: 2.5.0-beta | Last Updated: 2026-06-21_
 
 ## Core Philosophy
-**CrytoTool respects the people behind the screen.** Every design decision must prioritize the human experience: clarity, safety, and zero friction. We design for people, not "users".
+**Privon Vault respects the people behind the screen.** Every design decision must prioritize the human experience: clarity, safety, and zero friction. We design for people, not "users".
 
 ---
 
@@ -205,7 +205,7 @@ transition: { delay: index * 0.05 } // staggered
 ### Accent Color Picker
 - Use `components/CustomColorPicker.tsx`
 - Accepts HSL values, converts to HEX for storage
-- Stored in `localStorage` as `crytotool_accent_h`, `crytotool_accent_s`, `crytotool_accent_l`
+- Stored in `localStorage` as `privon_accent_h`, `privon_accent_s`, `privon_accent_l`
 - Applied via CSS variables in `index.css`
 
 ---
@@ -250,8 +250,8 @@ Use `animate-pulse` with `bg-zinc-800` for loading states:
 ---
 
 ## Resources
-- **Technical Architecture**: [ARCHITECTURE.md](https://github.com/ObscuritySecurity/CrytoTool/blob/main/docs/ARCHITECTURE.md)
-- **i18n Keys**: [locales/en.ts](https://github.com/ObscuritySecurity/CrytoTool/blob/main/locales/en.ts)
-- **Theme Config**: [styles/themes.ts](https://github.com/ObscuritySecurity/CrytoTool/blob/main/styles/themes.ts)
-- **Glass CSS**: [styles/glass.css](https://github.com/ObscuritySecurity/CrytoTool/blob/main/styles/glass.css)
-- **Crypto Architecture**: [crypto-core/src/](https://github.com/ObscuritySecurity/CrytoTool/tree/main/crypto-core/src)
+- **Technical Architecture**: [ARCHITECTURE.md](https://github.com/privonn/PrivonVault/blob/main/docs/ARCHITECTURE.md)
+- **i18n Keys**: [locales/en.ts](https://github.com/privonn/PrivonVault/blob/main/locales/en.ts)
+- **Theme Config**: [styles/themes.ts](https://github.com/privonn/PrivonVault/blob/main/styles/themes.ts)
+- **Glass CSS**: [styles/glass.css](https://github.com/privonn/PrivonVault/blob/main/styles/glass.css)
+- **Crypto Architecture**: [crypto-core/src/](https://github.com/privonn/PrivonVault/tree/main/crypto-core/src)

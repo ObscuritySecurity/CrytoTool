@@ -3,7 +3,7 @@
 ## Our Pledge
 We pledge to make participation in our project a harassment-free experience for everyone, regardless of age, body size, disability, ethnicity, gender identity and expression, level of experience, nationality, personal appearance, race, religion, or sexual identity and orientation.
 
-CrytoTool respects the people behind the screen — this includes everyone who contributes, reports issues, or uses our software.
+Privon Vault respects the people behind the screen — this includes everyone who contributes, reports issues, or uses our software.
 
 ## Our Standards
 
@@ -11,7 +11,7 @@ CrytoTool respects the people behind the screen — this includes everyone who c
 - Using welcoming and inclusive language (remember: **people**, not "users")
 - Being respectful of differing viewpoints and experiences
 - Gracefully accepting constructive criticism
-- Focusing on what is best for the community and the people using CrytoTool
+- Focusing on what is best for the community and the people using Privon Vault
 - Showing empathy towards other community members
 
 ### Examples of Unacceptable Behavior:

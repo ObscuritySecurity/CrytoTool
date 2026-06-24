@@ -20,7 +20,7 @@
 
 ## Protocol-3305 alignment
 
-CrytoTool follows [Protocol-3305](https://github.com/ObscuritySecurity/protocol-3305).  
+Privon Vault follows [Protocol-3305](https://github.com/privonn/protocol-3305).  
 ✓ = compliant, X = violation (blocking).
 
 | Art. | Principle | Status | Notes |

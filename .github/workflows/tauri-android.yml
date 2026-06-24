@@ -77,16 +77,16 @@ jobs:
 
       - name: Generate debug keystore
         env:
-          KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD || 'crytotool123' }}
+          KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD || 'privon123' }}
         run: |
           keytool -genkey -v -keystore release.keystore \
-            -alias crytotool -keyalg RSA -keysize 2048 -validity 10000 \
+            -alias privon -keyalg RSA -keysize 2048 -validity 10000 \
             -storepass "$KEYSTORE_PASS" -keypass "$KEYSTORE_PASS" \
-            -dname "CN=CrytoTool, O=CrytoTool, C=US"
+            -dname "CN=PrivonVault, O=PrivonVault, C=US"
 
       - name: Sign APK
         env:
-          KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD || 'crytotool123' }}
+          KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD || 'privon123' }}
         run: |
           BUILD_TOOLS="${ANDROID_HOME}/build-tools/35.0.0"
           
@@ -104,9 +104,9 @@ jobs:
               --out "$SIGNED" "$ALIGNED"
             
             rm -f "$ALIGNED"
-            cp "$SIGNED" CrytoTool-android.apk
-            echo "=== Signed APK: CrytoTool-android.apk ==="
-            ls -la CrytoTool-android.apk
+            cp "$SIGNED" PrivonVault-android.apk
+            echo "=== Signed APK: PrivonVault-android.apk ==="
+            ls -la PrivonVault-android.apk
           else
             echo "No unsigned APK found!"
             find src-tauri/gen/android/app/build/outputs/apk -name "*.apk"
@@ -122,11 +122,11 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           draft: true
-          files: CrytoTool-android.apk
+          files: PrivonVault-android.apk
 
       - name: Upload artifact
         if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: android-apk
-          path: CrytoTool-android.apk
+          path: PrivonVault-android.apk

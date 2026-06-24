@@ -251,7 +251,7 @@ export const translations: Translations = {
     transparency: '透明感。',
     localEncryption: 'ローカル暗号化。',
     aboutUs: '私たちについて',
-    missionText1: 'CrytoTool は、完全なプライバシーを提供するために構築された「ゼロ知識」セキュリティ ソリューションです。',
+    missionText1: 'Privon Vault は、完全なプライバシーを提供するために構築された「ゼロ知識」セキュリティ ソリューションです。',
     missionText2: 'データを収集したり、サーバーにキーを送信したりすることはなく、すべては軍用グレードのアルゴリズム (AES-256-GCM、Argon2id) を使用してローカルで暗号化されます。',
     coreFramework: 'コア フレームワーク',
     typeSafety: 'タイプ セーフティ',

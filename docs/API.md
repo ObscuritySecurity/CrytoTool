@@ -1,4 +1,4 @@
-# CrytoTool API Documentation
+# Privon Vault API Documentation
 _Version: 2.5.0-beta | Last Updated: 2026-06-21_
 
 All cryptographic APIs are implemented in a Rust crate (`crypto-core/`) compiled to WASM. The JS bridge is `crypto-core/index.ts`.

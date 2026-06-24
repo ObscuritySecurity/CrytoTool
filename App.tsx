@@ -25,18 +25,18 @@ const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const [isSetupRequired, setIsSetupRequired] = useState(() => {
-    const salt = localStorage.getItem('crytotool_salt');
-    const wrappers = localStorage.getItem('crytotool_vault_wrappers');
+    const salt = localStorage.getItem('privon_salt');
+    const wrappers = localStorage.getItem('privon_vault_wrappers');
     return !salt && !wrappers;
   });
 
   const [autoBlurSeconds, setAutoBlurSeconds] = useState(() => {
-    const saved = localStorage.getItem('crytotool_blur_time');
+    const saved = localStorage.getItem('privon_blur_time');
     return saved ? parseInt(saved, 10) : 20;
   });
 
   const [autoLockSeconds, setAutoLockSeconds] = useState(() => {
-    const saved = localStorage.getItem('crytotool_lock_time');
+    const saved = localStorage.getItem('privon_lock_time');
     return saved ? parseInt(saved, 10) : 25;
   });
 
@@ -50,56 +50,56 @@ const App: React.FC = () => {
   };
 
   const [vaultEnabled, setVaultEnabled] = useState(() => {
-    const saved = localStorage.getItem('crytotool_vault_enabled');
+    const saved = localStorage.getItem('privon_vault_enabled');
     return saved !== null ? saved === 'true' : false;
   });
   const [vaultPin, setVaultPin] = useState<string | null>(() => {
-    return localStorage.getItem('crytotool_vault_pin_hash');
+    return localStorage.getItem('privon_vault_pin_hash');
   });
 
   const updateVaultSettings = async (enabled: boolean, pin: string | null) => {
     setVaultEnabled(enabled);
     if (pin) {
-      const metaRaw = localStorage.getItem('crytotool_crypto_metadata');
+      const metaRaw = localStorage.getItem('privon_crypto_metadata');
       const meta: CryptoMetadata | null = metaRaw ? JSON.parse(metaRaw) : null;
       const tierId = meta?.tier || 1;
       const pinParams = JSON.parse(get_argon_params('pin', tierId));
       const hash = await hashPin(pin, pinParams.iterations, pinParams.memorySize, pinParams.parallelism);
-      localStorage.setItem('crytotool_vault_pin_hash', hash);
+      localStorage.setItem('privon_vault_pin_hash', hash);
       setVaultPin(hash);
     } else {
-      localStorage.removeItem('crytotool_vault_pin_hash');
+      localStorage.removeItem('privon_vault_pin_hash');
       setVaultPin(null);
     }
-    localStorage.setItem('crytotool_vault_enabled', String(enabled));
+    localStorage.setItem('privon_vault_enabled', String(enabled));
   };
 
   const [progressiveLockSeconds, setProgressiveLockSeconds] = useState(() => {
-    const saved = localStorage.getItem('crytotool_prog_lock_time');
+    const saved = localStorage.getItem('privon_prog_lock_time');
     return saved ? parseInt(saved, 10) : 60;
   });
 
   const [failedAttemptsThreshold, setFailedAttemptsThreshold] = useState(() => {
-    const saved = localStorage.getItem('crytotool_prog_attempts');
+    const saved = localStorage.getItem('privon_prog_attempts');
     return saved ? parseInt(saved, 10) : 3;
   });
 
   const [autoDestructEnabled, setAutoDestructEnabled] = useState(() => {
-    return localStorage.getItem('crytotool_ad_enabled') === 'true';
+    return localStorage.getItem('privon_ad_enabled') === 'true';
   });
 
   const [autoDestructAttempts, setAutoDestructAttempts] = useState(() => {
-    const saved = localStorage.getItem('crytotool_ad_attempts');
+    const saved = localStorage.getItem('privon_ad_attempts');
     return saved ? parseInt(saved, 10) : 5;
   });
 
   const [autoDestructInactivity, setAutoDestructInactivity] = useState(() => {
-    const saved = localStorage.getItem('crytotool_ad_inactivity');
+    const saved = localStorage.getItem('privon_ad_inactivity');
     return saved ? parseInt(saved, 10) : 0;
   });
 
   const [destructCountdownSeconds, setDestructCountdownSeconds] = useState(() => {
-    const saved = localStorage.getItem('crytotool_ad_countdown');
+    const saved = localStorage.getItem('privon_ad_countdown');
     return saved ? parseInt(saved, 10) : 30;
   });
 
@@ -108,7 +108,7 @@ const App: React.FC = () => {
   const [newlyGeneratedCodes, setNewlyGeneratedCodes] = useState<string[] | null>(null);
   const masterKeyRef = useRef<Uint8Array | null>(null);
   const [recoveryWrappersCount, setRecoveryWrappersCount] = useState(() => {
-    const raw = localStorage.getItem('crytotool_vault_wrappers');
+    const raw = localStorage.getItem('privon_vault_wrappers');
     if (!raw) return 0;
     try {
       const wrappers: VaultWrappers = JSON.parse(raw);
@@ -117,7 +117,7 @@ const App: React.FC = () => {
   });
 
   const syncRecoveryCount = () => {
-    const raw = localStorage.getItem('crytotool_vault_wrappers');
+    const raw = localStorage.getItem('privon_vault_wrappers');
     if (!raw) { setRecoveryWrappersCount(0); return; }
     try {
       const wrappers: VaultWrappers = JSON.parse(raw);
@@ -126,14 +126,14 @@ const App: React.FC = () => {
   };
 
   const downloadCodes = (codes: string[], randomFilename?: boolean) => {
-    const header = 'CrytoTool Recovery Codes\nGenerated: ' + new Date().toISOString().split('T')[0] + '\n\u2500'.repeat(30) + '\n\n';
+    const header = 'Privon Vault Recovery Codes\nGenerated: ' + new Date().toISOString().split('T')[0] + '\n\u2500'.repeat(30) + '\n\n';
     const content = header + codes.join('\n');
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     const rand = () => Math.random().toString(36).substring(2, 10);
-    a.download = randomFilename ? `codes-${rand()}.txt` : 'crytotool-recovery-codes.txt';
+    a.download = randomFilename ? `codes-${rand()}.txt` : 'privon-recovery-codes.txt';
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -143,7 +143,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (!isAuthenticated || !autoDestructEnabled || autoDestructInactivity === 0) return;
-    const lastActivityKey = 'crytotool_last_activity';
+    const lastActivityKey = 'privon_last_activity';
     const handleActivity = () => {
       lastActivityRef.current = Date.now();
       if (isBlurred) setIsBlurred(false);
@@ -178,7 +178,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (isAuthenticated || !autoDestructEnabled || autoDestructInactivity === 0) return;
-    const lastActivityKey = 'crytotool_last_activity';
+    const lastActivityKey = 'privon_last_activity';
     const checkInactivityOnAuthScreen = setInterval(() => {
       const lastActivity = localStorage.getItem(lastActivityKey);
       if (lastActivity) {
@@ -275,8 +275,8 @@ const App: React.FC = () => {
       const idx = parse_code_index(code);
       if (!idx) return { success: false, error: 'Format cod invalid' };
 
-      const wrappersRaw = localStorage.getItem('crytotool_vault_wrappers');
-      const metadataRaw = localStorage.getItem('crytotool_crypto_metadata');
+      const wrappersRaw = localStorage.getItem('privon_vault_wrappers');
+      const metadataRaw = localStorage.getItem('privon_crypto_metadata');
       if (!wrappersRaw || !metadataRaw) return { success: false, error: 'Date lipsă' };
 
       const wrappers: VaultWrappers = JSON.parse(wrappersRaw);
@@ -308,8 +308,8 @@ const App: React.FC = () => {
       meta.master_salt = base64_encode(newMasterSalt);
       wrappers.master = JSON.parse(newMasterWrapper);
 
-      localStorage.setItem('crytotool_crypto_metadata', JSON.stringify(meta));
-      localStorage.setItem('crytotool_vault_wrappers', JSON.stringify(wrappers));
+      localStorage.setItem('privon_crypto_metadata', JSON.stringify(meta));
+      localStorage.setItem('privon_vault_wrappers', JSON.stringify(wrappers));
 
       setVaultKey(mvkBytes);
       masterKeyRef.current = newMasterKey;
@@ -322,8 +322,8 @@ const App: React.FC = () => {
   };
 
   const generateNewRecoveryCodes = async () => {
-    const wrappersRaw = localStorage.getItem('crytotool_vault_wrappers');
-    const metadataRaw = localStorage.getItem('crytotool_crypto_metadata');
+    const wrappersRaw = localStorage.getItem('privon_vault_wrappers');
+    const metadataRaw = localStorage.getItem('privon_crypto_metadata');
     if (!wrappersRaw || !metadataRaw) return;
     if (!masterKeyRef.current) return;
 
@@ -354,9 +354,9 @@ const App: React.FC = () => {
     mvkBytes.fill(0);
 
     meta.recovery_salts = salts;
-    localStorage.setItem('crytotool_crypto_metadata', JSON.stringify(meta));
+    localStorage.setItem('privon_crypto_metadata', JSON.stringify(meta));
     wrappers.recovery = recoveryWrappers;
-    localStorage.setItem('crytotool_vault_wrappers', JSON.stringify(wrappers));
+    localStorage.setItem('privon_vault_wrappers', JSON.stringify(wrappers));
 
     setNewlyGeneratedCodes(codes);
     downloadCodes(codes, (meta.tier || 1) >= 2);
@@ -371,26 +371,26 @@ const App: React.FC = () => {
     vaultPinAllowed?: boolean;
   }) => {
     setAutoBlurSeconds(config.autoBlurSeconds);
-    localStorage.setItem('crytotool_blur_time', config.autoBlurSeconds.toString());
+    localStorage.setItem('privon_blur_time', config.autoBlurSeconds.toString());
     setAutoLockSeconds(config.autoLockSeconds);
-    localStorage.setItem('crytotool_lock_time', config.autoLockSeconds.toString());
+    localStorage.setItem('privon_lock_time', config.autoLockSeconds.toString());
     setProgressiveLockSeconds(config.progressiveLockSeconds);
-    localStorage.setItem('crytotool_prog_lock_time', config.progressiveLockSeconds.toString());
+    localStorage.setItem('privon_prog_lock_time', config.progressiveLockSeconds.toString());
     setFailedAttemptsThreshold(config.failedAttemptsThreshold);
-    localStorage.setItem('crytotool_prog_attempts', config.failedAttemptsThreshold.toString());
+    localStorage.setItem('privon_prog_attempts', config.failedAttemptsThreshold.toString());
     setAutoDestructEnabled(config.autoDestructEnabled);
-    localStorage.setItem('crytotool_ad_enabled', config.autoDestructEnabled.toString());
+    localStorage.setItem('privon_ad_enabled', config.autoDestructEnabled.toString());
     setAutoDestructAttempts(config.autoDestructAttempts);
-    localStorage.setItem('crytotool_ad_attempts', config.autoDestructAttempts.toString());
+    localStorage.setItem('privon_ad_attempts', config.autoDestructAttempts.toString());
     setAutoDestructInactivity(config.autoDestructInactivity);
-    localStorage.setItem('crytotool_ad_inactivity', config.autoDestructInactivity.toString());
+    localStorage.setItem('privon_ad_inactivity', config.autoDestructInactivity.toString());
     setDestructCountdownSeconds(config.destructCountdownSeconds);
-    localStorage.setItem('crytotool_ad_countdown', config.destructCountdownSeconds.toString());
+    localStorage.setItem('privon_ad_countdown', config.destructCountdownSeconds.toString());
 
     if (config.settingsPasswordRequired && !settingsPassword) {
-      localStorage.setItem('crytotool_settings_password_required', 'true');
+      localStorage.setItem('privon_settings_password_required', 'true');
     } else if (config.settingsPasswordRequired === false) {
-      localStorage.removeItem('crytotool_settings_password_required');
+      localStorage.removeItem('privon_settings_password_required');
     }
     if (config.vaultPinAllowed === false && vaultEnabled) {
       updateVaultSettings(false, null);
@@ -420,7 +420,7 @@ const App: React.FC = () => {
                 onDestructComplete={performWipe}
                 onNewCodes={(codes) => {
                   setNewlyGeneratedCodes(codes);
-                  const tier = (() => { try { return JSON.parse(localStorage.getItem('crytotool_crypto_metadata') || '{}').tier || 1; } catch { return 1; } })();
+                  const tier = (() => { try { return JSON.parse(localStorage.getItem('privon_crypto_metadata') || '{}').tier || 1; } catch { return 1; } })();
                   downloadCodes(codes, tier >= 2);
                   syncRecoveryCount();
                 }}
@@ -432,7 +432,7 @@ const App: React.FC = () => {
                 settingsLock={{
                   password: settingsPassword,
                   setPassword: updateSettingsPassword,
-                  required: localStorage.getItem('crytotool_settings_password_required') === 'true'
+                  required: localStorage.getItem('privon_settings_password_required') === 'true'
                 }}
                 recoverySettings={{
                   codes: newlyGeneratedCodes,
@@ -446,13 +446,13 @@ const App: React.FC = () => {
                   update: updateVaultSettings,
                   tier: (() => {
                     try {
-                      const m = JSON.parse(localStorage.getItem('crytotool_crypto_metadata') || '{}');
+                      const m = JSON.parse(localStorage.getItem('privon_crypto_metadata') || '{}');
                       return m.tier || 1;
                     } catch { return 1; }
                   })(),
                   vaultPinAllowed: (() => {
                     try {
-                      const m = JSON.parse(localStorage.getItem('crytotool_crypto_metadata') || '{}');
+                      const m = JSON.parse(localStorage.getItem('privon_crypto_metadata') || '{}');
                       return (m.tier || 1) < 3;
                     } catch { return true; }
                   })()
@@ -461,48 +461,48 @@ const App: React.FC = () => {
                  value: autoBlurSeconds,
                  setValue: (v) => {
                    setAutoBlurSeconds(v);
-                   localStorage.setItem('crytotool_blur_time', v.toString());
+                   localStorage.setItem('privon_blur_time', v.toString());
                  }
                }}
                autoLockSettings={{
                  value: autoLockSeconds,
                  setValue: (v) => {
                    setAutoLockSeconds(v);
-                   localStorage.setItem('crytotool_lock_time', v.toString());
+                   localStorage.setItem('privon_lock_time', v.toString());
                  }
                }}
                progressiveLockSettings={{
                  lockTime: progressiveLockSeconds,
                  setLockTime: (v) => {
                    setProgressiveLockSeconds(v);
-                   localStorage.setItem('crytotool_prog_lock_time', v.toString());
+                   localStorage.setItem('privon_prog_lock_time', v.toString());
                  },
                  attempts: failedAttemptsThreshold,
                  setAttempts: (v) => {
                    setFailedAttemptsThreshold(v);
-                   localStorage.setItem('crytotool_prog_attempts', v.toString());
+                   localStorage.setItem('privon_prog_attempts', v.toString());
                  }
                }}
                 autoDestructSettings={{
                   enabled: autoDestructEnabled,
                   setEnabled: (v) => {
                      setAutoDestructEnabled(v);
-                     localStorage.setItem('crytotool_ad_enabled', v.toString());
+                     localStorage.setItem('privon_ad_enabled', v.toString());
                   },
                   attempts: autoDestructAttempts,
                   setAttempts: (v) => {
                      setAutoDestructAttempts(v);
-                     localStorage.setItem('crytotool_ad_attempts', v.toString());
+                     localStorage.setItem('privon_ad_attempts', v.toString());
                   },
                   inactivitySeconds: autoDestructInactivity,
                   setInactivitySeconds: (v) => {
                      setAutoDestructInactivity(v);
-                     localStorage.setItem('crytotool_ad_inactivity', v.toString());
+                     localStorage.setItem('privon_ad_inactivity', v.toString());
                   },
                   countdownSeconds: destructCountdownSeconds,
                     setCountdownSeconds: (v: number) => {
                       setDestructCountdownSeconds(v);
-                      localStorage.setItem('crytotool_ad_countdown', v.toString());
+                      localStorage.setItem('privon_ad_countdown', v.toString());
                     }
                  }}
                />

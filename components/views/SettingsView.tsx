@@ -8,7 +8,7 @@ import {
   Type, CaseUpper, ShieldAlert, Skull, Power, ShieldCheck, Lock, Check, Key, Sparkles, ChevronRight,
   Target
 } from 'lucide-react';
-import crytoLogo from '../../assets/CrytoTool.png';
+import crytoLogo from '../../assets/PrivonVault.png';
 import { AppTheme, ThemeConfig, ThemeCategory, FontCategory, FontConfig } from '../../types';
 import { CustomColorPicker } from '../CustomColorPicker';
 import { CustomSelect } from '../CustomSelect';
@@ -1097,7 +1097,7 @@ export const AboutView: React.FC<{
                   <div className="absolute inset-0 blur-3xl rounded-full" style={{ backgroundColor: `${accentColor}20` }}></div>
                    <div className="relative w-48 h-48 rounded-[32px] bg-gradient-to-br from-zinc-900 to-black border-2 flex items-center justify-center overflow-hidden" style={{ borderColor: `${accentColor}50`, boxShadow: `0_0_80px_${accentColor}40, 0_0_160px_${accentColor}20` }}>
                        <div className="absolute inset-0 blur-[80px] rounded-full" style={{ backgroundColor: `${accentColor}15` }} />
-                       <img src={crytoLogo} alt="CrytoTool" className="w-full h-full object-cover relative z-10 drop-shadow-[0_0_30px_rgba(var(--accent-rgb),0.5)]" />
+                       <img src={crytoLogo} alt="Privon Vault" className="w-full h-full object-cover relative z-10 drop-shadow-[0_0_30px_rgba(var(--accent-rgb),0.5)]" />
                    </div>
               </div>
               <h1 className="text-4xl font-black text-primary mb-3 tracking-tight">

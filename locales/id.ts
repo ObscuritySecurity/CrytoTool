@@ -251,7 +251,7 @@ export const translations: Translations = {
     transparency: 'Transparansi.',
     localEncryption: 'Enkripsi lokal.',
     aboutUs: 'Tentang Kami',
-    missionText1: 'CrytoTool adalah solusi keamanan "Zero-Knowledge" yang dibangun untuk memberikan privasi total.',
+    missionText1: 'Privon Vault adalah solusi keamanan "Zero-Knowledge" yang dibangun untuk memberikan privasi total.',
     missionText2: 'Kami tidak mengumpulkan data, tidak mengirim kunci ke server, dan semuanya dienkripsi secara lokal menggunakan algoritma tingkat militer (AES-256-GCM, Argon2id).',
     coreFramework: 'Kerangka Inti',
     typeSafety: 'Keamanan Jenis',

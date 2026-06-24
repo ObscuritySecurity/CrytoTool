@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to CrytoTool will be documented in this file.
+All notable changes to Privon Vault will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### First Official Beta Release
 
-CrytoTool is a four-in-one, client-side encrypted file manager, gallery, music player, and document viewer. Zero tracking, zero ads, zero data collection. Fully compliant with [Protocol-3305](https://github.com/ObscuritySecurity/protocol-3305).
+Privon Vault is a four-in-one, client-side encrypted file manager, gallery, music player, and document viewer. Zero tracking, zero ads, zero data collection. Fully compliant with [Protocol-3305](https://github.com/ObscuritySecurity/protocol-3305).
 
 ### Encryption System — 4 Layers
 

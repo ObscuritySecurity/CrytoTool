@@ -1,19 +1,19 @@
-# Contributing to CrytoTool
+# Contributing to Privon Vault
 
-Thank you for your interest in contributing! CrytoTool respects the people behind the screen, and we welcome contributions that align with our mission of privacy-first, secure software.
+Thank you for your interest in contributing! Privon Vault respects the people behind the screen, and we welcome contributions that align with our mission of privacy-first, secure software.
 
 By submitting a pull request, you agree that your contribution is licensed under AGPL-3.0.
 
 ## How to Contribute
 
 ### Reporting Issues
-- Use [GitHub Issues](https://github.com/ObscuritySecurity/CrytoTool/issues) to report bugs
+- Use [GitHub Issues](https://github.com/privonn/PrivonVault/issues) to report bugs
 - Include: steps to reproduce, expected behavior, actual behavior, screenshots if UI-related
-- For security vulnerabilities, please use [GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories) instead of public issues. We prioritize security — vulnerability remediation and response will be as fast as possible.
+- For security vulnerabilities, please use [GitHub Security Advisories](https://github.com/privonn/PrivonVault/security/advisories) instead of public issues. We prioritize security — vulnerability remediation and response will be as fast as possible.
 
 ### Suggesting Features
 - Open an issue with label `enhancement`
-- Explain how the feature benefits the people using CrytoTool
+- Explain how the feature benefits the people using Privon Vault
 - Discuss implementation approach before starting work on major features
 
 ### Pull Requests
@@ -38,7 +38,7 @@ By submitting a pull request, you agree that your contribution is licensed under
 - Use functional React components with hooks
 
 ### Security Requirements
-- **Cryptographic code is restricted to the project architect and approved external security auditors.** Contributors must never modify `crypto-core/src/*.rs` (kdf, aead, aes_ctr, chacha_salsa, stream, crypto, key_wrapping, backup_crypto, metadata_crypto, security, threat_model, sanitize, vault_storage, wasm_bindings), or any encryption-related logic. Report vulnerabilities via [GitHub Security Advisories](https://github.com/ObscuritySecurity/CrytoTool/security/advisories) — do not open public issues or PRs for crypto flaws.
+- **Cryptographic code is restricted to the project architect and approved external security auditors.** Contributors must never modify `crypto-core/src/*.rs` (kdf, aead, aes_ctr, chacha_salsa, stream, crypto, key_wrapping, backup_crypto, metadata_crypto, security, threat_model, sanitize, vault_storage, wasm_bindings), or any encryption-related logic. Report vulnerabilities via [GitHub Security Advisories](https://github.com/privonn/PrivonVault/security/advisories) — do not open public issues or PRs for crypto flaws.
 
 ### UI/UX Requirements
 - Follow glassmorphism design (`styles/glass.css`)
@@ -61,8 +61,8 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 
 ## Development Setup
 ```bash
-git clone https://github.com/ObscuritySecurity/CrytoTool.git
-cd CrytoTool
+git clone https://github.com/privonn/PrivonVault.git
+cd Privon Vault
 npm install
 npm run dev
 ```
@@ -98,4 +98,4 @@ Before submitting your PR, ensure:
 - We build software that respects people
 - Questions? Open a discussion or issue
 
-Thank you for helping make CrytoTool better for everyone. We build this project with love and respect for every single person who contributes.
+Thank you for helping make Privon Vault better for everyone. We build this project with love and respect for every single person who contributes.

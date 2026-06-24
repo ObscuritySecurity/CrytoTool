@@ -251,7 +251,7 @@ export const translations: Translations = {
     transparency: 'Gardentasuna.',
     localEncryption: 'Tokiko enkriptatzea.',
     aboutUs: 'Guri buruz',
-    missionText1: 'CrytoTool "Zero-Knowledge" segurtasun irtenbide bat da, erabateko pribatutasuna eskaintzeko eraikia.',
+    missionText1: 'Privon Vault "Zero-Knowledge" segurtasun irtenbide bat da, erabateko pribatutasuna eskaintzeko eraikia.',
     missionText2: 'Ez dugu daturik biltzen, ez dugu gakoak zerbitzarietara bidaltzen eta dena lokalean enkriptatzen da maila militarreko algoritmoak erabiliz (AES-256-GCM, Argon2id).',
     coreFramework: 'Core Framework',
     typeSafety: 'Mota Segurtasuna',

@@ -251,7 +251,7 @@ export const translations: Translations = {
     transparency: 'Průhlednost.',
     localEncryption: 'Místní šifrování.',
     aboutUs: 'O nás',
-    missionText1: 'CrytoTool je bezpečnostní řešení s "nulovými znalostmi" vytvořené tak, aby poskytovalo naprosté soukromí.',
+    missionText1: 'Privon Vault je bezpečnostní řešení s "nulovými znalostmi" vytvořené tak, aby poskytovalo naprosté soukromí.',
     missionText2: 'Neshromažďujeme data, neposíláme klíče na servery a vše je lokálně šifrováno pomocí vojenských algoritmů (AES-256-GCM, Argon2id).',
     coreFramework: 'Základní rámec',
     typeSafety: 'Typ Bezpečnost',

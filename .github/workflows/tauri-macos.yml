@@ -59,8 +59,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: ${{ github.ref_name }}
-          releaseName: 'CrytoTool ${{ github.ref_name }}'
-          releaseBody: 'CrytoTool ${{ github.ref_name }}'
+          releaseName: 'PrivonVault ${{ github.ref_name }}'
+          releaseBody: 'PrivonVault ${{ github.ref_name }}'
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
