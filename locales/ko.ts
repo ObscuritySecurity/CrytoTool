@@ -251,7 +251,7 @@ export const translations: Translations = {
     transparency: '투명함.',
     localEncryption: '로컬 암호화.',
     aboutUs: '회사 소개',
-    missionText1: 'CrytoTool은 완전한 개인 정보 보호를 제공하기 위해 구축된 "영지식" 보안 솔루션입니다.',
+    missionText1: 'Privon Vault은 완전한 개인 정보 보호를 제공하기 위해 구축된 "영지식" 보안 솔루션입니다.',
     missionText2: '우리는 데이터를 수집하지 않으며 서버에 키를 보내지 않으며 모든 것이 군사용 알고리즘(AES-256-GCM, Argon2id)을 사용하여 로컬로 암호화됩니다.',
     coreFramework: '핵심 프레임워크',
     typeSafety: '유형 안전성',

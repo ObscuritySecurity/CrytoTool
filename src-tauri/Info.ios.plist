@@ -3,6 +3,6 @@
 <plist version="1.0">
   <dict>
     <key>NSFaceIDUsageDescription</key>
-    <string>CrytoTool uses Face ID to securely unlock your encrypted vault.</string>
+    <string>Privon Vault uses Face ID to securely unlock your encrypted vault.</string>
   </dict>
 </plist>

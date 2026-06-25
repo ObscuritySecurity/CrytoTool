@@ -251,7 +251,7 @@ export const translations: Translations = {
     transparency: 'Transparantie.',
     localEncryption: 'Lokale codering.',
     aboutUs: 'Over ons',
-    missionText1: 'CrytoTool is een "Zero-Knowledge" beveiligingsoplossing die is gebouwd om totale privacy te bieden.',
+    missionText1: 'Privon Vault is een "Zero-Knowledge" beveiligingsoplossing die is gebouwd om totale privacy te bieden.',
     missionText2: 'We verzamelen geen gegevens, sturen geen sleutels naar servers en alles wordt lokaal gecodeerd met behulp van algoritmen van militaire kwaliteit (AES-256-GCM, Argon2id).',
     coreFramework: 'Kernframework',
     typeSafety: 'Typeveiligheid',

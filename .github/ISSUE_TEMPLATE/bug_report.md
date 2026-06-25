@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Report a bug to help us improve CrytoTool
+about: Report a bug to help us improve Privon Vault
 title: "[Bug] "
 labels: bug
 assignees: ""

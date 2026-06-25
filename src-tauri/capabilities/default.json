@@ -1,6 +1,6 @@
 {
   "identifier": "default",
-  "description": "Default capabilities for CrytoTool",
+  "description": "Default capabilities for Privon Vault",
   "windows": ["main"],
   "permissions": [
     "core:default"

@@ -1,4 +1,4 @@
-# CrytoTool Development Guide
+# Privon Vault Development Guide
 _Version: 2.5.0-beta | Last Updated: 2026-06-21_
 
 ---
@@ -21,8 +21,8 @@ _Version: 2.5.0-beta | Last Updated: 2026-06-21_
 ## Initial Setup
 
 ```bash
-git clone https://github.com/ObscuritySecurity/CrytoTool.git
-cd CrytoTool
+git clone https://github.com/privonn/PrivonVault.git
+cd Privon Vault
 npm install
 ```
 
@@ -117,7 +117,7 @@ CrytoTool/
 
 ## Vitest (Testing)
 
-CrytoTool has `vitest` configured with `jsdom` for component testing:
+Privon Vault has `vitest` configured with `jsdom` for component testing:
 
 ```bash
 npx vitest

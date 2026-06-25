@@ -251,7 +251,7 @@ export const translations: Translations = {
     transparency: 'Ketelusan.',
     localEncryption: 'Penyulitan tempatan.',
     aboutUs: 'Mengenai Kami',
-    missionText1: 'CrytoTool ialah penyelesaian keselamatan "Pengetahuan Sifar" yang dibina untuk menyediakan privasi sepenuhnya.',
+    missionText1: 'Privon Vault ialah penyelesaian keselamatan "Pengetahuan Sifar" yang dibina untuk menyediakan privasi sepenuhnya.',
     missionText2: 'Kami tidak mengumpul data, tidak menghantar kunci ke pelayan, dan semuanya disulitkan secara tempatan menggunakan algoritma gred tentera (AES-256-GCM, Argon2id).',
     coreFramework: 'Rangka Kerja Teras',
     typeSafety: 'Jenis Keselamatan',

@@ -263,7 +263,7 @@ export const EncryptionModal: React.FC<EncryptionModalProps> = ({ isOpen, onClos
           await db.updateItem(updatedItem);
 
           if (saveToVault && selectedVaultCategory) {
-              const existingRaw = localStorage.getItem('crytotool_vault_keys');
+              const existingRaw = localStorage.getItem('privon_vault_keys');
               let existingKeys: any[] = [];
               const vk = getVaultKey();
               if (existingRaw && vk) {
@@ -271,7 +271,7 @@ export const EncryptionModal: React.FC<EncryptionModalProps> = ({ isOpen, onClos
               }
               existingKeys.push({ id: Date.now().toString(), key: generatedKey, algorithm: result.algorithm, fileName: item.name, categoryId: selectedVaultCategory, fileId: item.id.toString(), date: new Date().toISOString() });
               if (vk) {
-                localStorage.setItem('crytotool_vault_keys', vault_encrypt_keys(JSON.stringify(existingKeys), vk));
+                localStorage.setItem('privon_vault_keys', vault_encrypt_keys(JSON.stringify(existingKeys), vk));
               }
           }
           

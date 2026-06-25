@@ -56,7 +56,7 @@ export const DecryptModal: React.FC<DecryptModalProps> = ({ isOpen, onClose, onS
 
     const vaultKey = getVaultKey();
     if (!vaultKey) { setPinError(t('vaultKeyMissing' as any)); return; }
-    const encryptedKeys = localStorage.getItem('crytotool_vault_keys');
+    const encryptedKeys = localStorage.getItem('privon_vault_keys');
     let foundKey = null;
     if (encryptedKeys) {
       try {

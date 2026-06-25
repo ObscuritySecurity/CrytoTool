@@ -6,7 +6,7 @@ let vaultKey: Uint8Array | null = null;
 export function setVaultKey(key: Uint8Array | null) { vaultKey = key ? new Uint8Array(key) : null; }
 export function getVaultKey(): Uint8Array | null { return vaultKey; }
 
-const DB_NAME = 'CrytoToolVault';
+const DB_NAME = 'PrivonVault';
 const DB_VERSION = 3;
 const STORE_NAME = 'files';
 

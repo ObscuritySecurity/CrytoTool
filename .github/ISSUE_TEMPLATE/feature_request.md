@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an idea for CrytoTool
+about: Suggest an idea for Privon Vault
 title: "[Feature] "
 labels: enhancement
 assignees: ""
@@ -16,7 +16,7 @@ A clear and concise description of what you want to happen.
 A clear and concise description of any alternative solutions or features you've considered.
 
 **Protocol-3305 compliance**
-CrytoTool follows [Protocol-3305](https://github.com/ObscuritySecurity/protocol-3305). Check which articles this feature aligns with (or explain why an exception is justified):
+Privon Vault follows [Protocol-3305](https://github.com/privonn/protocol-3305). Check which articles this feature aligns with (or explain why an exception is justified):
 
 - [ ] **Art. 0 — Ethical Monetization:** No monetization of personal data; security is never a premium feature
 - [ ] **Art. 1 — Privacy by Design:** Privacy integrated into the architecture from the start

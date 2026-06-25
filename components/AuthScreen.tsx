@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Loader2, ShieldCheck, Timer, Key, Sparkles, Edit3, Copy, Check, ChevronRight, Target, Shield, ShieldAlert, Skull, AlertTriangle, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useI18n } from '../locales/i18nContext';
-import crytoLogo from '../assets/CrytoTool.png';
+import crytoLogo from '../assets/PrivonVault.png';
 import { AutoDestructCountdown } from './AutoDestructCountdown';
 import { LiquidGlassOverlay } from './LiquidGlassOverlay';
 import type { AutoDestructCountdownHandle } from './AutoDestructCountdown';
@@ -104,9 +104,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
     try {
       if (isSetup) return;
 
-      const wrappersRaw = localStorage.getItem('crytotool_vault_wrappers');
+      const wrappersRaw = localStorage.getItem('privon_vault_wrappers');
         if (wrappersRaw) {
-          const metadataRaw = localStorage.getItem('crytotool_crypto_metadata');
+          const metadataRaw = localStorage.getItem('privon_crypto_metadata');
           if (!metadataRaw) {
             setError(t('missingData'));
             setIsProcessing(false);
@@ -132,9 +132,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
             if (!isDestructing) onFailedAttempt();
           }
         } else {
-          const saltB64 = localStorage.getItem('crytotool_salt');
-          const ivB64 = localStorage.getItem('crytotool_iv');
-          const vaultB64 = localStorage.getItem('crytotool_vault_blob');
+          const saltB64 = localStorage.getItem('privon_salt');
+          const ivB64 = localStorage.getItem('privon_iv');
+          const vaultB64 = localStorage.getItem('privon_vault_blob');
 
           if (!saltB64 || !ivB64 || !vaultB64) {
             setError(t('missingData'));
@@ -247,8 +247,8 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
         recovery: recoveryWrappers,
       };
 
-      localStorage.setItem('crytotool_crypto_metadata', JSON.stringify(meta));
-      localStorage.setItem('crytotool_vault_wrappers', JSON.stringify(wrappers));
+      localStorage.setItem('privon_crypto_metadata', JSON.stringify(meta));
+      localStorage.setItem('privon_vault_wrappers', JSON.stringify(wrappers));
 
       setVaultKey(mvkBytes);
       mvkBytes.fill(0);
@@ -451,7 +451,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
       <div className={`absolute inset-0 md:inset-2 blur-2xl md:blur-3xl rounded-full ${isLocked ? 'bg-red-500/10' : ''}`} style={{ backgroundColor: isLocked ? undefined : `rgba(${accentRgb}, 0.2)` }} />
       <img
         src={crytoLogo}
-        alt="CrytoTool"
+        alt="Privon Vault"
         className={`w-full h-full object-contain transition-all duration-500 ${isLocked ? 'opacity-50 grayscale' : ''}`}
         style={{ filter: isLocked ? 'none' : `drop-shadow(0 0 40px rgba(${accentRgb}, 0.6)) drop-shadow(0 0 80px rgba(${accentRgb}, 0.3)) drop-shadow(0 0 120px rgba(${accentRgb}, 0.15))` }}
       />
@@ -474,7 +474,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
               <div className="flex flex-col items-center space-y-3 md:space-y-4">
                 <div className="relative w-36 h-36 md:w-48 md:h-48">
                   <div className="absolute -inset-4 md:-inset-6 blur-[80px] md:blur-[120px] rounded-full animate-pulse" style={{ backgroundColor: `rgba(${accentRgb}, 0.3)` }} />
-                  <img src={crytoLogo} alt="CrytoTool" className="w-full h-full object-contain" style={{ filter: `drop-shadow(0 0 40px rgba(${accentRgb}, 0.6)) drop-shadow(0 0 80px rgba(${accentRgb}, 0.3))` }} />
+                  <img src={crytoLogo} alt="Privon Vault" className="w-full h-full object-contain" style={{ filter: `drop-shadow(0 0 40px rgba(${accentRgb}, 0.6)) drop-shadow(0 0 80px rgba(${accentRgb}, 0.3))` }} />
                 </div>
                 <div className="text-xl md:text-2xl font-bold tracking-tight">
                   <span className="text-white drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">{t('crytoPrefix')}</span>
@@ -517,7 +517,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
               <div className="flex flex-col items-center space-y-2 md:space-y-3 mb-4">
                 <div className="relative w-36 h-36 md:w-48 md:h-48">
                   <div className="absolute -inset-4 md:-inset-6 blur-[80px] md:blur-[120px] rounded-full animate-pulse" style={{ backgroundColor: `rgba(${accentRgb}, 0.3)` }} />
-                  <img src={crytoLogo} alt="CrytoTool" className="w-full h-full object-contain" style={{ filter: `drop-shadow(0 0 40px rgba(${accentRgb}, 0.6)) drop-shadow(0 0 80px rgba(${accentRgb}, 0.3))` }} />
+                  <img src={crytoLogo} alt="Privon Vault" className="w-full h-full object-contain" style={{ filter: `drop-shadow(0 0 40px rgba(${accentRgb}, 0.6)) drop-shadow(0 0 80px rgba(${accentRgb}, 0.3))` }} />
                 </div>
                 <div className="text-xl md:text-2xl font-bold tracking-tight">
                   <span className="text-white drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">{t('crytoPrefix')}</span>
@@ -602,7 +602,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onUnlock, isSetup, lockU
               <div className="flex flex-col items-center space-y-2 md:space-y-3 mb-4">
                 <div className="relative w-36 h-36 md:w-48 md:h-48">
                   <div className="absolute -inset-4 md:-inset-6 blur-[80px] md:blur-[120px] rounded-full animate-pulse" style={{ backgroundColor: `rgba(${accentRgb}, 0.3)` }} />
-                  <img src={crytoLogo} alt="CrytoTool" className="w-full h-full object-contain" style={{ filter: `drop-shadow(0 0 40px rgba(${accentRgb}, 0.6)) drop-shadow(0 0 80px rgba(${accentRgb}, 0.3))` }} />
+                  <img src={crytoLogo} alt="Privon Vault" className="w-full h-full object-contain" style={{ filter: `drop-shadow(0 0 40px rgba(${accentRgb}, 0.6)) drop-shadow(0 0 80px rgba(${accentRgb}, 0.3))` }} />
                 </div>
                 <div className="text-xl md:text-2xl font-bold tracking-tight">
                   <span className="text-white drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">{t('crytoPrefix')}</span>

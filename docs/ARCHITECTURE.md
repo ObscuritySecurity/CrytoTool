@@ -1,4 +1,4 @@
-# CrytoTool Architecture Overview
+# Privon Vault Architecture Overview
 _Version: 2.5.0-beta | Last Updated: 2026-06-21_
 
 ## Table of Contents
@@ -50,7 +50,7 @@ Same `crypto-core` crate linked natively. 38 `#[tauri::command]` functions regis
 Master Password + Random Salt (16 bytes)
   → Argon2id (params per threat model tier, e.g. tier 4 = 19 iters / 262144 KB / 1 par)
   → 32-byte raw key
-  → wrap_raw_key(MVK, masterKey) → localStorage crytotool_vault_wrappers
+  → wrap_raw_key(MVK, masterKey) → localStorage privon_vault_wrappers
 ```
 
 ### Tauri Commands (38)
@@ -69,7 +69,7 @@ Security: `pin_hash`, `pin_verify`
 
 ## 2. Database Encryption (IndexedDB)
 
-Implemented in `crypto-core/db.ts` (305 lines). `DB_NAME = 'CrytoToolVault'`, `DB_VERSION = 3`, single store `'files'` with `keyPath: 'id'`.
+Implemented in `crypto-core/db.ts` (305 lines). `DB_NAME = 'PrivonVault'`, `DB_VERSION = 3`, single store `'files'` with `keyPath: 'id'`.
 
 ### Encryption on File Add
 When a file is added via `db.addItem()`:
@@ -210,7 +210,7 @@ CrytoTool/
 
 ### IndexedDB Data Hierarchy
 ```
-IndexedDB: "CrytoToolVault" (Version 3)
+IndexedDB: "PrivonVault" (Version 3)
 └── Object Store: "files" (keyPath: 'id')
     │
     ├── 📁 Root Folder (parentId: null)

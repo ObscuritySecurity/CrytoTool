@@ -107,10 +107,10 @@ jobs:
           DEPLOY_PIPEWIRE: 1
           DEPLOY_PULSE: 1
           OUTPUT_APPIMAGE: 1
-          APPIMAGE_NAME: CrytoTool
+          APPIMAGE_NAME: PrivonVault
           APPIMAGETOOL: /tmp/squashfs-root/usr/bin/appimagetool
           VERSION: ${{ github.ref_name }}
-          DESKTOP: ${{ github.workspace }}/src-tauri/crytotool.desktop
+          DESKTOP: ${{ github.workspace }}/src-tauri/privon.desktop
           ICON: ${{ github.workspace }}/src-tauri/icons/icon.png
           WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS: 1
           WEBKIT_DISABLE_DMABUF_RENDERER: 1
@@ -132,8 +132,8 @@ jobs:
         run: |
           set -e
           TAG="${{ github.ref_name }}"
-          mv CrytoTool*.AppImage "CrytoTool_${TAG}_amd64.AppImage" 2>/dev/null || \
-            mv *.AppImage "CrytoTool_${TAG}_amd64.AppImage"
+          mv PrivonVault*.AppImage "PrivonVault_${TAG}_amd64.AppImage" 2>/dev/null || \
+            mv *.AppImage "PrivonVault_${TAG}_amd64.AppImage"
           ls -la *.AppImage
           echo "Final size:"
           du -h *.AppImage
@@ -149,9 +149,9 @@ jobs:
         run: |
           if [ -n "$SIGNING_KEY" ]; then
             echo "$SIGNING_KEY" | gpg --batch --import
-            gpg --batch --yes --detach-sign --armor -u "CrytoTool" SHA256SUMS
+            gpg --batch --yes --detach-sign --armor -u "PrivonVault" SHA256SUMS
           else
-            gpg --batch --passphrase '' --quick-gen-key "CrytoTool Release <release@crytotool.dev>" default default never
+            gpg --batch --passphrase '' --quick-gen-key "PrivonVault Release <release@crytotool.dev>" default default never
             gpg --batch --passphrase '' --detach-sign --armor SHA256SUMS
           fi
           gpg --verify SHA256SUMS.asc SHA256SUMS
@@ -160,8 +160,8 @@ jobs:
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
         with:
           tagName: ${{ github.ref_name }}
-          releaseName: 'CrytoTool ${{ github.ref_name }}'
-          releaseBody: 'CrytoTool ${{ github.ref_name }}'
+          releaseName: 'PrivonVault ${{ github.ref_name }}'
+          releaseBody: 'PrivonVault ${{ github.ref_name }}'
           releaseDraft: true
           prerelease: false
           files: |

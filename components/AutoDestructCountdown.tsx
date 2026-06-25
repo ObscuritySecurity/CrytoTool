@@ -19,7 +19,7 @@ export const AutoDestructCountdown = forwardRef<AutoDestructCountdownHandle, Aut
     const activeRef = useRef(false);
 
     const [countdown, setCountdown] = useState<number | null>(() => {
-      const saved = localStorage.getItem('crytotool_destruct_time');
+      const saved = localStorage.getItem('privon_destruct_time');
       if (saved) {
         const remaining = Math.max(0, Math.ceil((parseInt(saved, 10) - Date.now()) / 1000));
         return remaining > 0 ? remaining : null;
@@ -28,7 +28,7 @@ export const AutoDestructCountdown = forwardRef<AutoDestructCountdownHandle, Aut
     });
 
     const [triggerTime, setTriggerTime] = useState<number | null>(() => {
-      const saved = localStorage.getItem('crytotool_destruct_time');
+      const saved = localStorage.getItem('privon_destruct_time');
       return saved ? parseInt(saved, 10) : null;
     });
 
@@ -47,7 +47,7 @@ export const AutoDestructCountdown = forwardRef<AutoDestructCountdownHandle, Aut
         if (remaining <= 0) {
           clearInterval(intervalId);
           setTriggerTime(null);
-          localStorage.removeItem('crytotool_destruct_time');
+          localStorage.removeItem('privon_destruct_time');
           onComplete();
         }
       }, 1000);
@@ -61,13 +61,13 @@ export const AutoDestructCountdown = forwardRef<AutoDestructCountdownHandle, Aut
         const time = Date.now() + (seconds * 1000);
         setTriggerTime(time);
         setCountdown(seconds);
-        localStorage.setItem('crytotool_destruct_time', time.toString());
+        localStorage.setItem('privon_destruct_time', time.toString());
       },
       cancel: () => {
         activeRef.current = false;
         setTriggerTime(null);
         setCountdown(null);
-        localStorage.removeItem('crytotool_destruct_time');
+        localStorage.removeItem('privon_destruct_time');
       }
     }));
 

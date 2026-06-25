@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import crytoLogo from '../assets/CrytoTool.png';
+import crytoLogo from '../assets/PrivonVault.png';
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -46,7 +46,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             <div className="absolute inset-8 blur-3xl rounded-full" style={{ backgroundColor: `rgba(${rgb}, 0.15)` }} />
             <motion.img
               src={crytoLogo}
-              alt="CrytoTool"
+              alt="Privon Vault"
               className="w-full h-full object-contain relative z-10"
               style={{ filter: `drop-shadow(0 0 40px rgba(${rgb}, 0.6)) drop-shadow(0 0 80px rgba(${rgb}, 0.3))` }}
               initial={{ opacity: 0 }}

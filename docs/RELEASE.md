@@ -1,13 +1,13 @@
-# CrytoTool Release Guide
+# Privon Vault Release Guide
 _Version: 2.5.0-beta | Last Updated: 2026-05-27_
 
-This document describes how to create and publish new releases of CrytoTool for web, desktop (Tauri), and mobile (Tauri v2).
+This document describes how to create and publish new releases of Privon Vault for web, desktop (Tauri), and mobile (Tauri v2).
 
 ---
 
 ## Version Numbering
 
-CrytoTool follows [Semantic Versioning](https://semver.org/):
+Privon Vault follows [Semantic Versioning](https://semver.org/):
 
 ```
 MAJOR.MINOR.PATCH-SUFFIX
@@ -153,17 +153,17 @@ git push origin v2.5.1
 ```
 
 ### 2. Create Release on GitHub
-1. Go to https://github.com/ObscuritySecurity/CrytoTool/releases/new
+1. Go to https://github.com/privonn/PrivonVault/releases/new
 2. Choose tag: `v2.5.1`
-3. Release title: `CrytoTool v2.5.0-beta`
+3. Release title: `Privon Vault v2.5.0-beta`
 4. Description: Copy from `CHANGELOG.md` for this version
 
 ### 3. Attach Assets
 Upload the following:
-- `CrytoTool-Setup-2.5.1.exe` (Windows installer)
-- `CrytoTool-2.5.1.dmg` (macOS)
-- `CrytoTool-2.5.1.AppImage` (Linux)
-- `CrytoTool-2.5.1.apk` (Android, if built)
+- `Privon Vault-Setup-2.5.1.exe` (Windows installer)
+- `Privon Vault-2.5.1.dmg` (macOS)
+- `Privon Vault-2.5.1.AppImage` (Linux)
+- `Privon Vault-2.5.1.apk` (Android, if built)
 - `CHANGELOG.md` (for reference)
 
 ### 4. Publish Release
@@ -175,7 +175,7 @@ Upload the following:
 ## Release Notes Template
 
 ```markdown
-## CrytoTool v2.5.0-beta
+## Privon Vault v2.5.0-beta
 
 ### 🔒 Security
 - [Security-related changes]
@@ -194,15 +194,15 @@ Upload the following:
 - Updated `libsodium-wrappers` to vX.Y.Z
 
 ### 📥 Downloads
-- **Windows**: [CrytoTool-Setup-2.5.1.exe](https://github.com/ObscuritySecurity/CrytoTool/releases/download/v2.5.1/CrytoTool-Setup-2.5.1.exe)
-- **macOS**: [CrytoTool-2.5.1.dmg](...)
-- **Linux**: [CrytoTool-2.5.1.AppImage](...)
-- **Android**: [CrytoTool-2.5.1.apk](...)
+- **Windows**: [Privon Vault-Setup-2.5.1.exe](https://github.com/privonn/PrivonVault/releases/download/v2.5.1/Privon Vault-Setup-2.5.1.exe)
+- **macOS**: [Privon Vault-2.5.1.dmg](...)
+- **Linux**: [Privon Vault-2.5.1.AppImage](...)
+- **Android**: [Privon Vault-2.5.1.apk](...)
 
 ### 📝 Upgrade Notes
 [Special instructions for upgrading]
 
-**Full Changelog**: [v2.5.0...v2.5.1](https://github.com/ObscuritySecurity/CrytoTool/compare/v2.5.0...v2.5.1)
+**Full Changelog**: [v2.5.0...v2.5.1](https://github.com/privonn/PrivonVault/compare/v2.5.0...v2.5.1)
 ```
 
 ---

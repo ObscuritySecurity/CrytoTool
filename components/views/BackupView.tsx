@@ -37,19 +37,19 @@ export const BackupView: React.FC<BackupViewProps> = ({ onBack, theme }) => {
   const executeBackupDownload = async () => {
     setIsProcessing(true);
     try {
-        const metaRaw = localStorage.getItem('crytotool_crypto_metadata');
+        const metaRaw = localStorage.getItem('privon_crypto_metadata');
         const tier = metaRaw ? (JSON.parse(metaRaw).tier || 1) : 1;
 
         const dbItems = await db.exportDatabase();
         const appState = {
             localStorage: {
-                'crytotool_theme_config': localStorage.getItem('app_theme_config'),
-                'crytotool_vault_cats': localStorage.getItem('crytotool_vault_cats'),
-                'crytotool_salt': localStorage.getItem('crytotool_salt'),
-                'crytotool_iv': localStorage.getItem('crytotool_iv'),
-                'crytotool_vault_blob': localStorage.getItem('crytotool_vault_blob'),
-                'crytotool_vault_enabled': localStorage.getItem('crytotool_vault_enabled'),
-                'crytotool_vault_pin': localStorage.getItem('crytotool_vault_pin'),
+                'privon_theme_config': localStorage.getItem('app_theme_config'),
+                'privon_vault_cats': localStorage.getItem('privon_vault_cats'),
+                'privon_salt': localStorage.getItem('privon_salt'),
+                'privon_iv': localStorage.getItem('privon_iv'),
+                'privon_vault_blob': localStorage.getItem('privon_vault_blob'),
+                'privon_vault_enabled': localStorage.getItem('privon_vault_enabled'),
+                'privon_vault_pin': localStorage.getItem('privon_vault_pin'),
             },
             db: dbItems,
             timestamp: Date.now(),
@@ -64,7 +64,7 @@ export const BackupView: React.FC<BackupViewProps> = ({ onBack, theme }) => {
         const a = document.createElement('a');
         a.href = url;
         const rand = () => Math.random().toString(36).substring(2, 10);
-        a.download = tier >= 2 ? `backup-${rand()}.enc` : `crytotool-backup-${new Date().toISOString().slice(0,10)}.enc`;
+        a.download = tier >= 2 ? `backup-${rand()}.enc` : `privon-backup-${new Date().toISOString().slice(0,10)}.enc`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -103,13 +103,13 @@ export const BackupView: React.FC<BackupViewProps> = ({ onBack, theme }) => {
           if (!data.db || !data.localStorage) throw new Error("Format invalid");
 
           const allowedKeys = new Set([
-            'crytotool_salt', 'crytotool_iv', 'crytotool_vault_blob',
-            'crytotool_crypto_metadata', 'crytotool_vault_wrappers',
-            'crytotool_vault_pin_hash', 'crytotool_vault_enabled',
-            'crytotool_ad_enabled', 'crytotool_ad_attempts', 'crytotool_ad_inactivity', 'crytotool_ad_countdown',
-            'crytotool_blur_time', 'crytotool_lock_time',
-            'crytotool_prog_lock_time', 'crytotool_prog_attempts',
-            'crytotool_destruct_time',
+            'privon_salt', 'privon_iv', 'privon_vault_blob',
+            'privon_crypto_metadata', 'privon_vault_wrappers',
+            'privon_vault_pin_hash', 'privon_vault_enabled',
+            'privon_ad_enabled', 'privon_ad_attempts', 'privon_ad_inactivity', 'privon_ad_countdown',
+            'privon_blur_time', 'privon_lock_time',
+            'privon_prog_lock_time', 'privon_prog_attempts',
+            'privon_destruct_time',
             'theme_accent', 'app_theme_config', 'app_font_config', 'app_language', 'app_region',
           ]);
           Object.entries(data.localStorage).forEach(([k, v]) => {

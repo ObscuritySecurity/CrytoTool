@@ -1,5 +1,5 @@
 /**
- * CrytoTool Shared UI Components
+ * Privon Vault Shared UI Components
  * 
  * Standardized, reusable components following the DESIGN_SYSTEM.md guidelines.
  * Import these components instead of duplicating code.

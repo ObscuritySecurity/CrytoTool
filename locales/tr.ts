@@ -251,7 +251,7 @@ export const translations: Translations = {
     transparency: 'Şeffaflık.',
     localEncryption: 'Yerel şifreleme.',
     aboutUs: 'Hakkımızda',
-    missionText1: 'CrytoTool, tam gizlilik sağlamak için oluşturulmuş bir "Sıfır Bilgi" güvenlik çözümüdür.',
+    missionText1: 'Privon Vault, tam gizlilik sağlamak için oluşturulmuş bir "Sıfır Bilgi" güvenlik çözümüdür.',
     missionText2: 'Veri toplamıyoruz, sunuculara anahtar göndermiyoruz ve her şey askeri düzeyde algoritmalar (AES-256-GCM, Argon2id) kullanılarak yerel olarak şifreleniyor.',
     coreFramework: 'Temel Çerçeve',
     typeSafety: 'Tür Güvenliği',

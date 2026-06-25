@@ -1,6 +1,6 @@
 # crypto-core
 
-Rust crypto primitives for CrytoTool — portable to WASM (browser) and native (Tauri).
+Rust crypto primitives for Privon Vault — portable to WASM (browser) and native (Tauri).
 
 ## Status
 

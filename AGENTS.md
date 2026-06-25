@@ -1,4 +1,4 @@
-# CrytoTool Vault - Agent Instructions
+# Privon Vault - Agent Instructions
 
 ## Build & Verify
 
@@ -12,19 +12,19 @@ npx tsc --noEmit   # The only static check; required by PR template
 
 `npm run build:wasm` must run before `npm run build` to compile the Rust crypto crate to WASM. `npx tsc --noEmit` is the only static check; `npm run build` is the only verification before opening a PR. The PR template (`.github/PULL_REQUEST_TEMPLATE.md`) requires `npx tsc --noEmit` to pass.
 
-## What is CrytoTool
+## What is Privon Vault
 
-- **Project name:** CrytoTool
-- **npm name:** `crytotool-vault` (`package.json` line 2, `"private": true`)
-- **Tauri product name:** `CrytoTool`
-- **Tauri identifier:** `com.crytotool.vault`
+- **Project name:** Privon Vault
+- **npm name:** `privon-vault` (`package.json` line 2, `"private": true`)
+- **Tauri product name:** `Privon Vault`
+- **Tauri identifier:** `com.privon.vault`
 - **Version:** `2.5.0-beta` (synced across `package.json`, `src-tauri/tauri.conf.json`; `src-tauri/Cargo.toml` uses `2.5.0`)
-- **Repo:** `https://github.com/ObscuritySecurity/CrytoTool`
+- **Repo:** `https://github.com/privonn/PrivonVault`
 - **Owner / Architect:** `wtshex1` (per `README.md` line 49)
 - **AI agent:** `Scuris` — autonomous agent that implements features, documentation, and fixes
 - **License:** `AGPL-3.0`
 - **Tagline:** "All-in-One Privacy — no tracking, no ads, no data collection"
-- **Mission:** "CrytoTool respects the people behind the screen. It's a four-in-one, client-side encrypted file manager, gallery, music player, and document viewer where your privacy comes first."
+- **Mission:** "Privon Vault respects the people behind the screen. It's a four-in-one, client-side encrypted file manager, gallery, music player, and document viewer where your privacy comes first."
 - **Made in:** `🇷🇴 Made with ❤️ in România`
 
 ## Supported Platforms
@@ -80,14 +80,14 @@ npx tsc --noEmit   # The only static check; required by PR template
 - **JS bridge:** `crypto-core/index.ts` (269 lines) wraps `pkg/crypto_core.js` (wasm-bindgen output) with 50+ exported functions
 
 ### Storage
-- **IndexedDB:** Via `crypto-core/db.ts` (305 lines). `DB_NAME = 'CrytoToolVault'`, `DB_VERSION = 3`, single object store `'files'`. Methods: `init, addItem, updateItem, getAllItems, deleteItem, clearDatabase, exportDatabase, importDatabase`. v3 migration encrypts legacy metadata. On addItem/updateItem, metadata is encrypted via `metadata_encrypt()` and fileData via `encrypt()`.
+- **IndexedDB:** Via `crypto-core/db.ts` (305 lines). `DB_NAME = 'PrivonVault'`, `DB_VERSION = 3`, single object store `'files'`. Methods: `init, addItem, updateItem, getAllItems, deleteItem, clearDatabase, exportDatabase, importDatabase`. v3 migration encrypts legacy metadata. On addItem/updateItem, metadata is encrypted via `metadata_encrypt()` and fileData via `encrypt()`.
 - **localStorage keys:**
-  - `crytotool_salt`, `crytotool_vault_wrappers` (master + recovery key wrappers)
-  - `crytotool_crypto_metadata` (master_salt + recovery_salts + tier)
-  - `crytotool_blur_time`, `crytotool_lock_time`, `crytotool_prog_lock_time`, `crytotool_prog_attempts`
-  - `crytotool_vault_enabled`, `crytotool_vault_pin_hash`, `crytotool_vault_cats`, `crytotool_vault_keys` (encrypted JSON)
-  - `crytotool_ad_enabled`, `crytotool_ad_attempts`, `crytotool_ad_inactivity`, `crytotool_ad_countdown`
-  - `crytotool_destruct_time`, `crytotool_last_activity`
+  - `privon_salt`, `privon_vault_wrappers` (master + recovery key wrappers)
+  - `privon_crypto_metadata` (master_salt + recovery_salts + tier)
+  - `privon_blur_time`, `privon_lock_time`, `privon_prog_lock_time`, `privon_prog_attempts`
+  - `privon_vault_enabled`, `privon_vault_pin_hash`, `privon_vault_cats`, `privon_vault_keys` (encrypted JSON)
+  - `privon_ad_enabled`, `privon_ad_attempts`, `privon_ad_inactivity`, `privon_ad_countdown`
+  - `privon_destruct_time`, `privon_last_activity`
   - `app_language`, `app_region`, `app_theme_config`, `app_font_config`, `theme_accent`, `app_accent_manual`
 - **Randomness:** `window.crypto.getRandomValues` for all IVs/salts in JS layer; `rand` Rust crate inside crypto-core.
 
@@ -199,7 +199,7 @@ CrytoTool/
 │   ├── Cargo.toml                # 30 lines
 │   ├── tauri.conf.json           # 39 lines; productName, identifier, transparent window
 │   ├── build.rs
-│   ├── crytotool.desktop
+│   ├── privon.desktop
 │   ├── src/
 │   │   ├── main.rs               # 6 lines
 │   │   ├── lib.rs                # 276 lines; 38 Tauri commands + WebKit workarounds
