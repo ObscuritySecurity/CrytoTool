@@ -157,7 +157,7 @@ jobs:
           gpg --verify SHA256SUMS.asc SHA256SUMS
 
       - name: Upload AppImage + checksums + signature to release
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
+        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'PrivonVault ${{ github.ref_name }}'
