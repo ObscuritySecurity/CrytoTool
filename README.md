@@ -37,21 +37,13 @@ File names, tags, and metadata are encrypted — not just file contents. It work
 
 Privon Vault is compliant with the [Protocol-3305](https://github.com/ObscuritySecurity/protocol-3305) and respects all its principles.
 
-### Intuitive Flow
 
 Privon Vault adapts to your needs and your individual threat model configures settings, features, technical parameters, and even the interface because security should not be reserved exclusively for experts with a very intuitive and visually pleasing design based on liquid glass.
 
 The glass interface is extremely intuitive — welcome screen, choose threat model, and the application configures everything for you. Models include Everyday Privacy — with subcategories for higher threat models: Journalists, Activists, Whistleblowers.
 
 Attention: high threat models are disabled by default until audit. We do not put lives at risk and do not create false impressions.
-
-### Glass Design Meets Security
-
-Frosted surfaces, fluid transitions, and layered depth are not just visual. They make security feel tactile, not intimidating. A beautiful interface that never compromises on protection.
-
-### Threat‑Model Driven
-
-Higher threat models are disabled by default. We will not enable them until a formal third‑party audit confirms they are safe — we do not risk lives or create false impressions.
+impressions.
 
 See the full [Threat Model & Security Features](https://github.com/privonn/PrivonVault/blob/main/docs/SECURITY.md) for details.
 
